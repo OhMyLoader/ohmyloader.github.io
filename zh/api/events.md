@@ -25,16 +25,27 @@ class MyMod : OMLModInitializer {
 Events.CLIENT_TICK.register { /* 每逻辑帧 */ }
 ```
 
-| 事件               | 触发时机                        | 可取消 | 字段                                                   |
-|--------------------|---------------------------------|--------|--------------------------------------------------------|
-| `CLIENT_TICK`      | 客户端每逻辑 tick               | –      | –                                                      |
-| `SERVER_TICK`      | 服务端每逻辑 tick（专用服务端） | –      | –                                                      |
-| `FRAME_RATE_LIMIT` | 每帧帧率上限计算                | –      | `currentLimit: Int`、可写 `limit: Int`（改写帧率上限） |
-| `GUI_OPEN`         | 任意 GUI 显示前                 | ✅     | `screen: OMLScreen?`（null = 当前 GUI 正在关闭）       |
-| `CHAT_SENT`        | 玩家发送聊天消息                | ✅     | `message: String`                                      |
-| `CHAT_RECEIVED`    | 收到聊天消息（显示前）          | ✅     | `message: String`                                      |
-| `WORLD_LOAD`       | 进入世界 / 断开连接             | –      | `world: OMLWorld?`（null = 断开）                      |
-| `HUD_RENDER`       | 世界已加载时每帧一次            | –      | `graphics: OMLGuiGraphics`                             |
+| 事件               | 触发时机                                            | 可取消 | 字段                                                                     |
+|--------------------|-----------------------------------------------------|--------|--------------------------------------------------------------------------|
+| `CLIENT_TICK`      | 客户端每逻辑 tick                                   | –      | –                                                                        |
+| `SERVER_TICK`      | 服务端每逻辑 tick（专用或集成）                     | –      | –                                                                        |
+| `SERVER_STARTED`   | 每次服务端启动，在其首个 tick                       | –      | `server: OMLServer`                                                      |
+| `SERVER_STOPPING`  | 每次关闭，在存档保存与循环退出之前                  | –      | `server: OMLServer`                                                      |
+| `PLAYER_JOINED`    | 玩家完成进入世界                                    | –      | `player: OMLPlayer`                                                      |
+| `PLAYER_LEFT`      | 玩家正在离开                                        | –      | `player: OMLPlayer`                                                      |
+| `FRAME_RATE_LIMIT` | 每帧帧率上限计算                                    | –      | `currentLimit: Int`、可写 `limit: Int`（改写帧率上限）                    |
+| `GUI_OPEN`         | 任意 GUI 显示前                                     | ✅     | `screen: OMLScreen?`（null = 当前 GUI 正在关闭）                          |
+| `CHAT_SENT`        | 玩家发送聊天消息                                    | ✅     | `message: String`                                                        |
+| `CHAT_RECEIVED`    | 收到聊天消息（显示前）                              | ✅     | `message: String`                                                        |
+| `WORLD_LOAD`       | 进入世界 / 断开连接                                 | –      | `world: OMLWorld?`（null = 断开）                                        |
+| `HUD_RENDER`       | 世界已加载时每帧一次                                | –      | `graphics: OMLGuiGraphics`                                               |
+| `BLOCK_BREAK`      | 玩家即将破坏一个方块                                | ✅     | `player`、`position: OMLBlockPos`、`blockId: String`                      |
+| `ENTITY_ATTACK`    | 玩家的一次攻击落到实体上                            | ✅     | `player`、`target: OMLEntity`                                             |
+| `ENTITY_INTERACT`  | 玩家右键实体                                        | ✅     | `player`、`target: OMLEntity`、`hand: String`（`main_hand` / `off_hand`） |
+| `LIVING_HURT`      | 伤害即将作用到某个生物实体                          | ✅     | `entity`、`amount: Float`、`damageType: String`、`attacker: OMLEntity?`   |
+| `LIVING_DIED`      | 生物实体的死亡流程启动                              | ✅     | `entity`、`damageType: String`                                             |
+
+这些字段背后的投影类型见[世界、玩家与实体 API](/zh/api/world)；事件递来的是游戏自身的对象，不是副本。
 
 ### 示例
 
@@ -66,7 +77,32 @@ Events.WORLD_LOAD.register { event ->
 }
 ```
 
+限制谁能破坏方块：
+
+```kotlin
+Events.BLOCK_BREAK.register { event ->
+    if (event.position == spawnPedestal) {
+        event.cancel()
+        event.player.sendSystemMessage("这块不动。")
+    }
+}
+```
+
+### 取消意味着什么
+
+- `BLOCK_BREAK`——破坏被拒绝，游戏按自己的预测重新同步，玩家看到方块弹回原位；mod 不需要发包。
+- `ENTITY_ATTACK`——整次挥击都被跳过：伤害、击退、暴击、音效与动画。
+- `ENTITY_INTERACT`——原版按「那里没有实体」继续，于是这次点击落到它后面的方块上。
+- `LIVING_HURT`——伤害完全不生效。`amount` 是原版算出的值，可读而不可改写：事件只接收参数，无法改动
+  它收到的那个参数。
+- `LIVING_DIED`——死亡流程停止，实体停在 0 血，直到下一次伤害重新走一遍判定；原版不死图腾就是这一
+  形状。
+- `GUI_OPEN` / `CHAT_SENT` / `CHAT_RECEIVED`——GUI 不打开 / 消息不发出 / 不显示。
+
 ::: tip
-专用服务端没有客户端事件源：`CLIENT_TICK` / `GUI_OPEN` / `FRAME_RATE_LIMIT` / `HUD_RENDER` 只会在客户端触发，
-`SERVER_TICK` 只在专用服务端触发。同一份 mod 源码双端运行时无需自行判边。
+专用服务端没有客户端事件源：`CLIENT_TICK` / `GUI_OPEN` / `FRAME_RATE_LIMIT` / `HUD_RENDER` /
+`WORLD_LOAD` 只在客户端触发；而 `SERVER_TICK`、生命周期事件（`SERVER_STARTED` / `SERVER_STOPPING` /
+`PLAYER_JOINED` / `PLAYER_LEFT`）与交互事件都在服务端线程派发——专用服务端如此，单人游戏的集成服务端
+亦然（它就跑在客户端进程里）。连到远端服务器的客户端收不到任何交互事件：它们所钩的代码不在那个进程
+里。同一份 mod 源码双端运行仍无需自行判边。
 :::

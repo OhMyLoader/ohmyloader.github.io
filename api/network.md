@@ -107,8 +107,9 @@ not who it is. A server handler that needs to trust an identity reads this field
 
 ::: warning Handlers run on the network thread
 Both inbound handlers fire on the packet thread, not the server or client thread. Record state, or
-answer with another payload; do not touch the level, the player list or a screen from here. OML has
-no main-thread scheduler yet.
+answer with another payload; do not touch the level, the player list or a screen from here. Work that
+belongs on the game thread goes to the [Tick Scheduler](/api/scheduler) — queueing there is safe from
+any thread.
 :::
 
 Channels are published into the game's **play-phase** payload registry. The configuration phase

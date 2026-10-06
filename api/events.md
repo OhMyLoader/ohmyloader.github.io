@@ -29,16 +29,28 @@ projection of it — reading it lets a later handler observe an earlier one's de
 Events.CLIENT_TICK.register { /* every logical tick */ }
 ```
 
-| Event              | Fired                                        | Cancellable | Fields                                                           |
-|--------------------|----------------------------------------------|-------------|------------------------------------------------------------------|
-| `CLIENT_TICK`      | every client logical tick                    | –           | –                                                                |
-| `SERVER_TICK`      | every server logical tick (dedicated server) | –           | –                                                                |
-| `FRAME_RATE_LIMIT` | every frame's frame-rate calculation         | –           | `currentLimit: Int`, writable `limit: Int` (overrides the limit) |
-| `GUI_OPEN`         | before any GUI is shown                      | ✅          | `screen: OMLScreen?` (null = the current GUI is being closed)    |
-| `CHAT_SENT`        | the player sends a chat message              | ✅          | `message: String`                                                |
-| `CHAT_RECEIVED`    | a chat message is received (before display)  | ✅          | `message: String`                                                |
-| `WORLD_LOAD`       | entering a world / disconnecting             | –           | `world: OMLWorld?` (null = disconnected)                         |
-| `HUD_RENDER`       | once per frame while a world is loaded       | –           | `graphics: OMLGuiGraphics`                                       |
+| Event              | Fired                                                                 | Cancellable | Fields                                                                     |
+|--------------------|-----------------------------------------------------------------------|-------------|------------------------------------------------------------------------------|
+| `CLIENT_TICK`      | every client logical tick                                             | –           | –                                                                          |
+| `SERVER_TICK`      | every server logical tick (dedicated or integrated)                   | –           | –                                                                          |
+| `SERVER_STARTED`   | once per server start, on its first tick                              | –           | `server: OMLServer`                                                        |
+| `SERVER_STOPPING`  | once per shutdown, before the worlds are saved                        | –           | `server: OMLServer`                                                        |
+| `PLAYER_JOINED`    | a player finished entering the world                                  | –           | `player: OMLPlayer`                                                        |
+| `PLAYER_LEFT`      | a player is leaving                                                   | –           | `player: OMLPlayer`                                                        |
+| `FRAME_RATE_LIMIT` | every frame's frame-rate calculation                                  | –           | `currentLimit: Int`, writable `limit: Int` (overrides the limit)           |
+| `GUI_OPEN`         | before any GUI is shown                                               | ✅          | `screen: OMLScreen?` (null = the current GUI is being closed)              |
+| `CHAT_SENT`        | the player sends a chat message                                       | ✅          | `message: String`                                                          |
+| `CHAT_RECEIVED`    | a chat message is received (before display)                           | ✅          | `message: String`                                                          |
+| `WORLD_LOAD`       | entering a world / disconnecting                                      | –           | `world: OMLWorld?` (null = disconnected)                                   |
+| `HUD_RENDER`       | once per frame while a world is loaded                                | –           | `graphics: OMLGuiGraphics`                                                 |
+| `BLOCK_BREAK`      | a player is about to destroy a block                                  | ✅          | `player`, `position: OMLBlockPos`, `blockId: String`                       |
+| `ENTITY_ATTACK`    | a player's attack landed on an entity                                 | ✅          | `player`, `target: OMLEntity`                                              |
+| `ENTITY_INTERACT`  | a player right-clicked an entity                                      | ✅          | `player`, `target: OMLEntity`, `hand: String` (`main_hand` / `off_hand`)   |
+| `LIVING_HURT`      | damage is about to be applied to a living entity                      | ✅          | `entity`, `amount: Float`, `damageType: String`, `attacker: OMLEntity?`    |
+| `LIVING_DIED`      | a living entity's death routine is starting                           | ✅          | `entity`, `damageType: String`                                             |
+
+The projection types behind these fields are on the [World, Player & Entity
+API](/api/world) page; the payload fields are the game's own objects, not copies.
 
 ### Examples
 
@@ -70,8 +82,37 @@ Events.WORLD_LOAD.register { event ->
 }
 ```
 
+Gating who may break a block:
+
+```kotlin
+Events.BLOCK_BREAK.register { event ->
+    if (event.position == spawnPedestal) {
+        event.cancel()
+        event.player.sendSystemMessage("That one stays.")
+    }
+}
+```
+
+### What cancelling does
+
+- `BLOCK_BREAK` — the break is refused and the game resyncs its own prediction, so the block visibly
+  snaps back. The mod sends nothing.
+- `ENTITY_ATTACK` — the whole swing is skipped: damage, knockback, crit, sound and animation.
+- `ENTITY_INTERACT` — vanilla proceeds as though the entity were not there, so the click falls through
+  to the block behind it.
+- `LIVING_HURT` — the damage is not applied at all. `amount` is what vanilla computed and can be read
+  but not rewritten: an event cannot change a parameter it only receives.
+- `LIVING_DIED` — the death routine stops and the entity stays at zero health until the next damage
+  re-runs the check; that is the shape of the game's own totem path.
+- `GUI_OPEN`, `CHAT_SENT`, `CHAT_RECEIVED` — the GUI does not open / the message is not sent / it is
+  not displayed.
+
 ::: tip
-The dedicated server has no client event sources: `CLIENT_TICK`, `GUI_OPEN`, `FRAME_RATE_LIMIT` and
-`HUD_RENDER` only fire on the client, while `SERVER_TICK` only fires on the dedicated server. A mod
-built for both sides needs no side checks of its own.
+The dedicated server has no client event sources: `CLIENT_TICK`, `GUI_OPEN`, `FRAME_RATE_LIMIT`,
+`HUD_RENDER` and `WORLD_LOAD` only fire on the client, while `SERVER_TICK`, the lifecycle events
+(`SERVER_STARTED` / `SERVER_STOPPING` / `PLAYER_JOINED` / `PLAYER_LEFT`) and the interaction events are
+dispatched on the server thread — on a dedicated server, and on singleplayer's integrated server,
+which runs inside the client process. A client connected to a remote server receives none of the
+interaction events: the code they hook does not run in that process. A mod built for both sides still
+needs no side checks of its own.
 :::
