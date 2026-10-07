@@ -126,8 +126,9 @@ Weather is **one record for the whole server**, and each dimension ramps a level
 `isRaining` / `isThundering` read that live level — the game moves it by 0.01 per tick and calls it raining
 above 0.2, thundering above 0.9 — so a fresh write shows up twenty-odd ticks later for rain and after
 roughly a hundred for thunder. Thunder is scaled by the rain level, so it cannot be set without rain:
-`setWeather(raining = false, thundering = true)` is refused. A dimension without an open sky never reads
-either flag, however the record is set.
+`setWeather(raining = false, thundering = true)` is refused. Only a dimension with an open sky can have
+weather at all — the game's own check excludes the End by name — so elsewhere neither flag ever reads true,
+however the record is set.
 
 ```kotlin
 OMLGame.server?.level("minecraft:overworld")?.setWeather(raining = true, durationTicks = 600)

@@ -116,7 +116,8 @@ cow?.velocity = OMLVec3(0.6, 0.0, 0.0)             // 游戏把它积分进位�
 天气是**整个服务端共用一份记录**，每个维度各自把自己的等级斜坡向它。`isRaining` / `isThundering` 读的就是
 这个实时等级：游戏每 tick 移动 0.01，超过 0.2 算下雨、超过 0.9 算打雷，所以一次写入要二十几个 tick 后才
 显出雨、上百 tick 后才显出雷。雷的等级被雨等级缩放，因而无法脱离雨单独设置——`setWeather(raining = false,
-thundering = true)` 会被拒。没有开阔天空的维度，无论记录怎么写都读不到这两个标记。
+thundering = true)` 会被拒。只有开阔天空的维度才可能有天气——游戏自己的判定按名字把末地排除在外——因此
+其他维度无论记录怎么写都读不到这两个标记。
 
 ```kotlin
 OMLGame.server?.level("minecraft:overworld")?.setWeather(raining = true, durationTicks = 600)
