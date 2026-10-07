@@ -193,8 +193,14 @@ OMLRegistries.blocks.tagged("minecraft:dirt")            // 带该标签的 id �
 OMLRegistries.blocks.tagsOf("minecraft:stone")           // 该 id 属于哪些标签
 ```
 
-开放五张表：`blocks`、`items`、`mobEffects`、`sounds`、`entityTypes`。未注册的 id 对 `contains` 返回
-`false`，对 `tagged` / `tagsOf` 返回空列表，写错的 id 是安静的「没有」，不是异常。
+开放七张表：`blocks`、`items`、`mobEffects`、`sounds`、`entityTypes`、`attributes`、`damageTypes`。
+未注册的 id 对 `contains` 返回 `false`，对 `tagged` / `tagsOf` 返回空列表，写错的 id 是安静的「没有」，
+不是异常。
+
+::: warning 伤害类型要有运行中的服务端
+`damageTypes` 是唯一不在游戏内置表里的：它由数据包加载，所以在服务端存在之前读它会抛出一条指名道姓的
+错误，而不是回一个空列表——空列表会谎称「这些伤害类型都不存在」。
+:::
 
 ::: warning 要等游戏起来再读
 这些表由游戏自身的 bootstrap 填充，而 mod 的初始化跑在它前面——在 `onInitialize` 里读它们，失败方式

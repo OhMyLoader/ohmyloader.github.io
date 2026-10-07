@@ -57,6 +57,7 @@ it follows from where the event handed it to you.
 | `entities`            | the entities the level holds — a server's live list, a client's render list |
 | `entitiesOfType(id)`  | the entities whose type id matches, e.g. `minecraft:cow`                 |
 | `spawnEntity(id, x, y, z)` | puts a registered entity in a server world; null when it cannot       |
+| `spawnLivingEntity(id, x, y, z)` | the same for a mob — the handle carries health and attributes      |
 | `blockStateAt(pos)`   | the block **and its property values** at a loaded position, else null    |
 | `setBlockState(pos, state)` | places a state, neighbour updates and client resync included         |
 | `spawnParticles(id, x, y, z, count, offsetX, offsetY, offsetZ, speed)` | sends a simple particle out from a server world |
@@ -94,8 +95,10 @@ not allow is refused exactly as the command refuses it.
 
 `spawnEntity` puts a registered entity into a **server** world through the game's own spawn path (the
 reason `/summon` passes), so the despawn and event rules apply to it like to any other mob; it answers
-null for an unregistered id or a client-side level. `entities` and `entitiesOfType` read the level's own
-list, so what you spawned comes back out of the query it entered.
+null for an unregistered id or a client-side level. `spawnLivingEntity` is the same call for the types the
+game makes living, and answers null for a projectile rather than handing one over as a healthless entity —
+which is how a mod reaches health, attributes and fire without casting. `entities` and `entitiesOfType`
+read the level's own list, so what you spawned comes back out of the query it entered.
 
 ```kotlin
 val cow = world.spawnEntity("minecraft:cow", x, y, z)
@@ -140,10 +143,41 @@ level while its connection keeps pointing at it.
 | `applyEffect(id, durationTicks, amplifier)` | applies it, false for an unregistered id    |
 | `removeEffect(id)`| takes it off; false when the id is unknown or it was not on it        |
 | `heal(amount)`    | restores health the way the game's own healing does                   |
+| `attributeValue(id)` / `attributeBase(id)` | the game's computed value (base + modifiers) and the base alone, by attribute id (`minecraft:max_health`) |
+| `setAttributeBase(id, value)` | writes the base; the game clamps it and applies its own consequence |
+| `addAttributeModifier(attributeId, modifierId, amount, operation)` | a permanent modifier the game keeps until removed |
+| `removeAttributeModifier(attributeId, modifierId)` | takes it off again; false when nothing was held under that id |
+| `hurt(damageTypeId, amount, attacker?)` | deals damage through the game's own damage path |
+| `fireTicks` / `setOnFire(ticks)` / `clearFire()` | the game's burning state, read and written |
 
 `effects` reports the **remaining** duration in ticks and a zero-based amplifier, so `amplifier = 0` is
 level I. Re-applying an effect that is already there follows the game's own merge rule rather than
 replacing it.
+
+### Attributes, dealt damage and fire
+
+Health, speed and attack damage are the game's own attributes, addressed by registry id
+(`minecraft:max_health`, `minecraft:attack_damage` — `OMLRegistries.attributes` lists them).
+`attributeValue` is what the game computes including modifiers; `attributeBase` and `setAttributeBase`
+are the number underneath, and the game clamps a write into the attribute's range and applies its own
+consequence: raising the maximum-health base moves the health **cap** the entity reports, and does not
+refill the health itself.
+
+```kotlin
+living.setAttributeBase("minecraft:max_health", 30.0)   // the game now caps health at 30
+living.addAttributeModifier("minecraft:attack_damage", "my_mod:buff", 4.0, "add_value")
+living.removeAttributeModifier("minecraft:attack_damage", "my_mod:buff")
+```
+
+A modifier is permanent in the game's own sense: it stays until removed, and adding one under an id the
+attribute already holds replaces it. The three operations are the game's, named in lower case —
+`add_value`, `add_multiplied_base`, `add_multiplied_total`.
+
+`hurt(damageTypeId, amount, attacker)` deals damage through the game's damage path, and it arrives at the
+same `LIVING_HURT` hook an attack does — so a handler can cancel it or rewrite the number, and there is no
+way for a mod to bypass the rules it enforces. `setOnFire(ticks)` / `clearFire()` answer with the game's
+own burning state, which is how a fire-immune mob reports back: asking it to light is a `false`, not a
+silently ignored call.
 
 | `OMLPlayer`                     | Meaning                                                       |
 |---------------------------------|---------------------------------------------------------------|

@@ -54,6 +54,7 @@ val client = OMLGame.client   // 专用服务端上为 null
 | `entities`          | 这个世界持有的实体——服务端是实时列表，客户端是它渲染的列表 |
 | `entitiesOfType(id)`| 类型 id 匹配的实体，如 `minecraft:cow`                             |
 | `spawnEntity(id, x, y, z)` | 在服务端世界放入一个已注册实体；做不到时返回 null               |
+| `spawnLivingEntity(id, x, y, z)` | 同上的「活体」版——句柄带血量与属性                      |
 | `blockStateAt(pos)` | 已加载位置上「方块 + 属性值」的状态，未加载返回 null                |
 | `setBlockState(pos, state)` | 放置一个状态，含邻居更新与客户端同步                          |
 | `spawnParticles(id, x, y, z, count, offsetX, offsetY, offsetZ, speed)` | 从服务端世界发出一个简单粒子 |
@@ -88,6 +89,8 @@ world.blockStateAt(pos)?.value("facing")           // "east"
 
 `spawnEntity` 通过游戏自己的生成路径把已注册实体放进**服务端**世界（用的正是 `/summon` 传的 reason），
 因此消失规则与事件规则对它和其他怪物一视同仁；id 未注册或这是客户端世界时返回 null。
+`spawnLivingEntity` 是同一个调用用于「游戏视为活体」的那些类型，对投射物它如实返回 null，而不是交出一个
+没有血量的实体冒充活体——mod 由此不经类型转换就能拿到血量、属性与燃烧状态。
 `entities` 与 `entitiesOfType` 读的是世界自己的列表，生成的实体会从它进入的那个查询里查回来。
 
 ```kotlin
@@ -130,9 +133,36 @@ cow?.velocity = OMLVec3(0.6, 0.0, 0.0)             // 游戏把它积分进位�
 | `applyEffect(id, durationTicks, amplifier)` | 施加效果；id 未注册返回 false            |
 | `removeEffect(id)`| 摘掉效果；id 未知或本来就没有时返回 false                               |
 | `heal(amount)`    | 按游戏自身的回血方式恢复血量                                            |
+| `attributeValue(id)` / `attributeBase(id)` | 游戏算出的值（含修正）与只看基础值，按属性 id（`minecraft:max_health`） |
+| `setAttributeBase(id, value)` | 写基础值；游戏把它夹进自己的范围并施加自己的后果 |
+| `addAttributeModifier(attributeId, modifierId, amount, operation)` | 常驻修正，直到被移除 |
+| `removeAttributeModifier(attributeId, modifierId)` | 再摘掉；该 id 下本没有修正时返回 false              |
+| `hurt(damageTypeId, amount, attacker?)` | 通过游戏自己的伤害路径造成伤害                        |
+| `fireTicks` / `setOnFire(ticks)` / `clearFire()` | 读与写游戏自己的燃烧状态                          |
 
 `effects` 报的是**剩余**时长（tick）和从 0 起的等级，所以 `amplifier = 0` 是一级。对已有的效果再次
 `applyEffect` 遵循游戏自身的合并规则，不是简单覆盖。
+
+### 属性、主动伤害与点火
+
+血量、速度、攻击力都是游戏自己的属性，按注册表 id 寻址（`minecraft:max_health`、
+`minecraft:attack_damage`——`OMLRegistries.attributes` 可列出全部）。`attributeValue` 是游戏含修正后的
+计算值，`attributeBase` / `setAttributeBase` 是底下那个基础值；写入会被游戏夹进该属性的取值范围，后果也
+由游戏自己施加：抬高最大生命的**基础值**会改变实体报告的生命上限，但不会因此回血。
+
+```kotlin
+living.setAttributeBase("minecraft:max_health", 30.0)   // 游戏从此把血量夹到 30
+living.addAttributeModifier("minecraft:attack_damage", "my_mod:buff", 4.0, "add_value")
+living.removeAttributeModifier("minecraft:attack_damage", "my_mod:buff")
+```
+
+「常驻」用的是游戏自己的语义：它留在属性上直到被移除，而同 id 的修正再次添加是覆盖。三种操作按游戏自己的
+名字小写书写：`add_value`、`add_multiplied_base`、`add_multiplied_total`。
+
+`hurt(damageTypeId, amount, attacker)` 经游戏自己的伤害路径造成损伤，它和怪物攻击落进同一个
+`LIVING_HURT` 钩子——所以同样能被取消、被改写数值，mod 没法借此绕过这些规则。`setOnFire(ticks)` /
+`clearFire()` 以游戏自己的燃烧状态作答，这正是防火实体回话的方式：请它燃烧得到的是 `false`，而不是
+一声不响地被忽略。
 
 | `OMLPlayer`                     | 含义                                                       |
 |---------------------------------|------------------------------------------------------------|

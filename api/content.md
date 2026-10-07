@@ -204,9 +204,15 @@ OMLRegistries.blocks.tagged("minecraft:dirt")            // ids carrying this ta
 OMLRegistries.blocks.tagsOf("minecraft:stone")           // tags this id belongs to
 ```
 
-Five tables are published: `blocks`, `items`, `mobEffects`, `sounds`, `entityTypes`. An unregistered id
-answers `false` to `contains` and an empty list to `tagged` / `tagsOf`, so a typo is a quiet no rather
-than a failure.
+Seven tables are published: `blocks`, `items`, `mobEffects`, `sounds`, `entityTypes`, `attributes` and
+`damageTypes`. An unregistered id answers `false` to `contains` and an empty list to `tagged` / `tagsOf`,
+so a typo is a quiet no rather than a failure.
+
+::: warning Damage types need a running server
+`damageTypes` is the one table that is not built into the game: it is loaded from datapacks, so reading it
+before a server exists fails with a named error instead of returning an empty list — which would be a lie
+about the damage types that exist.
+:::
 
 ::: warning Read them after the game is up
 The tables are filled by the game's own bootstrap, and a mod's initialization runs ahead of that —
