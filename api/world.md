@@ -29,6 +29,8 @@ handles and needs no side check.
 | `playerByName(name)`          | the online player with that scoreboard name, or null              |
 | `level(dimensionId)`          | the loaded level of that dimension, null when it is not loaded     |
 | `broadcast(text)`             | shows `text` in every connected player's chat                     |
+| `gameRule(ruleId)`            | that rule's value as the game spells it (`"true"`), null for an unregistered id |
+| `setGameRule(ruleId, value)`  | writes it with the game's own serializer; false for an unknown id or a value that does not parse |
 
 ### `OMLClient`
 
@@ -61,6 +63,9 @@ it follows from where the event handed it to you.
 | `blockStateAt(pos)`   | the block **and its property values** at a loaded position, else null    |
 | `setBlockState(pos, state)` | places a state, neighbour updates and client resync included         |
 | `spawnParticles(id, x, y, z, count, offsetX, offsetY, offsetZ, speed)` | sends a simple particle out from a server world |
+| `spawnItemParticles` / `spawnBlockParticles` / `spawnDustParticles` | the same for a particle that needs arguments |
+| `isRaining` / `isThundering`  | whether this dimension's live weather reads as raining / thundering |
+| `setWeather(raining, thundering, durationTicks)` | asks the server's weather record for that state |
 
 ::: warning Block writes need a server-side world
 `setBlock` on the client's level changes a prediction the server overwrites on the next update, so it
@@ -105,9 +110,47 @@ val cow = world.spawnEntity("minecraft:cow", x, y, z)
 cow?.velocity = OMLVec3(0.6, 0.0, 0.0)             // the game integrates this into the position
 ```
 
-`spawnParticles` sends a particle out from a server world to every client in range. It answers false for
-a particle whose type needs arguments of its own — a dust colour, an item stack — because a bare registry
-id cannot carry them; those go through the game's options object on `platform`.
+`spawnParticles` sends a particle out from a server world to every client in range. `count` of 0 means one
+particle at the exact position — the game's own convention — and a larger count spreads that many through
+the offset box; `speed` is the game's per-particle parameter, whose meaning belongs to the particle type.
+
+A particle that needs arguments of its own cannot be addressed by a bare id, so `spawnParticles` refuses it
+and three named calls build the options object for it: `spawnItemParticles` shows an item's texture
+breaking, `spawnBlockParticles` the default state of a block, `spawnDustParticles` a `0xRRGGBB` colour at a
+size. All four go through the game's own send path and answer false for an unregistered id or a client-side
+level, where the game takes the particle from the server instead.
+
+## Weather and game rules
+
+Weather is **one record for the whole server**, and each dimension ramps a level of its own toward it.
+`isRaining` / `isThundering` read that live level — the game moves it by 0.01 per tick and calls it raining
+above 0.2, thundering above 0.9 — so a fresh write shows up twenty-odd ticks later for rain and after
+roughly a hundred for thunder. Thunder is scaled by the rain level, so it cannot be set without rain:
+`setWeather(raining = false, thundering = true)` is refused. A dimension without an open sky never reads
+either flag, however the record is set.
+
+```kotlin
+OMLGame.server?.level("minecraft:overworld")?.setWeather(raining = true, durationTicks = 600)
+world.isRaining                                     // false for ~20 ticks, then true — the ramp is the game's
+```
+
+`durationTicks` is how long the game holds the state before its own cycle takes over; 0 lets the game pick
+a duration, the way `/weather` without one does. The write goes through the same entry the command calls,
+so a clear timer that would otherwise veto the new state is cleared with it. A client-side level answers
+false: it shows the weather the server tells it about, it does not own any.
+
+Game rules are addressed by their registry id in the game's own spelling (`minecraft:keep_inventory`) and
+read or written as the game spells the value (`"true"`, `"3"`) — `OMLRegistries.gameRules` lists the ids.
+
+```kotlin
+val server = OMLGame.server ?: return
+server.gameRule("minecraft:keep_inventory")          // "false"
+server.setGameRule("minecraft:keep_inventory", "true")
+server.setGameRule("minecraft:keep_inventory", "3")  // false: a boolean rule will not parse that
+```
+
+Writing is the game's own `GameRules.set`, so the dimensions it keeps in sync are in sync on its terms;
+`gameRule` answering null for an unregistered id is the only "does this rule exist" check there is.
 
 ## Entities, players, inventories
 

@@ -26,6 +26,8 @@ val client = OMLGame.client   // 专用服务端上为 null
 | `playerByName(name)`          | 该记分板名的在线玩家，不在场返回 null                              |
 | `level(dimensionId)`          | 该维度已加载的世界；未加载返回 null，而不是空世界                    |
 | `broadcast(text)`             | 在每位在线玩家的聊天框显示 `text`                                  |
+| `gameRule(ruleId)`            | 该规则按游戏自己拼写的取值（`"true"`）；id 未注册返回 null          |
+| `setGameRule(ruleId, value)`  | 用游戏自己的序列化器写入；id 未知或值解析不了返回 false             |
 
 ### `OMLClient`
 
@@ -58,6 +60,9 @@ val client = OMLGame.client   // 专用服务端上为 null
 | `blockStateAt(pos)` | 已加载位置上「方块 + 属性值」的状态，未加载返回 null                |
 | `setBlockState(pos, state)` | 放置一个状态，含邻居更新与客户端同步                          |
 | `spawnParticles(id, x, y, z, count, offsetX, offsetY, offsetZ, speed)` | 从服务端世界发出一个简单粒子 |
+| `spawnItemParticles` / `spawnBlockParticles` / `spawnDustParticles` | 同样的事，用于需要自带参数的粒子 |
+| `isRaining` / `isThundering`  | 本维度此刻的天气是否读作下雨 / 打雷                          |
+| `setWeather(raining, thundering, durationTicks)` | 向服务端的天气记录写入这个状态                        |
 
 ::: warning 写方块需要服务端侧的世界
 对客户端世界调用 `setBlock` 改的是服务端下一次更新就会覆盖掉的预测，因此只在服务端世界生效。
@@ -98,8 +103,42 @@ val cow = world.spawnEntity("minecraft:cow", x, y, z)
 cow?.velocity = OMLVec3(0.6, 0.0, 0.0)             // 游戏把它积分进位置
 ```
 
-`spawnParticles` 从服务端世界把粒子发给范围内每个客户端。它需要对自身带参数的粒子（尘埃颜色、掉落物）
-返回 false——光靠注册表 id 表达不了那些参数；那类粒子要经 `platform` 拿游戏的 options 对象。
+`spawnParticles` 从服务端世界把粒子发给范围内每个客户端。`count` 为 0 就是在那个精确位置放一颗（游戏自己的
+约定），更大的数把那么多颗散布在 offset 盒里；`speed` 是游戏的每粒子参数，含义由粒子类型自己决定。
+
+需要自带参数的粒子不是一个光秃秃的 id 能表达的，所以 `spawnParticles` 会拒掉它们，另有三个具名调用替 mod
+把参数对象建好：`spawnItemParticles` 显示某个物品的纹理碎裂，`spawnBlockParticles` 显示某个方块的默认状态，
+`spawnDustParticles` 取一个 `0xRRGGBB` 颜色和一个大小。四者都走游戏自己的发送路径，id 未注册或这是客户端世界
+时返回 false——那种情况下粒子本该由服务端发来。
+
+## 天气与游戏规则
+
+天气是**整个服务端共用一份记录**，每个维度各自把自己的等级斜坡向它。`isRaining` / `isThundering` 读的就是
+这个实时等级：游戏每 tick 移动 0.01，超过 0.2 算下雨、超过 0.9 算打雷，所以一次写入要二十几个 tick 后才
+显出雨、上百 tick 后才显出雷。雷的等级被雨等级缩放，因而无法脱离雨单独设置——`setWeather(raining = false,
+thundering = true)` 会被拒。没有开阔天空的维度，无论记录怎么写都读不到这两个标记。
+
+```kotlin
+OMLGame.server?.level("minecraft:overworld")?.setWeather(raining = true, durationTicks = 600)
+world.isRaining                                     // 约 20 个 tick 内仍是 false，之后才为 true——斜坡是游戏的
+```
+
+`durationTicks` 是游戏在自己的循环接手之前保持该状态的时长；0 让游戏自己挑，正如不带时长的 `/weather`。
+写入走的就是命令自己调用的那个入口，所以原本会否决新状态的「放晴计时」也一并清零。客户端侧的世界返回
+false：它显示服务端播报的天气，自己并不拥有天气。
+
+游戏规则按注册表 id 寻址，用游戏自己的拼法（`minecraft:keep_inventory`），取值也按游戏自己的写法读回
+（`"true"`、`"3"`）——id 清单在 `OMLRegistries.gameRules`。
+
+```kotlin
+val server = OMLGame.server ?: return
+server.gameRule("minecraft:keep_inventory")          // "false"
+server.setGameRule("minecraft:keep_inventory", "true")
+server.setGameRule("minecraft:keep_inventory", "3")  // false：布尔规则解析不了这个
+```
+
+写入就是游戏自己的 `GameRules.set`，哪些维度需要跟着同步由它决定；`gameRule` 对未注册的 id 返回 null，
+这就是唯一可用的「这条规则存在吗」检查。
 
 ## 实体、玩家与物品栏
 

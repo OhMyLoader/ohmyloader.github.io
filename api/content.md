@@ -231,8 +231,9 @@ OMLRegistries.blocks.tagged("minecraft:dirt")            // ids carrying this ta
 OMLRegistries.blocks.tagsOf("minecraft:stone")           // tags this id belongs to
 ```
 
-Seven tables are published: `blocks`, `items`, `mobEffects`, `sounds`, `entityTypes`, `attributes` and
-`damageTypes`. An unregistered id answers `false` to `contains` and an empty list to `tagged` / `tagsOf`,
+Eight tables are published: `blocks`, `items`, `mobEffects`, `sounds`, `entityTypes`, `attributes`,
+`damageTypes` and `gameRules` — the last being the ids [`gameRule` / `setGameRule`](/api/world) take.
+An unregistered id answers `false` to `contains` and an empty list to `tagged` / `tagsOf`,
 so a typo is a quiet no rather than a failure.
 
 ::: warning Damage types need a running server

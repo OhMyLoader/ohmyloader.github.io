@@ -217,7 +217,8 @@ OMLRegistries.blocks.tagged("minecraft:dirt")            // 带该标签的 id �
 OMLRegistries.blocks.tagsOf("minecraft:stone")           // 该 id 属于哪些标签
 ```
 
-开放七张表：`blocks`、`items`、`mobEffects`、`sounds`、`entityTypes`、`attributes`、`damageTypes`。
+开放八张表：`blocks`、`items`、`mobEffects`、`sounds`、`entityTypes`、`attributes`、`damageTypes`、
+`gameRules`——最后一张就是 [`gameRule` / `setGameRule`](/zh/api/world) 所取的 id。
 未注册的 id 对 `contains` 返回 `false`，对 `tagged` / `tagsOf` 返回空列表，写错的 id 是安静的「没有」，
 不是异常。
 
