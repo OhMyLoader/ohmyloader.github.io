@@ -68,6 +68,7 @@ it follows from where the event handed it to you.
 | `isRaining` / `isThundering`  | whether this dimension's live weather reads as raining / thundering |
 | `setWeather(raining, thundering, durationTicks)` | asks the server's weather record for that state |
 | `clock`                       | the clock this dimension runs on, null where the dimension type names none |
+| `containerAt(pos)`            | the storage a block holds, null where the block has none              |
 
 ::: warning Block writes need a server-side world
 `setBlock` on the client's level changes a prediction the server overwrites on the next update, so it
@@ -207,6 +208,49 @@ the game's own clock manager answers an unregistered clock with an exception, an
 the live registry first so a typo cannot reach it.
 :::
 
+## Containers
+
+A chest, barrel, furnace or hopper holds its items in the game's own slot container, and
+`world.containerAt(pos)` hands out a view of it — the same object a player's screen is moving items
+around in, so there is no second copy to fall out of sync.
+
+| `OMLContainer`        | Meaning                                                              |
+|-----------------------|------------------------------------------------------------------------|
+| `platform`            | the underlying `Container`, usually the block entity itself             |
+| `size`                | slots this storage addresses (a chest 27, a furnace 3)                  |
+| `isEmpty`             | whether every slot is empty                                             |
+| `itemAt(slot)`        | the stack there, null for an out-of-range slot                          |
+| `setSlot(slot, id, count)` | writes the slot, or false when the slot refuses it                   |
+| `takeSlot(slot, count)`    | takes up to `count` out and reports what came out                     |
+| `countOf(itemId)`     | how many of that item the storage holds                                 |
+| `canPlace(slot, id, count)` | the storage's own rule, without writing anything                   |
+| `openedBy`            | players the game counts as using this block right now                   |
+
+```kotlin
+val chest = world.containerAt(pos) ?: return           // null: no storage here
+chest.setSlot(0, "minecraft:stone", 5)                  // false if the slot refuses
+chest.takeSlot(0, 3)?.count                             // 3 — the game's own removal
+chest.countOf("minecraft:stone")                        // 2 left
+```
+
+Which slot accepts what is the **block's** decision, not OML's: `canPlace` is the game's own test and
+`setSlot` asks it before writing, so a furnace's output slot and its fuel slot refuse exactly as they
+refuse a player — a write cannot paste over a rule the block enforces. `takeSlot` reports the truth:
+asking for more than the slot holds takes what was there, since the game's removal decides.
+
+::: warning A menu is not a block id
+`OMLPlayer.openedMenuId` names the **menu** the game has that player using, and the two ids differ: a
+single chest opens `minecraft:generic_9x3`, not `minecraft:chest`. Every player always holds the
+inventory menu, which is not an open screen, so it reports null; `closeOpenedMenu()` is the game's own
+close, which also returns the carried stack to the inventory — and answers false when nothing was open.
+:::
+
+::: warning openedBy follows the menu, not the neighbourhood
+The viewer list is the game's own bookkeeping, and a chest gets it from the **menu constructor**, so
+`openedBy` names a player only while a menu actually exists. Standing next to an open chest is not
+being recorded as using it, and `openedBy` on a block nothing has opened is empty rather than nearby.
+:::
+
 ## Entities, players, inventories
 
 `OMLEntity` is anything in a level; `OMLLivingEntity` adds health; `OMLPlayer` adds the player-only
@@ -287,6 +331,8 @@ silently ignored call.
 | `giveItem(itemId, count)`       | puts items in the inventory, false when not everything fit      |
 | `teleport(x, y, z, dimensionId)`| moves them, and across dimensions when an id is given          |
 | `playSound(id, volume, pitch)`  | plays a registered sound so **this** player hears it           |
+| `openedMenuId`                  | the menu the game has them using (`minecraft:generic_9x3`), null at rest |
+| `closeOpenedMenu()`             | closes it through the game's own path; false when nothing was open |
 
 `teleport` is server-authoritative: a client-side player is served through the integrated server's
 counterpart of the same uuid, and false means there was no counterpart to move, the dimension id is

@@ -65,6 +65,7 @@ val client = OMLGame.client   // 专用服务端上为 null
 | `isRaining` / `isThundering`  | 本维度此刻的天气是否读作下雨 / 打雷                          |
 | `setWeather(raining, thundering, durationTicks)` | 向服务端的天气记录写入这个状态                        |
 | `clock`                       | 本维度所运行的时钟；维度类型未指名时钟时为 null                  |
+| `containerAt(pos)`            | 该位置方块所持有的存储；方块没有存储时返回 null                  |
 
 ::: warning 写方块需要服务端侧的世界
 对客户端世界调用 `setBlock` 改的是服务端下一次更新就会覆盖掉的预测，因此只在服务端世界生效。
@@ -191,6 +192,46 @@ clock.setPaused(true)                              // 时钟停下，位置保�
 拿到活注册表里解析，写错的 id 到不了它面前。
 :::
 
+## 容器
+
+箱子、桶、熔炉、漏斗里的物品存在游戏自己的槽位容器里，`world.containerAt(pos)` 交出的就是它的视图——
+和玩家界面搬运物品时操作的是同一个对象，因此不存在第二份会失同步的副本。
+
+| `OMLContainer`        | 含义                                                              |
+|-----------------------|--------------------------------------------------------------------|
+| `platform`            | 底层 `Container`，通常就是方块实体本身                              |
+| `size`                | 该存储可寻址的槽位数（箱子 27、熔炉 3）                             |
+| `isEmpty`             | 是否每个槽位都空                                                    |
+| `itemAt(slot)`        | 该槽位的物品堆；槽位越界返回 null                                   |
+| `setSlot(slot, id, count)` | 写入该槽位；槽位拒绝时返回 false                                |
+| `takeSlot(slot, count)`    | 从中取走至多 `count` 个，并如实报告取走了多少                     |
+| `countOf(itemId)`     | 该存储里这件物品的总数                                              |
+| `canPlace(slot, id, count)` | 存储自己的规则，不做任何写入                                   |
+| `openedBy`            | 游戏此刻记为"正在使用该方块"的玩家                                  |
+
+```kotlin
+val chest = world.containerAt(pos) ?: return           // null：这里没有存储
+chest.setSlot(0, "minecraft:stone", 5)                  // 槽位拒绝则 false
+chest.takeSlot(0, 3)?.count                             // 3——游戏自己的移除
+chest.countOf("minecraft:stone")                        // 还剩 2
+```
+
+哪个槽位收什么东西，是**方块**的决定而不是 OML 的：`canPlace` 用的就是游戏自己的判定，`setSlot` 也在写之前
+先问它，于是熔炉的产出槽与燃料槽拒绝写入的方式和拒绝玩家完全一致——写不进去，正是方块自己在 enforcing 的规则。
+`takeSlot` 同样如实：要得比槽位里有的多，就拿走实际存在的那些，由游戏的移除来定。
+
+::: warning 菜单 id 不是方块 id
+`OMLPlayer.openedMenuId` 报的是游戏让该玩家用的**菜单**，两者并不同名：单个箱子打开的是
+`minecraft:generic_9x3`，而不是 `minecraft:chest`。每位玩家永远持有着物品栏菜单，那不算"打开了界面"，
+所以它报 null；`closeOpenedMenu()` 走的是游戏自己的关闭，顺带把手上那堆物品退回物品栏——本来没开任何东西时
+返回 false。
+:::
+
+::: warning openedBy 跟着菜单，不跟着邻居
+这份"谁在用"的表是游戏自己的记账，而箱子的记账来自**菜单的构造器**，所以只有真的存在菜单时 `openedBy`
+才会列出玩家。站在一个开着的箱子旁边并不算被记为使用它；没人打开过的方块，`openedBy` 是空的而不是"附近的人"。
+:::
+
 ## 实体、玩家与物品栏
 
 `OMLEntity` 是场景里的任何实体；`OMLLivingEntity` 加上血量；`OMLPlayer` 再加上玩家专属的面。三者
@@ -264,6 +305,8 @@ living.removeAttributeModifier("minecraft:attack_damage", "my_mod:buff")
 | `giveItem(itemId, count)`       | 往物品栏放入物品，放不下时返回 false                        |
 | `teleport(x, y, z, dimensionId)`| 移动玩家；给出维度 id 时同时跨维度移动                      |
 | `playSound(id, volume, pitch)`  | 播放已注册音效，**只让这位玩家**听到                        |
+| `openedMenuId`                  | 游戏正在让该玩家使用的菜单（`minecraft:generic_9x3`）；静止时为 null |
+| `closeOpenedMenu()`             | 走游戏自己的路径关闭它；本来就没打开时返回 false                |
 
 `teleport` 由服务端做主：客户端侧的玩家由集成服务端里同一 uuid 的对应实体代为实现，返回 false 意味着
 没有可移动的对象、维度 id 未知，或游戏拒绝了目标位置。`playSound` 是逐听众的——服务端侧玩家给那个客户
