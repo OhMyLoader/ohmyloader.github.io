@@ -37,6 +37,7 @@ Events.CLIENT_TICK.register { /* every logical tick */ }
 | `SERVER_STOPPING`  | once per shutdown, before the worlds are saved                        | –           | `server: OMLServer`                                                        |
 | `PLAYER_JOINED`    | a player finished entering the world                                  | –           | `player: OMLPlayer`                                                        |
 | `PLAYER_LEFT`      | a player is leaving                                                   | –           | `player: OMLPlayer`                                                        |
+| `PLAYER_RESPAWNED` | a player finished respawning                                          | –           | `player: OMLPlayer` (the instance made for this life)                      |
 | `FRAME_RATE_LIMIT` | every frame's frame-rate calculation                                  | –           | `currentLimit: Int`, writable `limit: Int` (overrides the limit)           |
 | `GUI_OPEN`         | before any GUI is shown                                               | ✅          | `screen: OMLScreen?` (null = the current GUI is being closed)              |
 | `CHAT_SENT`        | the player sends a chat message                                       | ✅          | `message: String`                                                          |
@@ -53,6 +54,10 @@ Events.CLIENT_TICK.register { /* every logical tick */ }
 
 The projection types behind these fields are on the [World, Player & Entity
 API](/api/world) page; the payload fields are the game's own objects, not copies.
+
+`PLAYER_RESPAWNED` is the one lifecycle event that hands over a **new** object: the game builds a fresh
+player for the life that starts and discards the one it replaced, so a handle kept from before the respawn
+reads as removed and has to be swapped for the one the event carries.
 
 ### Examples
 

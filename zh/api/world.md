@@ -51,6 +51,12 @@ val client = OMLGame.client   // 专用服务端上为 null
 | `setBlock(pos, id)` | 放置方块；id 未知或位置未加载时返回 false                             |
 | `isLoaded(pos)`     | `pos` 所在区块是否已加载                                              |
 | `playSound(id, x, y, z, volume, pitch, category)` | 在某个位置播放已注册音效，凡是听得到的玩家都听到 |
+| `entities`          | 这个世界持有的实体——服务端是实时列表，客户端是它渲染的列表 |
+| `entitiesOfType(id)`| 类型 id 匹配的实体，如 `minecraft:cow`                             |
+| `spawnEntity(id, x, y, z)` | 在服务端世界放入一个已注册实体；做不到时返回 null               |
+| `blockStateAt(pos)` | 已加载位置上「方块 + 属性值」的状态，未加载返回 null                |
+| `setBlockState(pos, state)` | 放置一个状态，含邻居更新与客户端同步                          |
+| `spawnParticles(id, x, y, z, count, offsetX, offsetY, offsetZ, speed)` | 从服务端世界发出一个简单粒子 |
 
 ::: warning 写方块需要服务端侧的世界
 对客户端世界调用 `setBlock` 改的是服务端下一次更新就会覆盖掉的预测，因此只在服务端世界生效。
@@ -62,6 +68,35 @@ val client = OMLGame.client   // 专用服务端上为 null
 一次是 `minecraft:air`，另一次是真实地形，取决于哪一侧、以及区块管理器恰好做了什么。
 需要可靠结论时先调用 `isLoaded`，再读位置。
 :::
+
+## 方块状态
+
+id 只说了半个故事：朝向不同的两个箱子都是 `minecraft:chest`。`blockStateAt` 把方块和它的属性值一起
+给出，属性按游戏自己给的名字寻址——也就是 blockstate JSON 里用的那些名字。
+
+```kotlin
+val state = world.blockStateAt(pos) ?: return      // null：该位置未加载
+val rotated = state.with("facing", "east")         // null：没有该属性，或取值非法
+world.setBlockState(pos, rotated)                  // 含邻居更新与客户端同步
+world.blockStateAt(pos)?.value("facing")           // "east"
+```
+
+`with` 返回 null 而不是「改过但不对」的状态：某种组合是否存在由游戏自己的状态表决定，走的是 `/setblock`
+同一段代码，所以属性不允许的取值也和命令一样被拒。
+
+## 生成实体、运动与粒子
+
+`spawnEntity` 通过游戏自己的生成路径把已注册实体放进**服务端**世界（用的正是 `/summon` 传的 reason），
+因此消失规则与事件规则对它和其他怪物一视同仁；id 未注册或这是客户端世界时返回 null。
+`entities` 与 `entitiesOfType` 读的是世界自己的列表，生成的实体会从它进入的那个查询里查回来。
+
+```kotlin
+val cow = world.spawnEntity("minecraft:cow", x, y, z)
+cow?.velocity = OMLVec3(0.6, 0.0, 0.0)             // 游戏把它积分进位置
+```
+
+`spawnParticles` 从服务端世界把粒子发给范围内每个客户端。它需要对自身带参数的粒子（尘埃颜色、掉落物）
+返回 false——光靠注册表 id 表达不了那些参数；那类粒子要经 `platform` 拿游戏的 options 对象。
 
 ## 实体、玩家与物品栏
 
@@ -78,6 +113,12 @@ val client = OMLGame.client   // 专用服务端上为 null
 | `dimensionId` / `world`      | 所在维度                                                        |
 | `removed`                    | 已离开世界（仍可读到最后位置）                                  |
 | `onFire`                     | 是否正在燃烧                                                    |
+| `velocity`                   | 每 tick 移动多少方块，可读**可写**                              |
+| `remove()`                   | 把它从世界里取走；游戏没移除时返回 false                        |
+
+写 `velocity` 换掉游戏持有的向量，随后的摩擦与重力都按这个数走。但**生物每 tick 会按自己的行走输入重算这个
+向量**，所以往怪物身上写一个数只在写入那一 tick 被积分，下一 tick 就被覆盖；投射物与掉落物没有这套重算，
+会保留写进去的向量。`remove()` 面向实体而不是玩家：移除玩家实体只是把它从世界里摘掉，它的连接仍指向它。
 
 | `OMLLivingEntity` | 含义                                                                  |
 |-------------------|-----------------------------------------------------------------------|
@@ -148,6 +189,7 @@ val client = OMLGame.client   // 专用服务端上为 null
 |--------------------------------------------------|--------------------------------------------------------------------|
 | `SERVER_STARTED` / `SERVER_STOPPING`             | `server: OMLServer`                                                 |
 | `PLAYER_JOINED` / `PLAYER_LEFT`                  | `player: OMLPlayer`                                                 |
+| `PLAYER_RESPAWNED`                               | `player: OMLPlayer`——新实例，不是它替代掉的那个                      |
 | `BLOCK_BREAK`                                    | `player`、`position: OMLBlockPos`、`blockId`                        |
 | `BLOCK_USED`                                     | `player`、`position`、`blockId`、`itemId`、`hand`、`face`           |
 | `ITEM_USED`                                      | `player`、`itemId`、`hand`                                          |

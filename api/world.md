@@ -54,6 +54,12 @@ it follows from where the event handed it to you.
 | `setBlock(pos, id)`   | places the block, returns false for an unknown id or an unloaded position |
 | `isLoaded(pos)`       | whether the chunk holding `pos` is loaded                                 |
 | `playSound(id, x, y, z, volume, pitch, category)` | plays a registered sound at a position for everyone who can hear it |
+| `entities`            | the entities the level holds — a server's live list, a client's render list |
+| `entitiesOfType(id)`  | the entities whose type id matches, e.g. `minecraft:cow`                 |
+| `spawnEntity(id, x, y, z)` | puts a registered entity in a server world; null when it cannot       |
+| `blockStateAt(pos)`   | the block **and its property values** at a loaded position, else null    |
+| `setBlockState(pos, state)` | places a state, neighbour updates and client resync included         |
+| `spawnParticles(id, x, y, z, count, offsetX, offsetY, offsetZ, speed)` | sends a simple particle out from a server world |
 
 ::: warning Block writes need a server-side world
 `setBlock` on the client's level changes a prediction the server overwrites on the next update, so it
@@ -66,6 +72,39 @@ own getter holds there — `minecraft:air` on one run, real terrain on another, 
 on what the chunk manager happens to have. `isLoaded` is the check that means something; read a
 position only after it.
 :::
+
+## Block states
+
+An id is only half the story: two chests facing different ways are both `minecraft:chest`.
+`blockStateAt` answers the block together with its property values, addressed by the names the game
+gives them — the names a blockstate JSON uses.
+
+```kotlin
+val state = world.blockStateAt(pos) ?: return      // null: the position is not loaded
+val rotated = state.with("facing", "east")         // null: no such property, or an illegal value
+world.setBlockState(pos, rotated)                  // neighbour updates and client resync included
+world.blockStateAt(pos)?.value("facing")           // "east"
+```
+
+`with` answers null rather than an adjusted-but-wrong state, because whether a combination exists is the
+game's own state table's decision — the same code `/setblock` runs through, so a value the property does
+not allow is refused exactly as the command refuses it.
+
+## Spawning, motion and particles
+
+`spawnEntity` puts a registered entity into a **server** world through the game's own spawn path (the
+reason `/summon` passes), so the despawn and event rules apply to it like to any other mob; it answers
+null for an unregistered id or a client-side level. `entities` and `entitiesOfType` read the level's own
+list, so what you spawned comes back out of the query it entered.
+
+```kotlin
+val cow = world.spawnEntity("minecraft:cow", x, y, z)
+cow?.velocity = OMLVec3(0.6, 0.0, 0.0)             // the game integrates this into the position
+```
+
+`spawnParticles` sends a particle out from a server world to every client in range. It answers false for
+a particle whose type needs arguments of its own — a dust colour, an item stack — because a bare registry
+id cannot carry them; those go through the game's options object on `platform`.
 
 ## Entities, players, inventories
 
@@ -82,6 +121,14 @@ surface. Each is a superset of the previous one:
 | `dimensionId` / `world`  | which dimension this entity is in                            |
 | `removed`                | true once it left the level (last position still readable)   |
 | `onFire`                 | whether it is burning                                        |
+| `velocity`               | motion in blocks per tick, readable **and writable**          |
+| `remove()`               | takes it out of the level; false when the game left it in     |
+
+Writing `velocity` replaces the vector the game holds, and its friction and gravity then work on that
+number. A **living** entity recomputes the vector from its own movement input every tick, so a write to a
+mob is integrated on the tick it lands and replaced on the next; a projectile or an item keeps what was
+written. `remove()` is for entities rather than players: removing a player entity detaches it from the
+level while its connection keeps pointing at it.
 
 | `OMLLivingEntity` | Meaning                                                              |
 |-------------------|----------------------------------------------------------------------|
@@ -158,6 +205,7 @@ recorded in one event matches the one handed to another — which is what lets a
 |----------------------------------------------|------------------------------------------------------------------|
 | `SERVER_STARTED` / `SERVER_STOPPING`         | `server: OMLServer`                                              |
 | `PLAYER_JOINED` / `PLAYER_LEFT`              | `player: OMLPlayer`                                              |
+| `PLAYER_RESPAWNED`                           | `player: OMLPlayer` — a new instance, not the one it replaced    |
 | `BLOCK_BREAK`                                | `player`, `position: OMLBlockPos`, `blockId`                     |
 | `BLOCK_USED`                                 | `player`, `position`, `blockId`, `itemId`, `hand`, `face`        |
 | `ITEM_USED`                                  | `player`, `itemId`, `hand`                                       |

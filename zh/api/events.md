@@ -33,6 +33,7 @@ Events.CLIENT_TICK.register { /* 每逻辑帧 */ }
 | `SERVER_STOPPING`  | 每次关闭，在存档保存与循环退出之前                  | –      | `server: OMLServer`                                                      |
 | `PLAYER_JOINED`    | 玩家完成进入世界                                    | –      | `player: OMLPlayer`                                                      |
 | `PLAYER_LEFT`      | 玩家正在离开                                        | –      | `player: OMLPlayer`                                                      |
+| `PLAYER_RESPAWNED` | 玩家完成重生                                        | –      | `player: OMLPlayer`（本次生命新建的那个实例）                            |
 | `FRAME_RATE_LIMIT` | 每帧帧率上限计算                                    | –      | `currentLimit: Int`、可写 `limit: Int`（改写帧率上限）                    |
 | `GUI_OPEN`         | 任意 GUI 显示前                                     | ✅     | `screen: OMLScreen?`（null = 当前 GUI 正在关闭）                          |
 | `CHAT_SENT`        | 玩家发送聊天消息                                    | ✅     | `message: String`                                                        |
@@ -48,6 +49,9 @@ Events.CLIENT_TICK.register { /* 每逻辑帧 */ }
 | `LIVING_DIED`      | 生物实体的死亡流程启动                              | ✅     | `entity`、`damageType: String`                                             |
 
 这些字段背后的投影类型见[世界、玩家与实体 API](/zh/api/world)；事件递来的是游戏自身的对象，不是副本。
+
+`PLAYER_RESPAWNED` 是唯一交出**新对象**的生命周期事件：游戏为开始这一命新建一个玩家、丢弃它替代的那一个，
+所以重生前存下的句柄读起来已是"已移除"，必须换成事件递来的这个。
 
 ### 示例
 
