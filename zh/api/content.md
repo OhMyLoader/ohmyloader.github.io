@@ -220,11 +220,11 @@ OMLRegistries.blocks.tagsOf("minecraft:stone")           // 该 id 属于哪些�
 开放八张表：`blocks`、`items`、`mobEffects`、`sounds`、`entityTypes`、`attributes`、`damageTypes`、
 `gameRules`——最后一张就是 [`gameRule` / `setGameRule`](/zh/api/world) 所取的 id。
 未注册的 id 对 `contains` 返回 `false`，对 `tagged` / `tagsOf` 返回空列表，写错的 id 是安静的「没有」，
-不是异常。
+不是异常。第九张 `worldClocks` 公开 26.3 用来计时的时钟，也就是 [`OMLServer.clock`](/zh/api/world) 所取的 id。
 
-::: warning 伤害类型要有运行中的服务端
-`damageTypes` 是唯一不在游戏内置表里的：它由数据包加载，所以在服务端存在之前读它会抛出一条指名道姓的
-错误，而不是回一个空列表——空列表会谎称「这些伤害类型都不存在」。
+::: warning 伤害类型与时钟要有运行中的服务端
+`damageTypes` 与 `worldClocks` 是唯一不在游戏内置表里的：它们由数据包加载，所以在服务端存在之前读它们会抛出
+一条指名道姓的错误，而不是回一个空列表——空列表会谎称「这些伤害类型 / 时钟都不存在」。
 :::
 
 ::: warning 要等游戏起来再读

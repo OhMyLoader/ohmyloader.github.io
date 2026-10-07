@@ -28,6 +28,7 @@ val client = OMLGame.client   // 专用服务端上为 null
 | `broadcast(text)`             | 在每位在线玩家的聊天框显示 `text`                                  |
 | `gameRule(ruleId)`            | 该规则按游戏自己拼写的取值（`"true"`）；id 未注册返回 null          |
 | `setGameRule(ruleId, value)`  | 用游戏自己的序列化器写入；id 未知或值解析不了返回 false             |
+| `clock(clockId)`              | 该 id 已加载的时钟；没有注册过的返回 null                          |
 
 ### `OMLClient`
 
@@ -63,6 +64,7 @@ val client = OMLGame.client   // 专用服务端上为 null
 | `spawnItemParticles` / `spawnBlockParticles` / `spawnDustParticles` | 同样的事，用于需要自带参数的粒子 |
 | `isRaining` / `isThundering`  | 本维度此刻的天气是否读作下雨 / 打雷                          |
 | `setWeather(raining, thundering, durationTicks)` | 向服务端的天气记录写入这个状态                        |
+| `clock`                       | 本维度所运行的时钟；维度类型未指名时钟时为 null                  |
 
 ::: warning 写方块需要服务端侧的世界
 对客户端世界调用 `setBlock` 改的是服务端下一次更新就会覆盖掉的预测，因此只在服务端世界生效。
@@ -140,6 +142,54 @@ server.setGameRule("minecraft:keep_inventory", "3")  // false：布尔规则解�
 
 写入就是游戏自己的 `GameRules.set`，哪些维度需要跟着同步由它决定；`gameRule` 对未注册的 id 返回 null，
 这就是唯一可用的「这条规则存在吗」检查。
+
+## 时钟
+
+26.3 里没有「日内时间」这个计数器了。时间活在**时钟**里：每个时钟就是一个带速率的 tick 计数器，按注册表 id
+寻址（`minecraft:overworld`、`minecraft:the_end`），并由维度类型绑定到某个维度——下界没有指名时钟，所以那里
+`world.clock` 是 null，也无所谓读写时间。mod 从前用 `dayTime % 24000` 自己算的白天黑夜，如今是注册在时钟上的
+**标记**（`minecraft:day`、`minecraft:noon`、`minecraft:night`、`minecraft:midnight` …），
+`/time set <标记>` 移的也正是它们。
+
+| `OMLClock`            | 含义                                                              |
+|-----------------------|--------------------------------------------------------------------|
+| `platform`            | 底层 `ClockInstance`                                                  |
+| `clockId`             | 本时钟的注册表 id，如 `minecraft:overworld`                          |
+| `totalTicks`          | 时钟已计过的 tick——可写，且写的就是游戏自己的记录                    |
+| `partialTick`         | 游戏已累积但尚未计入的那部分 tick                                    |
+| `rate`                | 每个游戏 tick 增加多少 tick：正常为 1.0，2.0 是两倍速                 |
+| `isPaused`            | 时钟是否静止                                                        |
+| `markerIds`           | 本时钟提供的标记                                                    |
+| `isAtMarker(id)`      | 用游戏自己的判定问「此刻是否落在这个标记上」                          |
+| `moveToMarker(id)`    | 跳到该标记的下一次出现；这个时钟没有该标记则返回 false                |
+| `setTotalTicks(ticks)`| 把时钟放到绝对位置                                                  |
+| `addTicks(ticks)`     | 按 tick 数移动，负数即往回拨                                        |
+| `setPaused(paused)`   | 停住或恢复，位置原地不动                                            |
+| `setRate(rate)`       | 设置速率；超出游戏自己的 0.00001..1000 窗口返回 false                 |
+
+```kotlin
+val clock = OMLGame.server?.level("minecraft:overworld")?.clock ?: return
+clock.totalTicks                                   // 游戏自己的计数，每次读都是实时的
+clock.moveToMarker("minecraft:noon")               // 与 /time set minecraft:noon 同一次移动
+clock.isAtMarker("minecraft:noon")                 // true——游戏自己也认为到了
+clock.setPaused(true)                              // 时钟停下，位置保持不变
+```
+
+读取两侧都行：记录归服务端所有，而它一旦变化就立刻把该时钟推给所有客户端，所以
+`OMLGame.client.world.clock` 是游戏被告知的副本，不是 OML 自己存的一份值。写入归服务端——客户端侧的时钟对
+每一次写入都返回 false 且什么都不动，`setRate` 给出游戏自己的命令都不会接受的数字时同样返回 false，因为游戏的
+时钟管理器本身是什么数都肯存的。
+
+::: warning 标记是一个点，不是一段窗口
+`isAtMarker` 用的是游戏自己的判定：精确相等（声明了周期的标记则按周期取模）。也就是说每个周期只有一 tick 为
+真，它**不是**旧 `isDay()` 的替身：要么紧跟在 `moveToMarker` 之后问，要么拿 `totalTicks` 与时钟自己的周期比较。
+:::
+
+::: warning 时钟由数据包加载
+`OMLRegistries.worldClocks` 与任何时钟句柄都要有运行中的服务端，和伤害类型一样：这张表随世界建立，不随可执行
+文件建立。没人注册的 id 问出来是 null 而不是异常——游戏的时钟管理器对未注册的时钟会抛异常，所以 OML 先把 id
+拿到活注册表里解析，写错的 id 到不了它面前。
+:::
 
 ## 实体、玩家与物品栏
 

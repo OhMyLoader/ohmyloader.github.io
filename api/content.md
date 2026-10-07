@@ -234,12 +234,13 @@ OMLRegistries.blocks.tagsOf("minecraft:stone")           // tags this id belongs
 Eight tables are published: `blocks`, `items`, `mobEffects`, `sounds`, `entityTypes`, `attributes`,
 `damageTypes` and `gameRules` — the last being the ids [`gameRule` / `setGameRule`](/api/world) take.
 An unregistered id answers `false` to `contains` and an empty list to `tagged` / `tagsOf`,
-so a typo is a quiet no rather than a failure.
+so a typo is a quiet no rather than a failure. A ninth, `worldClocks`, publishes the clocks 26.3 keeps
+time by — the ids [`OMLServer.clock`](/api/world) takes.
 
-::: warning Damage types need a running server
-`damageTypes` is the one table that is not built into the game: it is loaded from datapacks, so reading it
-before a server exists fails with a named error instead of returning an empty list — which would be a lie
-about the damage types that exist.
+::: warning Damage types and clocks need a running server
+`damageTypes` and `worldClocks` are the two tables that are not built into the game: both are loaded from
+datapacks, so reading them before a server exists fails with a named error instead of returning an empty
+list — which would be a lie about the damage types or clocks that exist.
 :::
 
 ::: warning Read them after the game is up

@@ -31,6 +31,7 @@ handles and needs no side check.
 | `broadcast(text)`             | shows `text` in every connected player's chat                     |
 | `gameRule(ruleId)`            | that rule's value as the game spells it (`"true"`), null for an unregistered id |
 | `setGameRule(ruleId, value)`  | writes it with the game's own serializer; false for an unknown id or a value that does not parse |
+| `clock(clockId)`              | the loaded clock with that registry id, null when none is registered |
 
 ### `OMLClient`
 
@@ -66,6 +67,7 @@ it follows from where the event handed it to you.
 | `spawnItemParticles` / `spawnBlockParticles` / `spawnDustParticles` | the same for a particle that needs arguments |
 | `isRaining` / `isThundering`  | whether this dimension's live weather reads as raining / thundering |
 | `setWeather(raining, thundering, durationTicks)` | asks the server's weather record for that state |
+| `clock`                       | the clock this dimension runs on, null where the dimension type names none |
 
 ::: warning Block writes need a server-side world
 `setBlock` on the client's level changes a prediction the server overwrites on the next update, so it
@@ -152,6 +154,58 @@ server.setGameRule("minecraft:keep_inventory", "3")  // false: a boolean rule wi
 
 Writing is the game's own `GameRules.set`, so the dimensions it keeps in sync are in sync on its terms;
 `gameRule` answering null for an unregistered id is the only "does this rule exist" check there is.
+
+## Clocks
+
+26.3 has no day-time counter. Time lives in **clocks**, each one a tick counter with a rate, addressed by
+registry id (`minecraft:overworld`, `minecraft:the_end`) and bound to a dimension by its dimension type —
+the Nether names no clock, so `world.clock` is null there and there is no time to read or write. The day
+and night a mod used to compute out of `dayTime % 24000` are now **markers** registered against a clock
+(`minecraft:day`, `minecraft:noon`, `minecraft:night`, `minecraft:midnight` …), which is what
+`/time set <marker>` moves the clock onto.
+
+| `OMLClock`              | Meaning                                                            |
+|-------------------------|---------------------------------------------------------------------|
+| `platform`              | the underlying `ClockInstance`                                        |
+| `clockId`               | registry id of this clock, e.g. `minecraft:overworld`                 |
+| `totalTicks`            | ticks the clock has counted — writable, and the game's own record     |
+| `partialTick`           | the fraction of a tick the game has accumulated but not yet counted   |
+| `rate`                  | ticks added per game tick: 1.0 normally, 2.0 twice as fast            |
+| `isPaused`              | whether the clock stands still                                        |
+| `markerIds`             | the markers this clock offers                                         |
+| `isAtMarker(id)`        | the game's own test for sitting on that marker                        |
+| `moveToMarker(id)`      | jumps to the marker's next occurrence; false for a marker it lacks    |
+| `setTotalTicks(ticks)`  | puts the clock at an absolute position                                |
+| `addTicks(ticks)`       | moves it by a number of ticks, negative to wind back                  |
+| `setPaused(paused)`     | stops or resumes it, leaving the position where it is                 |
+| `setRate(rate)`         | sets the speed; false outside the game's own 0.00001..1000 window      |
+
+```kotlin
+val clock = OMLGame.server?.level("minecraft:overworld")?.clock ?: return
+clock.totalTicks                                   // the game's own count, live on every read
+clock.moveToMarker("minecraft:noon")               // the same move /time set minecraft:noon makes
+clock.isAtMarker("minecraft:noon")                 // true — the game agrees it is there
+clock.setPaused(true)                              // the clock stops; the position stays
+```
+
+Reads work on both sides: the server owns the record, and its clock reaches every client as soon as it
+changes, so `OMLGame.client.world.clock` is the copy the game was told about rather than a value OML keeps.
+Writes are the server's — a client-side clock answers false to every one of them and moves nothing, and so
+does `setRate` with a number the game's own command would refuse, because the game's clock manager would
+otherwise store anything.
+
+::: warning A marker is a point, not a window
+`isAtMarker` is the game's test, which is exact (or periodic, when the marker declares a period). It answers
+true for one tick of each period, so it is not a replacement for the old `isDay()`: ask it right after a
+`moveToMarker`, or compare `totalTicks` against the clock's own cycle.
+:::
+
+::: warning Clocks are loaded from datapacks
+`OMLRegistries.worldClocks` and every clock handle need a running server, like damage types: the table is
+built with the world, not with the binary. A clock id nothing registers reads null rather than throwing —
+the game's own clock manager answers an unregistered clock with an exception, and OML resolves ids against
+the live registry first so a typo cannot reach it.
+:::
 
 ## Entities, players, inventories
 
