@@ -192,6 +192,33 @@ registry.declareBlockDrop(block = "ruby_ore", drop = "my_mod:ruby", dropCountMin
 Recipes and loot tables materialize into datapack JSON served through OML's injected resource pack —
 the **vanilla datapack reload path**, server-authoritative and synced to clients.
 
+### Damage types
+
+A mod's damage can have its own type, with its own name in the death message, its own difficulty scaling
+and the vanilla hit sounds that go with it:
+
+```kotlin
+registry.declareDamageType(
+    id = "melt",                       // becomes my_mod:melt in the registries and in hurt()
+    messageId = "my_mod.melts",         // the death message's key
+    scaling = "when_caused_by_living_non_player",
+    effects = "burning",
+    exhaustion = 0.3f,
+)
+```
+
+`scaling` is `never`, `when_caused_by_living_non_player` or `always`; `effects` is `hurt`, `thorns`,
+`drowning`, `burning`, `poking` or `freezing`; `deathMessageType` is `default`, `fall_variants` or
+`intentional_game_design`. The two optional ones are omitted from the file when unset, so the game applies
+its own default rather than OML guessing one.
+
+This is the same datapack route as recipes: OML writes
+`data/my_mod/damage_type/melt.json` into its injected pack and the game's reload registers it, so the type
+appears in `OMLRegistries.damageTypes` and [OMLLivingEntity.hurt](/api/world) accepts `"my_mod:melt"` like
+any vanilla id — and a handler sees the declared `messageId` in `LIVING_HURT`. An unknown enum name is
+refused at declaration with a warning, because a file the datapack codec rejects would otherwise disappear
+during reload with no owner to blame.
+
 ## Reading the registries back
 
 `OMLRegistries` is a read-only view of the game's own tables — the same ones the declarations above are
@@ -259,6 +286,11 @@ cooking_time = 100
 drop = "raw_ruby"
 drop_count_min = 1
 drop_count_max = 3
+
+[damage_type.melt]
+message_id = "ruby_pack.melts"
+effects = "burning"
+exhaustion = 0.3
 ```
 
 The fields map one-to-one onto the code API (`destroy_time` → `destroyTime`, …); `mines_and_drops`
@@ -268,7 +300,9 @@ selects shaped / shapeless; shaped needs `pattern` (rows) plus a `key` inline ta
 pattern characters to item ids; shapeless needs an `ingredients` list; `count` is optional (default 1). A
 `[smelting.<result-id>]` section declares a furnace recipe (`input` required,
 `furnace` selecting smelting / blasting / smoking, optional `experience` and `cooking_time`); a
-`[loot.<block-id>]` section declares that breaking the block drops `drop` instead of itself. The
+`[loot.<block-id>]` section declares that breaking the block drops `drop` instead of itself. A
+`[damage_type.<id>]` section declares a damage type (`message_id` required; `scaling`, `effects`,
+`exhaustion` and `death_message_type` optional, with the same accepted names as the code API). The
 `ore` inline table on a block mirrors `generateAsOre` (`vein_size`, `per_chunk`, `min_y`, `max_y`,
 `biomes`). Validation errors (ragged patterns, unknown types, missing fields) fail the pack
 with the reason. TOML packs share

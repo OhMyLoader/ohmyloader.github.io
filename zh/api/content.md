@@ -181,6 +181,30 @@ registry.declareBlockDrop(block = "ruby_ore", drop = "my_mod:ruby", dropCountMin
 配方与掉落表材料化为数据包 JSON，经 OML 注入的资源包走 **vanilla 自己的数据包重载路径**——
 服务端权威、自动同步到客户端。
 
+### 伤害类型
+
+mod 造成的伤害也可以有自己的类型：自己的死亡提示名、自己的难度缩放、以及配套的原版受击音效。
+
+```kotlin
+registry.declareDamageType(
+    id = "melt",                       // 注册表与 hurt() 里看到的是 my_mod:melt
+    messageId = "my_mod.melts",         // 死亡提示用的 key
+    scaling = "when_caused_by_living_non_player",
+    effects = "burning",
+    exhaustion = 0.3f,
+)
+```
+
+`scaling` 可取 `never`、`when_caused_by_living_non_player`、`always`；`effects` 可取 `hurt`、`thorns`、
+`drowning`、`burning`、`poking`、`freezing`；`deathMessageType` 可取 `default`、`fall_variants`、
+`intentional_game_design`。两个可选项未设置时不会写进文件，好让游戏套用自己的默认值，而不是由 OML 猜。
+
+这与合成表走的是同一条数据包路径：OML 把 `data/my_mod/damage_type/melt.json` 写进注入的资源包，游戏的
+重载把它注册成条目——于是它出现在 `OMLRegistries.damageTypes` 里，
+[OMLLivingEntity.hurt](/zh/api/world) 也能像用原版 id 一样用 `"my_mod:melt"`，而 handler 在 `LIVING_HURT`
+里读到的正是声明里写的 `messageId`。未知的枚举名在**声明处**就被拒绝并给出警告：否则那个文件会在数据包
+重载时被 codec 悄悄丢弃，没人知道伤害类型为什么不见了。
+
 ## 读回注册表
 
 `OMLRegistries` 是游戏自身注册表的只读视图——上面的声明就材料化进这些表，所以 mod 的内容与原版条目
@@ -245,6 +269,11 @@ cooking_time = 100
 drop = "raw_ruby"
 drop_count_min = 1
 drop_count_max = 3
+
+[damage_type.melt]
+message_id = "ruby_pack.melts"
+effects = "burning"
+exhaustion = 0.3
 ```
 
 字段与代码 API 一一对应（`destroy_time` → `destroyTime` …）；`mines_and_drops` 与 `override_speed`
@@ -252,7 +281,8 @@ drop_count_max = 3
 shaped / shapeless；shaped 需要 `pattern`（行）与 `key` 内联表（图案字符 → 物品 id）；shapeless 需要
 `ingredients` 列表；`count` 可选（默认 1）。`[smelting.<产出物 id>]` 段声明熔炼配方（`input` 必填，
 `furnace` 选择 smelting / blasting / smoking，`experience` 与 `cooking_time` 可选）；`[loot.<方块 id>]`
-段声明破坏该方块改为掉落 `drop`。方块段里的 `ore` 内联表对应 `generateAsOre`（`vein_size`、
+段声明破坏该方块改为掉落 `drop`。`[damage_type.<id>]` 段声明伤害类型（`message_id` 必填，`scaling`、
+`effects`、`exhaustion`、`death_message_type` 可选，可取值与代码 API 相同）。方块段里的 `ore` 内联表对应 `generateAsOre`（`vein_size`、
 `per_chunk`、`min_y`、`max_y`、`biomes`）。格式错误（图案不齐、未知类型、缺字段）会让内容包加载失败
 并说明原因。TOML 包与代码 mod 共享同一条
 收集 → 冻结材料化管线，资产注入也把 TOML 包的命名空间当作 mod 域对待。字段拼错会在启动日志里

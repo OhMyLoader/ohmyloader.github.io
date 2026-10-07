@@ -33,6 +33,7 @@ Events.CLIENT_TICK.register { /* every logical tick */ }
 |--------------------|-----------------------------------------------------------------------|-------------|------------------------------------------------------------------------------|
 | `CLIENT_TICK`      | every client logical tick                                             | –           | –                                                                          |
 | `SERVER_TICK`      | every server logical tick (dedicated or integrated)                   | –           | –                                                                          |
+| `LEVEL_TICK`       | one level starting one tick                                             | –           | `level: OMLWorld`                                                          |
 | `SERVER_STARTED`   | once per server start, on its first tick                              | –           | `server: OMLServer`                                                        |
 | `SERVER_STOPPING`  | once per shutdown, before the worlds are saved                        | –           | `server: OMLServer`                                                        |
 | `PLAYER_JOINED`    | a player finished entering the world                                  | –           | `player: OMLPlayer`                                                        |
@@ -58,6 +59,11 @@ API](/api/world) page; the payload fields are the game's own objects, not copies
 `PLAYER_RESPAWNED` is the one lifecycle event that hands over a **new** object: the game builds a fresh
 player for the life that starts and discards the one it replaced, so a handle kept from before the respawn
 reads as removed and has to be swapped for the one the event carries.
+
+`LEVEL_TICK` is scoped per dimension rather than per side: a server dispatches it once for each loaded level
+per server tick, and a client for the level it renders. In singleplayer that means both — the integrated
+level and the rendered one, two projections of the same dimension, told apart by
+[`OMLWorld.isClient`](/api/world).
 
 ### Examples
 

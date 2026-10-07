@@ -29,6 +29,7 @@ Events.CLIENT_TICK.register { /* 每逻辑帧 */ }
 |--------------------|-----------------------------------------------------|--------|--------------------------------------------------------------------------|
 | `CLIENT_TICK`      | 客户端每逻辑 tick                                   | –      | –                                                                        |
 | `SERVER_TICK`      | 服务端每逻辑 tick（专用或集成）                     | –      | –                                                                        |
+| `LEVEL_TICK`       | 某个世界开始一次 tick                                | –      | `level: OMLWorld`                                                      |
 | `SERVER_STARTED`   | 每次服务端启动，在其首个 tick                       | –      | `server: OMLServer`                                                      |
 | `SERVER_STOPPING`  | 每次关闭，在存档保存与循环退出之前                  | –      | `server: OMLServer`                                                      |
 | `PLAYER_JOINED`    | 玩家完成进入世界                                    | –      | `player: OMLPlayer`                                                      |
@@ -52,6 +53,10 @@ Events.CLIENT_TICK.register { /* 每逻辑帧 */ }
 
 `PLAYER_RESPAWNED` 是唯一交出**新对象**的生命周期事件：游戏为开始这一命新建一个玩家、丢弃它替代的那一个，
 所以重生前存下的句柄读起来已是"已移除"，必须换成事件递来的这个。
+
+`LEVEL_TICK` 的范围是**单个世界**而不是单个侧：服务端每 tick 为每个已加载世界派发一次，客户端则为它渲染
+中的世界派发一次。因此单人游戏里两者都会触发——集成世界与渲染世界是同一维度的两个投影，用
+[`OMLWorld.isClient`](/zh/api/world) 区分。
 
 ### 示例
 
