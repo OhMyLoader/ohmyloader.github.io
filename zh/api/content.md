@@ -181,6 +181,26 @@ registry.declareBlockDrop(block = "ruby_ore", drop = "my_mod:ruby", dropCountMin
 配方与掉落表材料化为数据包 JSON，经 OML 注入的资源包走 **vanilla 自己的数据包重载路径**——
 服务端权威、自动同步到客户端。
 
+## 读回注册表
+
+`OMLRegistries` 是游戏自身注册表的只读视图——上面的声明就材料化进这些表，所以 mod 的内容与原版条目
+完全同等地读得回来：
+
+```kotlin
+OMLRegistries.blocks.ids.contains("my_mod:ruby_ore")     // 全部 id，按注册顺序
+OMLRegistries.items.contains("minecraft:iron_ingot")     // 这个 id 存在吗
+OMLRegistries.blocks.tagged("minecraft:dirt")            // 带该标签的 id 列表
+OMLRegistries.blocks.tagsOf("minecraft:stone")           // 该 id 属于哪些标签
+```
+
+开放五张表：`blocks`、`items`、`mobEffects`、`sounds`、`entityTypes`。未注册的 id 对 `contains` 返回
+`false`，对 `tagged` / `tagsOf` 返回空列表，写错的 id 是安静的「没有」，不是异常。
+
+::: warning 要等游戏起来再读
+这些表由游戏自身的 bootstrap 填充，而 mod 的初始化跑在它前面——在 `onInitialize` 里读它们，失败方式
+与过早读游戏注册表一样。请从背后已经有运行中游戏的事件里读（tick、进世界、命令执行）。
+:::
+
 ## 数据轨：TOML 内容包
 
 不需要写代码的内容：声明写在 **`.oml` 归档**根目录的 `content.toml`（普通 zip 改名，目录结构见下方

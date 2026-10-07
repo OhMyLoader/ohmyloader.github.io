@@ -192,6 +192,28 @@ registry.declareBlockDrop(block = "ruby_ore", drop = "my_mod:ruby", dropCountMin
 Recipes and loot tables materialize into datapack JSON served through OML's injected resource pack —
 the **vanilla datapack reload path**, server-authoritative and synced to clients.
 
+## Reading the registries back
+
+`OMLRegistries` is a read-only view of the game's own tables — the same ones the declarations above are
+materialized into, so a mod's content reads back exactly like a vanilla entry:
+
+```kotlin
+OMLRegistries.blocks.ids.contains("my_mod:ruby_ore")     // every id, in registration order
+OMLRegistries.items.contains("minecraft:iron_ingot")     // does this id exist
+OMLRegistries.blocks.tagged("minecraft:dirt")            // ids carrying this tag
+OMLRegistries.blocks.tagsOf("minecraft:stone")           // tags this id belongs to
+```
+
+Five tables are published: `blocks`, `items`, `mobEffects`, `sounds`, `entityTypes`. An unregistered id
+answers `false` to `contains` and an empty list to `tagged` / `tagsOf`, so a typo is a quiet no rather
+than a failure.
+
+::: warning Read them after the game is up
+The tables are filled by the game's own bootstrap, and a mod's initialization runs ahead of that —
+reading during `onInitialize` fails the same way reading the game's registry early fails. Ask from an
+event that has a running game behind it (a tick, a world load, a command).
+:::
+
 ## The data track: TOML content packs
 
 Content without code: a pack's declarations live in `content.toml` at the root of an **`.oml` archive**

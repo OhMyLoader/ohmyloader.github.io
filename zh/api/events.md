@@ -42,7 +42,9 @@ Events.CLIENT_TICK.register { /* 每逻辑帧 */ }
 | `BLOCK_BREAK`      | 玩家即将破坏一个方块                                | ✅     | `player`、`position: OMLBlockPos`、`blockId: String`                      |
 | `ENTITY_ATTACK`    | 玩家的一次攻击落到实体上                            | ✅     | `player`、`target: OMLEntity`                                             |
 | `ENTITY_INTERACT`  | 玩家右键实体                                        | ✅     | `player`、`target: OMLEntity`、`hand: String`（`main_hand` / `off_hand`） |
-| `LIVING_HURT`      | 伤害即将作用到某个生物实体                          | ✅     | `entity`、`amount: Float`、`damageType: String`、`attacker: OMLEntity?`   |
+| `BLOCK_USED`       | 玩家右键一个方块                                    | ✅     | `player`、`position: OMLBlockPos`、`blockId`、`itemId`、`hand`、`face`    |
+| `ITEM_USED`        | 玩家对手上的东西空点一下（没点到方块也没点到实体）  | ✅     | `player`、`itemId`、`hand`                                                |
+| `LIVING_HURT`      | 伤害即将作用到某个生物实体                          | ✅     | `entity`、**可写**的 `amount: Float`、`damageType: String`、`attacker: OMLEntity?` |
 | `LIVING_DIED`      | 生物实体的死亡流程启动                              | ✅     | `entity`、`damageType: String`                                             |
 
 这些字段背后的投影类型见[世界、玩家与实体 API](/zh/api/world)；事件递来的是游戏自身的对象，不是副本。
@@ -88,13 +90,25 @@ Events.BLOCK_BREAK.register { event ->
 }
 ```
 
+改写数值而不是取消：带耐药效果的实体挨打时伤害减半。
+
+```kotlin
+Events.LIVING_HURT.register { event ->
+    if (event.entity.hasEffect("minecraft:resistance")) event.amount /= 2f
+}
+```
+
 ### 取消意味着什么
 
 - `BLOCK_BREAK`——破坏被拒绝，游戏按自己的预测重新同步，玩家看到方块弹回原位；mod 不需要发包。
 - `ENTITY_ATTACK`——整次挥击都被跳过：伤害、击退、暴击、音效与动画。
 - `ENTITY_INTERACT`——原版按「那里没有实体」继续，于是这次点击落到它后面的方块上。
-- `LIVING_HURT`——伤害完全不生效。`amount` 是原版算出的值，可读而不可改写：事件只接收参数，无法改动
-  它收到的那个参数。
+- `BLOCK_USED`——这次点击返回 `FAIL`，即游戏自己「这一下什么都没做成」的结果：方块的 use 与手上物品
+  的 use 都不执行，客户端的预测由游戏本来就会为失败点击补发的那个包回滚。
+- `ITEM_USED`——同样是 `FAIL`，只不过落在没点到方块也没点到实体的那一下：进食、拉弓、朝空气放置都不
+  会开始。
+- `LIVING_HURT`——伤害完全不生效。`amount` 起始是原版算出的值，**可写**：handler 写下的数字就是游戏作
+  用的数字，同一次调用里随后的计算（盾牌减免、游戏自己的伤害冷却）也按它进行。取消优先于改写。
 - `LIVING_DIED`——死亡流程停止，实体停在 0 血，直到下一次伤害重新走一遍判定；原版不死图腾就是这一
   形状。
 - `GUI_OPEN` / `CHAT_SENT` / `CHAT_RECEIVED`——GUI 不打开 / 消息不发出 / 不显示。

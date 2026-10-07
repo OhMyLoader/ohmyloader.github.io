@@ -46,7 +46,9 @@ Events.CLIENT_TICK.register { /* every logical tick */ }
 | `BLOCK_BREAK`      | a player is about to destroy a block                                  | ✅          | `player`, `position: OMLBlockPos`, `blockId: String`                       |
 | `ENTITY_ATTACK`    | a player's attack landed on an entity                                 | ✅          | `player`, `target: OMLEntity`                                              |
 | `ENTITY_INTERACT`  | a player right-clicked an entity                                      | ✅          | `player`, `target: OMLEntity`, `hand: String` (`main_hand` / `off_hand`)   |
-| `LIVING_HURT`      | damage is about to be applied to a living entity                      | ✅          | `entity`, `amount: Float`, `damageType: String`, `attacker: OMLEntity?`    |
+| `BLOCK_USED`       | a player right-clicked a block                                        | ✅          | `player`, `position: OMLBlockPos`, `blockId`, `itemId`, `hand`, `face`     |
+| `ITEM_USED`        | a player used the held item on nothing                                | ✅          | `player`, `itemId`, `hand`                                                 |
+| `LIVING_HURT`      | damage is about to be applied to a living entity                      | ✅          | `entity`, writable `amount: Float`, `damageType: String`, `attacker: OMLEntity?` |
 | `LIVING_DIED`      | a living entity's death routine is starting                           | ✅          | `entity`, `damageType: String`                                             |
 
 The projection types behind these fields are on the [World, Player & Entity
@@ -93,15 +95,29 @@ Events.BLOCK_BREAK.register { event ->
 }
 ```
 
-### What cancelling does
+Halving incoming damage for an effect, which is a rewrite rather than a cancel:
 
+```kotlin
+Events.LIVING_HURT.register { event ->
+    if (event.entity.hasEffect("minecraft:resistance")) event.amount /= 2f
+}
+```
+
+### What cancelling does
 - `BLOCK_BREAK` — the break is refused and the game resyncs its own prediction, so the block visibly
   snaps back. The mod sends nothing.
 - `ENTITY_ATTACK` — the whole swing is skipped: damage, knockback, crit, sound and animation.
 - `ENTITY_INTERACT` — vanilla proceeds as though the entity were not there, so the click falls through
   to the block behind it.
-- `LIVING_HURT` — the damage is not applied at all. `amount` is what vanilla computed and can be read
-  but not rewritten: an event cannot change a parameter it only receives.
+- `BLOCK_USED` — the click answers `FAIL`, the game's own "this click did nothing": neither the block's
+  use nor the held item's use runs, and the client's prediction is rolled back by the resync the game
+  already schedules for a failed click.
+- `ITEM_USED` — the same `FAIL` for the click that hit no block and no entity, so eating, drawing a bow
+  or placing into open air never starts.
+- `LIVING_HURT` — the damage is not applied at all. `amount` starts as what vanilla computed and is
+  **writable**: the number a handler writes is the number the game applies, and the arithmetic that
+  follows it in the same call (shield reduction, the game's own damage cooldown) runs on it too. A
+  cancel wins over a rewrite.
 - `LIVING_DIED` — the death routine stops and the entity stays at zero health until the next damage
   re-runs the check; that is the shape of the game's own totem path.
 - `GUI_OPEN`, `CHAT_SENT`, `CHAT_RECEIVED` — the GUI does not open / the message is not sent / it is

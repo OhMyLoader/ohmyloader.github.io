@@ -24,6 +24,7 @@ val client = OMLGame.client   // 专用服务端上为 null
 | `tickCount`                   | 该服务端已运行的 tick 数——用于算增量，不是绝对值                   |
 | `isDedicated`                 | 单人游戏的集成服务端为 false                                       |
 | `playerByName(name)`          | 该记分板名的在线玩家，不在场返回 null                              |
+| `level(dimensionId)`          | 该维度已加载的世界；未加载返回 null，而不是空世界                    |
 | `broadcast(text)`             | 在每位在线玩家的聊天框显示 `text`                                  |
 
 ### `OMLClient`
@@ -48,14 +49,19 @@ val client = OMLGame.client   // 专用服务端上为 null
 | `isClient`          | 渲染中的世界为 true                                                   |
 | `blockAt(pos)`      | `pos` 处方块的注册表 id                                               |
 | `setBlock(pos, id)` | 放置方块；id 未知或位置未加载时返回 false                             |
+| `isLoaded(pos)`     | `pos` 所在区块是否已加载                                              |
+| `playSound(id, x, y, z, volume, pitch, category)` | 在某个位置播放已注册音效，凡是听得到的玩家都听到 |
 
 ::: warning 写方块需要服务端侧的世界
 对客户端世界调用 `setBlock` 改的是服务端下一次更新就会覆盖掉的预测，因此只在服务端世界生效。
 读取两侧都行，写入请走 `OMLGame.server`。
 :::
 
-未加载的位置不是错误：游戏自身的 getter 对它回答 air，所以 `blockAt` 在那里报 `minecraft:air`，
-不会抛异常。
+::: warning 未加载的位置没有意义
+`blockAt` 不会失败，但对落在已加载区块之外的位置，它给出的是游戏自身 getter 当时持有的东西——
+一次是 `minecraft:air`，另一次是真实地形，取决于哪一侧、以及区块管理器恰好做了什么。
+需要可靠结论时先调用 `isLoaded`，再读位置。
+:::
 
 ## 实体、玩家与物品栏
 
@@ -78,14 +84,30 @@ val client = OMLGame.client   // 专用服务端上为 null
 | `health`          | 当前血量                                                               |
 | `maxHealth`       | 血量上限                                                               |
 | `alive`           | 仍存在且血量大于 0（正在死亡动画中的实体仍算 alive）                    |
+| `effects`         | 此刻身上的效果，各自带剩余时长与等级                                    |
+| `hasEffect(id)`   | 是否带有该效果；id 未注册返回 false                                     |
+| `applyEffect(id, durationTicks, amplifier)` | 施加效果；id 未注册返回 false            |
+| `removeEffect(id)`| 摘掉效果；id 未知或本来就没有时返回 false                               |
+| `heal(amount)`    | 按游戏自身的回血方式恢复血量                                            |
+
+`effects` 报的是**剩余**时长（tick）和从 0 起的等级，所以 `amplifier = 0` 是一级。对已有的效果再次
+`applyEffect` 遵循游戏自身的合并规则，不是简单覆盖。
 
 | `OMLPlayer`                     | 含义                                                       |
 |---------------------------------|------------------------------------------------------------|
 | `inventory`                     | 玩家本人的主容器                                            |
 | `gameMode`                      | `survival` / `creative` / `adventure` / `spectator`，可为 null |
 | `mainHandItem` / `offhandItem`  | 主手与副手的堆叠                                            |
+| `permissionLevel`               | 原版等级：0 普通玩家、1 调解员、2 游戏管理员、3 管理员、4 服主 |
 | `sendSystemMessage(text)`       | 只向这位玩家显示 `text`                                     |
 | `giveItem(itemId, count)`       | 往物品栏放入物品，放不下时返回 false                        |
+| `teleport(x, y, z, dimensionId)`| 移动玩家；给出维度 id 时同时跨维度移动                      |
+| `playSound(id, volume, pitch)`  | 播放已注册音效，**只让这位玩家**听到                        |
+
+`teleport` 由服务端做主：客户端侧的玩家由集成服务端里同一 uuid 的对应实体代为实现，返回 false 意味着
+没有可移动的对象、维度 id 未知，或游戏拒绝了目标位置。`playSound` 是逐听众的——服务端侧玩家给那个客户
+端发包，客户端侧玩家本地播放；要按位置放给所有听得到的玩家，用 `OMLWorld.playSound`，它还要指定音效
+分类，决定它受客户端哪一条音量滑条控制。
 
 `gameMode` 可空是因为游戏的 getter 本身可空：客户端侧的玩家可能在服务端还没下发游戏类型时就被读取。
 
@@ -108,10 +130,12 @@ val client = OMLGame.client   // 专用服务端上为 null
 | `set(slot, itemId, count)` | 替换整槽；id 未知或越界返回 false 且不做任何事                   |
 | `add(itemId, count)`       | 像原版拾取一样分摊到各槽；放不下返回 false（已放入的留在栏内）    |
 | `countOf(itemId)`          | 该物品在可寻址槽位中的总数                                       |
+| `remove(itemId, count)`    | 取出至多 `count` 个，返回真正取出了多少                          |
 | `selectHotbarSlot(slot)`   | 把手指向 `slot`（0..8）                                          |
 
 槽位下标沿用游戏自身的容器布局：0..35 是主物品栏，同一对象上的护甲与副手槽不在这里寻址。
-改动不加任何锁——请在拥有该玩家的线程上执行，这正是[主线程调度器](/zh/api/scheduler)的用途。
+`remove` 只按物品 id 匹配堆叠，带耐久或自定义名字的物品同样被算进去；要取的数量超过存量时，取出全部
+现存并如实报数。改动不加任何锁——请在拥有该玩家的线程上执行，这正是[主线程调度器](/zh/api/scheduler)的用途。
 
 ## 位置
 
@@ -125,8 +149,10 @@ val client = OMLGame.client   // 专用服务端上为 null
 | `SERVER_STARTED` / `SERVER_STOPPING`             | `server: OMLServer`                                                 |
 | `PLAYER_JOINED` / `PLAYER_LEFT`                  | `player: OMLPlayer`                                                 |
 | `BLOCK_BREAK`                                    | `player`、`position: OMLBlockPos`、`blockId`                        |
+| `BLOCK_USED`                                     | `player`、`position`、`blockId`、`itemId`、`hand`、`face`           |
+| `ITEM_USED`                                      | `player`、`itemId`、`hand`                                          |
 | `ENTITY_ATTACK` / `ENTITY_INTERACT`              | `player`、`target: OMLEntity`                                       |
-| `LIVING_HURT` / `LIVING_DIED`                    | `entity: OMLLivingEntity`、`attacker: OMLEntity?`                   |
+| `LIVING_HURT` / `LIVING_DIED`                    | `entity: OMLLivingEntity`、`attacker: OMLEntity?`（`LIVING_HURT` 的 `amount` 可写） |
 | `WORLD_LOAD`                                     | `world: OMLWorld?`                                                  |
 
 可取消事件调用 `cancel()` 即阻止游戏自身的动作；字段是游戏即将操作的对象本身，不是副本——每个事件的
