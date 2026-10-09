@@ -59,9 +59,23 @@ oml {
 The Kotlin version has to be one that can target Java 27 class files; `2.5.0-Beta1` is what the
 loader itself is built with.
 
-The `oml-gradle` plugin does everything else: it puts `oml-api` on `compileOnly`, resolves the runtime
-layer (including the per-version adapter) by version, provides `runClient` / `runServer`, and
-downloads and verifies the game jar, libraries, natives and assets.
+The `oml-gradle` plugin does everything else. On the compile classpath it puts `oml-api`, the
+version-facing `oml-api-<version>` (`oml-api-26_3` for 26.3, named from `minecraftVersion`), the game's
+own client jar and that version's library jars — a mod's sources can name `net.minecraft.*` types, and
+they compile against the same classes the game runs. It also resolves the runtime layer (including the
+per-version adapter), provides `runClient` / `runServer`, and downloads and verifies the game jar,
+libraries, natives and assets.
+
+Because the version-facing artifact's coordinate is derived from it, `minecraftVersion` is now required —
+also for a project that only compiles and never launches the game. Without it, resolving `compileOnly`
+fails with "no value" rather than quietly dropping the artifact.
+
+::: warning Name your packages somewhere else
+Keep mod classes out of the `org.ohmyloader.` prefix. That namespace is parent-first: a mod inside it is
+defined by the launcher layer, whose search path carries the game jar but not the version's libraries, so
+its first `net.minecraft.*` reference fails with `NoClassDefFoundError`. Any other prefix — `com.example.…`
+— is loaded child-first like every real mod.
+:::
 
 ## Write the code
 
@@ -69,7 +83,7 @@ downloads and verifies the game jar, libraries, natives and assets.
 import org.ohmyloader.api.Mod
 import org.ohmyloader.api.ModContext
 import org.ohmyloader.api.OMLModInitializer
-import org.ohmyloader.api.event.Events
+import org.ohmyloader.api26_3.event.Events
 
 @Mod(id = "my_mod", name = "My Mod", version = "1.0.0")
 class MyMod : OMLModInitializer {

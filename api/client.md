@@ -31,16 +31,17 @@ class MyMod : OMLModInitializer, OMLKeyBindingProvider {
 
 ```kotlin
 Events.HUD_RENDER.register { event ->
-    val surface = event.graphics.platform // the frame's draw surface (version-specific type)
+    val graphics = event.graphics         // the game's own draw surface for this frame
 }
 ```
 
 | Event        | Fired                            | Cancellable | Fields                      |
 |--------------|----------------------------------|-------------|-----------------------------|
-| `HUD_RENDER` | every frame with a world loaded  | –           | `graphics: OMLGuiGraphics`  |
+| `HUD_RENDER` | every frame with a world loaded  | –           | `graphics: GuiGraphicsExtractor` |
 
-`OMLGuiGraphics.platform` is the game's draw surface for the frame. It is a version-specific type
-(on 26.3: `GuiGraphicsExtractor`); code touching it directly belongs in version-specific paths.
+On 26.3 `graphics` is the game's own `GuiGraphicsExtractor`, so every draw call the game has is available
+to a mod. `drawText(text, x, y)` is the one convenience OML adds: it draws in the game's default font with
+vanilla's colour codes honoured.
 
 ::: tip
 The event means "the HUD pass begins", not "pixels will follow": the pass's internal early-returns

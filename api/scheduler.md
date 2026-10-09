@@ -1,12 +1,12 @@
 # Tick Scheduler
 
 `OMLScheduler` queues work for the game's own thread. It is the supported way to leave a
-non-game thread: a network inbound handler runs on a Netty thread, and `OMLWorld`, `OMLServer` and
-every other projection are only safe to mutate from the thread that ticks them.
+non-game thread: a network inbound handler runs on a Netty thread, and the game objects it hands over —
+a `ServerLevel`, a `ServerPlayer`, an inventory — are only safe to mutate from the thread that ticks them.
 
 ```kotlin
 OMLScheduler.schedule(OMLSide.SERVER) {
-    OMLGame.server?.broadcast("synced from the packet thread")
+    OMLGame.server?.broadcastMessage("synced from the packet thread")
 }
 ```
 

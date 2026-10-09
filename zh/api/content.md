@@ -200,27 +200,31 @@ registry.declareDamageType(
 `intentional_game_design`。两个可选项未设置时不会写进文件，好让游戏套用自己的默认值，而不是由 OML 猜。
 
 这与合成表走的是同一条数据包路径：OML 把 `data/my_mod/damage_type/melt.json` 写进注入的资源包，游戏的
-重载把它注册成条目——于是它出现在 `OMLRegistries.damageTypes` 里，
-[OMLLivingEntity.hurt](/zh/api/world) 也能像用原版 id 一样用 `"my_mod:melt"`，而 handler 在 `LIVING_HURT`
+重载把它注册成条目——于是它在 `server.registry(Registries.DAMAGE_TYPE)` 里读得回来，26.3 的
+[`hurt`](/zh/api/native) 扩展也能像用原版 id 一样用 `"my_mod:melt"`，而 handler 在 `LIVING_HURT`
 里读到的正是声明里写的 `messageId`。未知的枚举名在**声明处**就被拒绝并给出警告：否则那个文件会在数据包
 重载时被 codec 悄悄丢弃，没人知道伤害类型为什么不见了。
 
 ## 读回注册表
 
-`OMLRegistries` 是游戏自身注册表的只读视图——上面的声明就材料化进这些表，所以 mod 的内容与原版条目
+这些表就是游戏自己的那几张——上面的声明正是材料化进它们，所以 mod 的内容与原版条目
 完全同等地读得回来：
 
 ```kotlin
-OMLRegistries.blocks.ids.contains("my_mod:ruby_ore")     // 全部 id，按注册顺序
-OMLRegistries.items.contains("minecraft:iron_ingot")     // 这个 id 存在吗
-OMLRegistries.blocks.tagged("minecraft:dirt")            // 带该标签的 id 列表
-OMLRegistries.blocks.tagsOf("minecraft:stone")           // 该 id 属于哪些标签
+import org.ohmyloader.api26_3.*                        // 按 id 寻址的读取
+
+BuiltInRegistries.BLOCK.byId("my_mod:ruby_ore")          // 那个 Block，或未注册时为 null
+BuiltInRegistries.BLOCK.contains("my_mod:ruby_ore")      // 这个 id 存在吗
+BuiltInRegistries.BLOCK.ids()                            // 表里的全部 id
+BuiltInRegistries.BLOCK.membersOf(Registries.BLOCK, "minecraft:dirt")  // 带该标签的 id 列表
+BuiltInRegistries.BLOCK.tagsOf("minecraft:stone")        // 该 id 属于哪些标签
 ```
 
-开放八张表：`blocks`、`items`、`mobEffects`、`sounds`、`entityTypes`、`attributes`、`damageTypes`、
-`gameRules`——最后一张就是 [`gameRule` / `setGameRule`](/zh/api/world) 所取的 id。
-未注册的 id 对 `contains` 返回 `false`，对 `tagged` / `tagsOf` 返回空列表，写错的 id 是安静的「没有」，
-不是异常。第九张 `worldClocks` 公开 26.3 用来计时的时钟，也就是 [`OMLServer.clock`](/zh/api/world) 所取的 id。
+任何一张都可以这样读：`BuiltInRegistries.BLOCK`、`ITEM`、`MOB_EFFECT`、`SOUND_EVENT`、`ENTITY_TYPE`、
+`ATTRIBUTE`、`GAME_RULE`、`PARTICLE_TYPE` 是静态表，而伤害类型与时钟是数据包表，需要运行中的服务端——
+`server.registry(Registries.DAMAGE_TYPE)` 与 [`clockById`](/zh/api/native) 取的就是它们的 id，
+[`gameRuleValue` / `setGameRule`](/zh/api/native) 也一样。未注册的 id 对 `contains` 答 `false`、对
+`membersOf` / `tagsOf` 答空列表，而 `byId` 答 null 而不是表的默认值：写错的 id 是安静的「没有」，不会被当成空气或寂静。
 
 ::: warning 伤害类型与时钟要有运行中的服务端
 `damageTypes` 与 `worldClocks` 是唯一不在游戏内置表里的：它们由数据包加载，所以在服务端存在之前读它们会抛出

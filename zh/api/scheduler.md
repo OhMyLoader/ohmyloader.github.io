@@ -1,11 +1,11 @@
 # 主线程调度器
 
 `OMLScheduler` 把工作排进游戏自身的线程队列，这是离开非游戏线程的唯一受支持方式：网络入站处理器
-跑在 Netty 线程上，而 `OMLWorld`、`OMLServer` 等所有投影只有从驱动它们 tick 的线程改动才是安全的。
+跑在 Netty 线程上，而它接到的游戏对象（`ServerLevel`、`ServerPlayer`、物品栏）只有从驱动它们 tick 的线程改动才是安全的。
 
 ```kotlin
 OMLScheduler.schedule(OMLSide.SERVER) {
-    OMLGame.server?.broadcast("从数据包线程同步过来")
+    OMLGame.server?.broadcastMessage("从数据包线程同步过来")
 }
 ```
 

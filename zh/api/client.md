@@ -30,16 +30,16 @@ class MyMod : OMLModInitializer, OMLKeyBindingProvider {
 
 ```kotlin
 Events.HUD_RENDER.register { event ->
-    val surface = event.graphics.platform // 本帧的绘制面（版本相关类型）
+    val graphics = event.graphics         // 游戏自己这一帧的绘制面
 }
 ```
 
 | 事件         | 触发时机             | 可取消 | 字段                       |
 |--------------|----------------------|--------|----------------------------|
-| `HUD_RENDER` | 世界加载期间的每一帧 | –      | `graphics: OMLGuiGraphics` |
+| `HUD_RENDER` | 世界加载期间的每一帧 | –      | `graphics: GuiGraphicsExtractor` |
 
-`OMLGuiGraphics.platform` 是本帧的绘制面，为版本相关类型（26.3 上是
-`GuiGraphicsExtractor`）；直接操作它的代码应隔离在特定版本的路径里。
+26.3 上 `graphics` 就是游戏自己的 `GuiGraphicsExtractor`，游戏有哪些绘制调用，mod 就有哪些。OML 只额外
+提供 `drawText(text, x, y)`：用游戏默认字体绘制，并遵循 vanilla 的颜色代码。
 
 ::: tip
 该事件的含义是「HUD 渲染流程开始」，而非「一定有像素被画出来」：流程内部的提前返回（加载

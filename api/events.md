@@ -21,11 +21,14 @@ assets and content ids).
 
 ## Event registration
 
-Events are registered as reflection-free lambdas on the `Events` object. The handler signature is
-the event type; cancellable events are canceled by calling `cancel()` (`canceled` is a read-only
-projection of it — reading it lets a later handler observe an earlier one's decision):
+Events are registered as reflection-free lambdas on the `Events` object
+(`org.ohmyloader.api26_3.event.Events`). The handler signature is the event type; cancellable events are
+canceled by calling `cancel()` (`canceled` is read-only — reading it lets a later handler observe an
+earlier one's decision). Payload fields are the game's own classes:
 
 ```kotlin
+import org.ohmyloader.api26_3.event.Events
+
 Events.CLIENT_TICK.register { /* every logical tick */ }
 ```
 
@@ -33,28 +36,29 @@ Events.CLIENT_TICK.register { /* every logical tick */ }
 |--------------------|-----------------------------------------------------------------------|-------------|------------------------------------------------------------------------------|
 | `CLIENT_TICK`      | every client logical tick                                             | –           | –                                                                          |
 | `SERVER_TICK`      | every server logical tick (dedicated or integrated)                   | –           | –                                                                          |
-| `LEVEL_TICK`       | one level starting one tick                                             | –           | `level: OMLWorld`                                                          |
-| `SERVER_STARTED`   | once per server start, on its first tick                              | –           | `server: OMLServer`                                                        |
-| `SERVER_STOPPING`  | once per shutdown, before the worlds are saved                        | –           | `server: OMLServer`                                                        |
-| `PLAYER_JOINED`    | a player finished entering the world                                  | –           | `player: OMLPlayer`                                                        |
-| `PLAYER_LEFT`      | a player is leaving                                                   | –           | `player: OMLPlayer`                                                        |
-| `PLAYER_RESPAWNED` | a player finished respawning                                          | –           | `player: OMLPlayer` (the instance made for this life)                      |
+| `LEVEL_TICK`       | one level starting one tick                                             | –           | `level: Level`                                                             |
+| `SERVER_STARTED`   | once per server start, on its first tick                              | –           | `server: MinecraftServer`                                                        |
+| `SERVER_STOPPING`  | once per shutdown, before the worlds are saved                        | –           | `server: MinecraftServer`                                                        |
+| `PLAYER_JOINED`    | a player finished entering the world                                  | –           | `player: ServerPlayer`                                                        |
+| `PLAYER_LEFT`      | a player is leaving                                                   | –           | `player: ServerPlayer`                                                        |
+| `PLAYER_RESPAWNED` | a player finished respawning                                          | –           | `player: ServerPlayer` (the instance made for this life)                      |
 | `FRAME_RATE_LIMIT` | every frame's frame-rate calculation                                  | –           | `currentLimit: Int`, writable `limit: Int` (overrides the limit)           |
-| `GUI_OPEN`         | before any GUI is shown                                               | ✅          | `screen: OMLScreen?` (null = the current GUI is being closed)              |
+| `GUI_OPEN`         | before any GUI is shown                                               | ✅          | `screen: Screen?` (null = the current GUI is being closed)                 |
 | `CHAT_SENT`        | the player sends a chat message                                       | ✅          | `message: String`                                                          |
-| `CHAT_RECEIVED`    | a chat message is received (before display)                           | ✅          | `message: String`                                                          |
-| `WORLD_LOAD`       | entering a world / disconnecting                                      | –           | `world: OMLWorld?` (null = disconnected)                                   |
-| `HUD_RENDER`       | once per frame while a world is loaded                                | –           | `graphics: OMLGuiGraphics`                                                 |
-| `BLOCK_BREAK`      | a player is about to destroy a block                                  | ✅          | `player`, `position: OMLBlockPos`, `blockId: String`                       |
-| `ENTITY_ATTACK`    | a player's attack landed on an entity                                 | ✅          | `player`, `target: OMLEntity`                                              |
-| `ENTITY_INTERACT`  | a player right-clicked an entity                                      | ✅          | `player`, `target: OMLEntity`, `hand: String` (`main_hand` / `off_hand`)   |
-| `BLOCK_USED`       | a player right-clicked a block                                        | ✅          | `player`, `position: OMLBlockPos`, `blockId`, `itemId`, `hand`, `face`     |
-| `ITEM_USED`        | a player used the held item on nothing                                | ✅          | `player`, `itemId`, `hand`                                                 |
-| `LIVING_HURT`      | damage is about to be applied to a living entity                      | ✅          | `entity`, writable `amount: Float`, `damageType: String`, `attacker: OMLEntity?` |
-| `LIVING_DIED`      | a living entity's death routine is starting                           | ✅          | `entity`, `damageType: String`                                             |
+| `CHAT_RECEIVED`    | a chat message is received (before display)                           | ✅          | `message: String`, `packet: Packet<ClientGamePacketListener>`              |
+| `WORLD_LOAD`       | entering a world / disconnecting                                      | –           | `world: ClientLevel?` (null = disconnected)                                |
+| `HUD_RENDER`       | once per frame while a world is loaded                                | –           | `graphics: GuiGraphicsExtractor`                                           |
+| `BLOCK_BREAK`      | a player is about to destroy a block                                  | ✅          | `player`, `position: BlockPos`, `state: BlockState`                        |
+| `ENTITY_ATTACK`    | a player's attack landed on an entity                                 | ✅          | `player`, `target: Entity`                                                 |
+| `ENTITY_INTERACT`  | a player right-clicked an entity                                      | ✅          | `player`, `target: Entity`, `hand: InteractionHand`                        |
+| `BLOCK_USED`       | a player right-clicked a block                                        | ✅          | `player`, `hit: BlockHitResult`, `state`, `stack: ItemStack`, `hand`       |
+| `ITEM_USED`        | a player used the held item on nothing                                | ✅          | `player`, `stack: ItemStack`, `hand: InteractionHand`                      |
+| `LIVING_HURT`      | damage is about to be applied to a living entity                      | ✅          | `entity: LivingEntity`, writable `amount: Float`, `source: DamageSource`   |
+| `LIVING_DIED`      | a living entity's death routine is starting                           | ✅          | `entity: LivingEntity`, `source: DamageSource`                             |
 
-The projection types behind these fields are on the [World, Player & Entity
-API](/api/world) page; the payload fields are the game's own objects, not copies.
+What else lives on those objects is on the [Game Objects and 26.3 Extensions](/api/native) page — the
+payload fields are the objects the game was about to act on, not copies, so a handler can call the game's
+own methods on them directly.
 
 `PLAYER_RESPAWNED` is the one lifecycle event that hands over a **new** object: the game builds a fresh
 player for the life that starts and discards the one it replaced, so a handle kept from before the respawn
@@ -62,8 +66,8 @@ reads as removed and has to be swapped for the one the event carries.
 
 `LEVEL_TICK` is scoped per dimension rather than per side: a server dispatches it once for each loaded level
 per server tick, and a client for the level it renders. In singleplayer that means both — the integrated
-level and the rendered one, two projections of the same dimension, told apart by
-[`OMLWorld.isClient`](/api/world).
+level and the rendered one, two objects for the same dimension, told apart by the game's own
+[`Level.isClientSide`](/api/native).
 
 ### Examples
 

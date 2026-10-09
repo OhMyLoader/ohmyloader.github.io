@@ -57,8 +57,19 @@ oml {
 
 Kotlin 版本必须能产出 Java 27 字节码，`2.5.0-Beta1` 正是 loader 自用的版本。
 
-`oml-gradle` 插件会自动完成其余一切：把 `oml-api` 放上 `compileOnly`、按版本解析运行层（含 per-version
-adapter）、提供 `runClient` / `runServer`、下载并校验游戏 jar / 运行库 / natives / 资产。
+`oml-gradle` 插件会自动完成其余一切。编译类路径上它会放好 `oml-api`、版本面向的 `oml-api-<version>`
+（26.3 即 `oml-api-26_3`，坐标由 `minecraftVersion` 推导）、游戏自己的客户端 jar 与该版本的运行库 jar
+——mod 源码可以直接命名 `net.minecraft.*` 类型，而它编译时所面对的就是游戏运行的那批类。此外它按版本解析
+运行层（含 per-version adapter）、提供 `runClient` / `runServer`、下载并校验游戏 jar / 运行库 / natives / 资产。
+
+由于版本面向工件的坐标由版本推导，`minecraftVersion` 现在是必填项——即使一个工程只编译、从不启动游戏也不
+例外。缺它时解析 `compileOnly` 会以「无值」失败，而不是悄悄少掉那个工件。
+
+::: warning 包名不要借用 `org.ohmyloader.`
+mod 的类不要放在这个前缀下。该命名空间是 parent-first：处在其中的 mod 由启动器层定义，而启动器层的搜索
+路径只有游戏 jar、没有该版本的运行库，于是它第一次引用 `net.minecraft.*` 就会以 `NoClassDefFoundError`
+失败。换任何其他前缀（例如 `com.example.…`），就和所有真实 mod 一样按 child-first 加载。
+:::
 
 ## 写代码
 
@@ -66,7 +77,7 @@ adapter）、提供 `runClient` / `runServer`、下载并校验游戏 jar / 运�
 import org.ohmyloader.api.Mod
 import org.ohmyloader.api.ModContext
 import org.ohmyloader.api.OMLModInitializer
-import org.ohmyloader.api.event.Events
+import org.ohmyloader.api26_3.event.Events
 
 @Mod(id = "my_mod", name = "My Mod", version = "1.0.0")
 class MyMod : OMLModInitializer {

@@ -214,28 +214,33 @@ its own default rather than OML guessing one.
 
 This is the same datapack route as recipes: OML writes
 `data/my_mod/damage_type/melt.json` into its injected pack and the game's reload registers it, so the type
-appears in `OMLRegistries.damageTypes` and [OMLLivingEntity.hurt](/api/world) accepts `"my_mod:melt"` like
+is in `server.registry(Registries.DAMAGE_TYPE)` and the 26.3 [`hurt`](/api/native) extension accepts `"my_mod:melt"` like
 any vanilla id — and a handler sees the declared `messageId` in `LIVING_HURT`. An unknown enum name is
 refused at declaration with a warning, because a file the datapack codec rejects would otherwise disappear
 during reload with no owner to blame.
 
 ## Reading the registries back
 
-`OMLRegistries` is a read-only view of the game's own tables — the same ones the declarations above are
+The tables are the game's own — the same ones the declarations above are
 materialized into, so a mod's content reads back exactly like a vanilla entry:
 
 ```kotlin
-OMLRegistries.blocks.ids.contains("my_mod:ruby_ore")     // every id, in registration order
-OMLRegistries.items.contains("minecraft:iron_ingot")     // does this id exist
-OMLRegistries.blocks.tagged("minecraft:dirt")            // ids carrying this tag
-OMLRegistries.blocks.tagsOf("minecraft:stone")           // tags this id belongs to
+import org.ohmyloader.api26_3.*                        // the id-addressed reads
+
+BuiltInRegistries.BLOCK.byId("my_mod:ruby_ore")          // the Block, or null
+BuiltInRegistries.BLOCK.contains("my_mod:ruby_ore")      // does this id exist
+BuiltInRegistries.BLOCK.ids()                            // every id in the table
+BuiltInRegistries.BLOCK.membersOf(Registries.BLOCK, "minecraft:dirt")  // ids carrying this tag
+BuiltInRegistries.BLOCK.tagsOf("minecraft:stone")        // tags this id belongs to
 ```
 
-Eight tables are published: `blocks`, `items`, `mobEffects`, `sounds`, `entityTypes`, `attributes`,
-`damageTypes` and `gameRules` — the last being the ids [`gameRule` / `setGameRule`](/api/world) take.
-An unregistered id answers `false` to `contains` and an empty list to `tagged` / `tagsOf`,
-so a typo is a quiet no rather than a failure. A ninth, `worldClocks`, publishes the clocks 26.3 keeps
-time by — the ids [`OMLServer.clock`](/api/world) takes.
+Any of the game's tables can be read this way: `BuiltInRegistries.BLOCK`, `ITEM`, `MOB_EFFECT`,
+`SOUND_EVENT`, `ENTITY_TYPE`, `ATTRIBUTE`, `GAME_RULE` and `PARTICLE_TYPE` are static, while damage types
+and clocks are datapack tables that need a running server — `server.registry(Registries.DAMAGE_TYPE)` and
+[`clockById`](/api/native) take their ids, as do [`gameRuleValue` / `setGameRule`](/api/native).
+An unregistered id answers `false` to `contains` and an empty list to `membersOf` / `tagsOf`, and
+`byId` answers null rather than the table's default value: a typo is a quiet no, never air placed or
+silence played.
 
 ::: warning Damage types and clocks need a running server
 `damageTypes` and `worldClocks` are the two tables that are not built into the game: both are loaded from
