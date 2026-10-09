@@ -158,6 +158,21 @@ tick 数，`amplifier` 从 0 起算，所以 0 就是一级。
 | `teleport(x, y, z, dimensionId = null)` | 服务端权威；维度 id 未知或游戏拒绝该目的地时返回 false     |
 | `playSound(id, volume, pitch)` | 让**这位**玩家听见，正是游戏自己的分侧行为                     |
 
+### 穿戴中的物品
+
+| 调用                                              | 含义                                                             |
+|---------------------------------------------------|--------------------------------------------------------------------|
+| `itemIn(slotName)`                                | 游戏在 `chest` / `feet` / `offhand` 这类槽里持有的堆；名字它不用则为 null |
+| `equip(slotName, stack)`                          | 走游戏自己的槽写入，并返回该槽原本的堆——游戏把它留给调用者自己安放 |
+| `equip(slotName, itemId, count = 1)`              | 同上，按注册表 id 寻址                                             |
+| `unequip(slotName)`                               | 把穿着的那件取下并交回                                             |
+| `equipmentSlotOf(name)` / `EquipmentSlot.slotName` | 槽与名字互转，用的就是游戏自己数据里的名字                         |
+| `Inventory.indexOf(slotName)`                     | 穿戴物在玩家容器里的下标（36..39 是盔甲，副手是 `Inventory.SLOT_OFFHAND`）；该槽不被容器寻址时为 null |
+
+一件东西能不能进某个槽由游戏决定——`isEquippableInSlot` 读的是物品自己的 `Equippable` 组件——所以被拒时返回
+null、原本穿着的东西分毫未动，拒绝的方式与玩家在物品栏界面里遇到的完全一致。先从实体上读、再按 `indexOf` 的
+下标从玩家容器里读同一个穿戴物，两次读数指向的是同一份存储，而不是 OML 另存的副本。
+
 ## 物品堆、容器与槽位
 
 ```kotlin

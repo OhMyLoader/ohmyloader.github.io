@@ -165,6 +165,22 @@ rules the event enforces.
 | `teleport(x, y, z, dimensionId = null)` | server-authoritative; false when the dimension id is unknown or the game refused the destination |
 | `playSound(id, volume, pitch)` | plays so **this** player hears it, which is the game's own per-listener split |
 
+### Worn items
+
+| Call                                            | Meaning                                                            |
+|-------------------------------------------------|----------------------------------------------------------------------|
+| `itemIn(slotName)`                              | what the game holds in `chest` / `feet` / `offhand` …, null for a name it never uses |
+| `equip(slotName, stack)`                        | writes it through the game's own slot write and returns what the slot held before, which the game leaves for the caller to place |
+| `equip(slotName, itemId, count = 1)`            | the same addressed by registry id                                    |
+| `unequip(slotName)`                             | takes the worn stack off and hands it back                           |
+| `equipmentSlotOf(name)` / `EquipmentSlot.slotName` | the name ↔ slot conversion the game's own data uses               |
+| `Inventory.indexOf(slotName)`                   | the player-container index a worn stack sits at (36..39 armour, `Inventory.SLOT_OFFHAND` the offhand), null for a slot the container does not address |
+
+Whether an item belongs in a slot is the game's decision — `isEquippableInSlot` reads the item's own
+`Equippable` component — so a refusal returns null and leaves whatever was worn exactly where it was, and the
+same item the inventory screen would refuse. Reading the worn stack out of the entity and out of the player's
+container at `indexOf` gives the same storage twice, not a copy.
+
 ## Stacks, containers and slots
 
 ```kotlin
