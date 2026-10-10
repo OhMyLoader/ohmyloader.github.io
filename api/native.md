@@ -379,6 +379,39 @@ so a type declared with a roof or without skylight can be written a weather reco
 That is the declaration taking effect, not a failed write.
 :::
 
+## Spawns and respawn anchors
+
+26.3 holds two anchors, and both are the game's own `LevelData.RespawnData`: a global position plus the yaw and
+pitch a player is set to on arrival.
+
+| Call | Meaning |
+|------|---------|
+| `player.respawnAnchor` | the anchor as the game holds it; null means the player returns to the world's spawn |
+| `player.setRespawnAnchor(dimensionId, position, yaw, pitch, announce)` | moves it and reads it back; false for a dimension the server does not know, a non-server player, or an anchor that does not hold |
+| `player.clearRespawnAnchor()` | drops it, and reports that nothing is left |
+| `server.worldSpawn` | the record players with no anchor of their own return to |
+| `server.setWorldSpawn(dimensionId, position, yaw, pitch)` | re-points that record; false when the dimension is unknown or the game will not respawn a player at `position` |
+
+The dimension an anchor names may be one a content pack declared, so a respawn can land in a mod's own level.
+`announce` is the game's own chat message — the one `/spawnpoint` sends. An explicitly chosen position is marked
+**forced**, which is the game's term for using it as given instead of re-checking whether a bed or respawn
+anchor still stands there.
+
+::: warning one world spawn record for the whole server
+`ServerLevel`'s read and write of `respawnData` both forward to `MinecraftServer`, which keeps the record on the
+overworld's data, so asking any level answers with the same one record and there is no per-dimension world
+spawn to set alongside it. The record does carry a dimension, and the game resolves that dimension through its
+loaded levels — falling back to the overworld when no level matches — so `setWorldSpawn` refuses an id the
+server's registry does not list rather than storing a spawn that silently becomes an overworld one.
+:::
+
+::: warning what reads back is where a respawn lands
+The server hands out a border-adjusted record: a position outside that dimension's world border is kept as
+asked but reported at the border's centre. Measured on the real machine with a mod dimension whose border was
+set to 50 — a spawn aimed at (200, 41, 200) read back at (0, y, 0) in the same dimension, and the helper
+answered false.
+:::
+
 ## Permission nodes
 
 26.3 gates authority on **nodes**, not only on the 0..4 operator level: the game's own checks are
