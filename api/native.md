@@ -253,11 +253,10 @@ server.setGameRule("minecraft:keep_inventory", "3")        // false: the rule's 
 
 ## Clocks
 
-26.3 has no day-time counter. Time lives in **clocks**: each one is a tick counter with a rate, addressed by
-registry id and bound to a dimension by its dimension type — the Nether names no clock, so `level.clock` is
-null there and there is no time to read or write. The day and night a mod used to compute out of
-`dayTime % 24000` are now **markers** registered against a clock (`minecraft:day`, `minecraft:noon`, …), which
-is what `/time set <marker>` moves the clock onto.
+Time in 26.3 lives in **clocks**: each one is a tick counter with a rate, addressed by registry id and bound
+to a dimension by its dimension type — the Nether names no clock, so `level.clock` is null there and there is
+no time to read or write. The named moments `/time set` refers to (`minecraft:day`, `minecraft:noon`, …) are
+**markers** declared against a clock, and the unit that declares them is a **timeline**.
 
 A clock is addressed by its `Holder<WorldClock>` and read through a `ClockInstance`:
 
@@ -277,7 +276,7 @@ verdict back:
 | `applyTicks(holder, delta)`                 | moves it by a number of ticks, negative to wind back           |
 | `applyPaused(holder, paused)`               | stops or resumes it, leaving the position where it is          |
 | `applyRate(holder, rate)`                   | sets the speed; false outside the game's own 0.00001..1000 window |
-| `markersOf(holder)`                         | the marker ids this clock offers                               |
+| `markersOf(holder)`                         | the marker ids `/time set` offers for this clock — only the declarations that set `show_in_commands` |
 | `atMarker(holder, markerId)` / `applyMarker(holder, markerId)` | the game's own test, and the move `/time set` makes |
 
 Reads work on both sides: the server owns the record and pushes it to clients as soon as it changes, so
@@ -285,9 +284,34 @@ Reads work on both sides: the server owns the record and pushes it to clients as
 a rate outside the window is refused because the game's clock manager would otherwise store a number the
 command would not create.
 
+### Timelines and their markers
+
+A **timeline** is the declaration unit for named moments: it names a clock, an optional cycle length, and the
+markers on it. The table they land in is the game's own, so OML reads it back instead of keeping a copy:
+
+| Call | Meaning |
+|------|---------|
+| `server.timelineIds` | every timeline the loaded packs registered |
+| `timelines.clockDrivenBy(timelineId)` | the clock that timeline moves; null for an unregistered id |
+| `timelines.timeMarkersOf(timelineId)` | marker id → tick of the cycle, **including markers `/time set` hides** |
+| `timelines.markerIdsDriving(clockId)` / `server.markerIdsDriving(clockId)` | every marker declared against that clock, by any timeline |
+
+where `timelines` is `server.registry(Registries.TIMELINE)`. Declaring one is on the
+[content track](/api/content): `declareClock` / `declareTimeline` become
+`data/<ns>/world_clock/<id>.json` and `data/<ns>/timeline/<id>.json` in OML's injected pack, and the game's own
+reload registers them. The server's clock manager runs an instance for **every registered clock**, so a mod's
+own clock counts once per game tick and syncs to clients with no dimension running on it.
+
+::: warning The instance table is built when the server starts
+`ServerClockManager` is created and initialised with the server, and it walks the clock and timeline
+registries once at that point. A clock a `/reload` adds therefore has no instance until the world restarts —
+`instanceOf` answers null where the game itself would throw — and the same holds for a marker a `/reload`
+declares. Declare clocks and timelines in the pack, and treat a restart as what makes them count.
+:::
+
 ::: warning A marker is a point, not a window
 `atMarker` is the game's test, which is exact (or periodic, when the marker declares a period). It answers
-true for one tick of each period, so it is not a replacement for the old `isDay()`: ask it right after an
+true for one tick of each period, so it is not a day/night test: ask it right after an
 `applyMarker`, or compare `totalTicks()` against the clock's own cycle.
 :::
 

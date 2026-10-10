@@ -205,6 +205,35 @@ registry.declareDamageType(
 里读到的正是声明里写的 `messageId`。未知的枚举名在**声明处**就被拒绝并给出警告：否则那个文件会在数据包
 重载时被 codec 悄悄丢弃，没人知道伤害类型为什么不见了。
 
+### 时钟与它上面的时刻
+
+26.3 的时间按注册表 id 寻址的**时钟**计，而 `/time set` 能把时钟移到的那些具名时刻，是时间线声明的
+**标记（marker）**。两者都是数据包条目，所以 mod 可以给自己开一片时间域：
+
+```kotlin
+registry.declareClock("tide")                 // 变成 my_mod:tide——时钟除了身份什么都不带
+registry.declareTimeline("surge") {
+    clock = "tide"                            // 这些标记移动的是哪个时钟；裸 id 绑定到本命名空间
+    periodTicks = 24000                       // 一个周期；不写则标记永不重复
+    marker("low_tide", 0)                     // 不出现在 /time set 的候选里
+    marker("high_tide", 12000, inCommands = true)
+}
+```
+
+OML 把 `data/my_mod/world_clock/tide.json` 与 `data/my_mod/timeline/surge.json` 写进注入的资源包，游戏的重载
+把它们注册进 `Registries.WORLD_CLOCK` 与 `Registries.TIMELINE`。游戏接下来做的事才是重点：
+`ServerClockManager` 给**每一个已注册的时钟**都跑一个实例，于是 `my_mod:tide` 每个游戏 tick 走一格、也照常同步给
+客户端，哪怕没有任何维度跑在它上面；而 [`applyMarker`](/zh/api/native) 能把它移到 `"my_mod:high_tide"`——这与
+`/time set` 移动主世界时钟是同一条路径。用来确认声明真的落地的读取是
+[`timelineIds`、`clockDrivenBy` 与 `timeMarkersOf`](/zh/api/native)。
+
+拒绝用的还是游戏自己的规则，只是提前到 mod 声明时而不是数据包加载时：标记的 tick 必须落在声明的周期内
+（时间线 codec 的检查）、一个标记在每个时钟上只属于一条时间线（注册表校验器的检查，冲突会让整条时间线
+整条消失）、时间线必须指明时钟，而本包没有声明条目的时钟也会被拒绝——codec 在加载时解析这个引用，引用坏了
+时间线就无声失踪。声明顺序有要求：**先声明时钟，再声明驱动它的时间线**（收集按顺序进行）。
+
+轨道（tracks，时间线的属性关键帧那一半）没有声明形态：它的值类型逐属性而变、且面向版本，需要请自己写那份 JSON。
+
 ## 读回注册表
 
 这些表就是游戏自己的那几张——上面的声明正是材料化进它们，所以 mod 的内容与原版条目
@@ -221,14 +250,15 @@ BuiltInRegistries.BLOCK.tagsOf("minecraft:stone")        // 该 id 属于哪些�
 ```
 
 任何一张都可以这样读：`BuiltInRegistries.BLOCK`、`ITEM`、`MOB_EFFECT`、`SOUND_EVENT`、`ENTITY_TYPE`、
-`ATTRIBUTE`、`GAME_RULE`、`PARTICLE_TYPE` 是静态表，而伤害类型与时钟是数据包表，需要运行中的服务端——
-`server.registry(Registries.DAMAGE_TYPE)` 与 [`clockById`](/zh/api/native) 取的就是它们的 id，
-[`gameRuleValue` / `setGameRule`](/zh/api/native) 也一样。未注册的 id 对 `contains` 答 `false`、对
+`ATTRIBUTE`、`GAME_RULE`、`PARTICLE_TYPE` 是静态表，而伤害类型、世界时钟与时间线是数据包表，需要运行中的服务端——
+`server.registry(Registries.DAMAGE_TYPE)`、[`clockById`](/zh/api/native) 与
+[`timelineIds`](/zh/api/native) 取的就是它们的 id，[`gameRuleValue` / `setGameRule`](/zh/api/native) 也一样。
+未注册的 id 对 `contains` 答 `false`、对
 `membersOf` / `tagsOf` 答空列表，而 `byId` 答 null 而不是表的默认值：写错的 id 是安静的「没有」，不会被当成空气或寂静。
 
-::: warning 伤害类型与时钟要有运行中的服务端
-`damageTypes` 与 `worldClocks` 是唯一不在游戏内置表里的：它们由数据包加载，所以在服务端存在之前读它们会抛出
-一条指名道姓的错误，而不是回一个空列表——空列表会谎称「这些伤害类型 / 时钟都不存在」。
+::: warning 伤害类型、时钟与时间线要有运行中的服务端
+这三张表不在游戏的内置表里：它们由数据包加载，所以在服务端存在之前读它们会抛出
+一条指名道姓的错误，而不是回一个空列表——空列表会谎称「这些伤害类型 / 时钟 / 时间线都不存在」。
 :::
 
 ::: warning 要等游戏起来再读
@@ -279,6 +309,13 @@ drop_count_max = 3
 message_id = "ruby_pack.melts"
 effects = "burning"
 exhaustion = 0.3
+
+[clock.tide]
+
+[timeline.surge]
+clock = "tide"
+period_ticks = 24000
+markers = { low_tide = 0, high_tide = { ticks = 12000, in_commands = true } }
 ```
 
 字段与代码 API 一一对应（`destroy_time` → `destroyTime` …）；`mines_and_drops` 与 `override_speed`
@@ -287,7 +324,10 @@ shaped / shapeless；shaped 需要 `pattern`（行）与 `key` 内联表（图�
 `ingredients` 列表；`count` 可选（默认 1）。`[smelting.<产出物 id>]` 段声明熔炼配方（`input` 必填，
 `furnace` 选择 smelting / blasting / smoking，`experience` 与 `cooking_time` 可选）；`[loot.<方块 id>]`
 段声明破坏该方块改为掉落 `drop`。`[damage_type.<id>]` 段声明伤害类型（`message_id` 必填，`scaling`、
-`effects`、`exhaustion`、`death_message_type` 可选，可取值与代码 API 相同）。方块段里的 `ore` 内联表对应 `generateAsOre`（`vein_size`、
+`effects`、`exhaustion`、`death_message_type` 可选，可取值与代码 API 相同）。`[clock.<id>]` 段声明一个世界时钟，
+不带任何字段（26.3 的时钟除了身份什么都不带）；`[timeline.<id>]` 段声明一条时间线（`clock` 必填，`period_ticks`
+可选，`markers` 是内联表，其值要么是一个 tick 数，要么是 `{ ticks = …, in_commands = … }`——游戏自己的 codec
+就接受这两种写法）。方块段里的 `ore` 内联表对应 `generateAsOre`（`vein_size`、
 `per_chunk`、`min_y`、`max_y`、`biomes`）。格式错误（图案不齐、未知类型、缺字段）会让内容包加载失败
 并说明原因。TOML 包与代码 mod 共享同一条
 收集 → 冻结材料化管线，资产注入也把 TOML 包的命名空间当作 mod 域对待。字段拼错会在启动日志里

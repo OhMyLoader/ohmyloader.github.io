@@ -239,10 +239,10 @@ server.setGameRule("minecraft:keep_inventory", "3")        // false：该规则�
 
 ## 时钟
 
-26.3 没有昼夜计数器。时间住在**时钟**里：每个时钟是一个带速率的 tick 计数器，按注册表 id 寻址，并由维度类型
-绑定到维度——下界不指定时钟，所以那里 `level.clock` 为 null，既没有时间可读也没有时间可写。mod 过去用
-`dayTime % 24000` 自己算的白天黑夜，现在是注册在时钟上的**具名时刻标记**（`minecraft:day`、
-`minecraft:noon`、`minecraft:night`、`minecraft:midnight` …），`/time set <marker>` 动的就是它。
+26.3 的时间住在**时钟**里：每个时钟是一个带速率的 tick 计数器，按注册表 id 寻址，并由维度类型
+绑定到维度——下界不指定时钟，所以那里 `level.clock` 为 null，既没有时间可读也没有时间可写。
+`/time set` 提到的那些具名时刻（`minecraft:day`、`minecraft:noon` 等）是**标记（marker）**，而声明它们的单位
+叫**时间线（timeline）**。
 
 时钟用它的 `Holder<WorldClock>` 寻址，读数走 `ClockInstance`：
 
@@ -261,21 +261,45 @@ server.setGameRule("minecraft:keep_inventory", "3")        // false：该规则�
 | `applyTicks(holder, delta)`                 | 按 tick 数移动，负值回拨                                 |
 | `applyPaused(holder, paused)`               | 暂停或恢复，位置原地不动                                 |
 | `applyRate(holder, rate)`                   | 设置速率；超出游戏自己的 0.00001..1000 窗口返回 false     |
-| `markersOf(holder)`                         | 该时钟提供的具名时刻标记 id                              |
+| `markersOf(holder)`                         | `/time set` 在该时钟上提供的标记 id——只含声明了 `show_in_commands` 的那些 |
 | `atMarker(holder, markerId)` / `applyMarker(holder, markerId)` | 游戏自己的"此刻是否在标记上"，与 `/time set` 的那一跳 |
 
 读数两侧都能做：记录归服务端所有，而它一变就推给客户端，所以
 `OMLGame.client?.level?.clockInstance` 是游戏被告知的副本。写入归服务端；窗口外的速率被拒，是因为游戏的时钟
 管理器本来会存下任何数字——OML 按命令能接受的范围先拦一道。
 
+### 时间线与它声明的标记
+
+**时间线**是具名时刻的声明单位：它指明一个时钟、可选的周期长度，以及落在上面的标记。这些条目进的是游戏
+自己的表，所以 OML 把它读回来，而不是另存一份：
+
+| 调用 | 含义 |
+|------|------|
+| `server.timelineIds` | 已加载的数据包注册的全部时间线 |
+| `timelines.clockDrivenBy(timelineId)` | 该时间线驱动的是哪个时钟；未注册为 null |
+| `timelines.timeMarkersOf(timelineId)` | 标记 id → 周期内的 tick，**含 `/time set` 不展示的那些** |
+| `timelines.markerIdsDriving(clockId)` / `server.markerIdsDriving(clockId)` | 该时钟上声明过的全部标记 id，不分来自哪条时间线 |
+
+其中 `timelines` 就是 `server.registry(Registries.TIMELINE)`。声明走
+[内容轨](/zh/api/content)：`declareClock` / `declareTimeline` 变成注入资源包里的
+`data/<ns>/world_clock/<id>.json` 与 `data/<ns>/timeline/<id>.json`，由游戏自己的重载注册。服务端的时钟管理器
+会给**每一个已注册的时钟**跑一个实例，所以 mod 自己的时钟即使没有任何维度跑在它上面，也照样每 game tick
+走一格并同步给客户端。
+
+::: warning 实例表在服务端启动时建好
+`ServerClockManager` 随服务端一起创建并初始化，它只在那一刻走一遍时钟与时间线两张表。因此靠 `/reload`
+新增的时钟在世界重启前不会有实例——游戏自己会抛的地方，`instanceOf` 答 null——`/reload` 新增的标记同理。
+时钟与时间线请写在包里，把重启当作让它们开始走的那一步。
+:::
+
 ::: warning 标记是一个点，不是一段窗口
-`atMarker` 用的是游戏自己的判定，它是精确的（若该声明了周期，则按周期），因此每个周期只true 一个 tick。它
-不能替代过去的 `isDay()`：要么紧接 `applyMarker` 之后问，要么把 `totalTicks()` 和时钟自己的周期做比较。
+`atMarker` 用的是游戏自己的判定，它是精确的（若该声明了周期，则按周期），因此每个周期只有一个 tick 为真。它
+不能替代按昼夜判断：要么紧接 `applyMarker` 之后问，要么把 `totalTicks()` 和时钟自己的周期做比较。
 :::
 
 ::: warning 时钟由数据包加载
 时钟 holder 与标记表都需要运行中的服务端，和伤害类型同理：这张表是随世界构建的，不是随二进制。未注册的时钟
-id 读回 null 而不是抛异常——游戏的时钟管理器对未知时钟的回答就是异常，所以 id 先against活的注册表解析，拼错
+id 读回 null 而不是抛异常——游戏的时钟管理器对未知时钟的回答就是异常，所以 id 先对着活的注册表解析，拼错
 也到不了它。游戏的 `advance_time` 游戏规则会让所有时钟停住却不暂停任何一个；暂停推给客户端的形式是速率为 0。
 :::
 

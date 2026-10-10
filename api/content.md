@@ -219,6 +219,39 @@ any vanilla id — and a handler sees the declared `messageId` in `LIVING_HURT`.
 refused at declaration with a warning, because a file the datapack codec rejects would otherwise disappear
 during reload with no owner to blame.
 
+### Clocks and the moments on them
+
+26.3 counts time in clocks addressed by registry id, and the named moments `/time set` moves a clock onto
+are **markers** declared by a timeline. Both are datapack entries, so a mod can add its own time domain:
+
+```kotlin
+registry.declareClock("tide")                 // becomes my_mod:tide — a clock is nothing but its id
+registry.declareTimeline("surge") {
+    clock = "tide"                            // the clock these markers move; bare ids bind to this namespace
+    periodTicks = 24000                       // one cycle; omit it and the markers never repeat
+    marker("low_tide", 0)                     // not offered by /time set
+    marker("high_tide", 12000, inCommands = true)
+}
+```
+
+OML serves `data/my_mod/world_clock/tide.json` and `data/my_mod/timeline/surge.json` from the injected pack,
+and the game's reload puts them in `Registries.WORLD_CLOCK` and `Registries.TIMELINE`. What the game then
+does with them is the whole point: `ServerClockManager` runs an instance for **every registered clock**, so
+`my_mod:tide` counts once per game tick and syncs to clients even though no dimension runs on it, and
+[`applyMarker`](/api/native) can move it onto `"my_mod:high_tide"` — the same move `/time set` makes on the
+overworld's clock. Reads that show the declaration landed are
+[`timelineIds`, `clockDrivenBy` and `timeMarkersOf`](/api/native).
+
+The refusals are the game's own rules, applied when the mod declares rather than when the pack loads: a
+marker's tick must sit inside the declared cycle (the timeline codec's check), one marker belongs to one
+timeline per clock (the registry validator's check, and a collision drops the whole timeline), a timeline
+must name a clock, and a clock the pack declares no entry for is refused because the codec resolves the
+reference at load and a broken reference leaves the timeline absent with nothing saying why. Declare the
+clock before the timeline that drives it — collection is in order.
+
+Tracks (a timeline's environment-attribute keyframes) have no declaration form: their value type is
+per-attribute and version-facing, so write that JSON yourself.
+
 ## Reading the registries back
 
 The tables are the game's own — the same ones the declarations above are
@@ -235,17 +268,18 @@ BuiltInRegistries.BLOCK.tagsOf("minecraft:stone")        // tags this id belongs
 ```
 
 Any of the game's tables can be read this way: `BuiltInRegistries.BLOCK`, `ITEM`, `MOB_EFFECT`,
-`SOUND_EVENT`, `ENTITY_TYPE`, `ATTRIBUTE`, `GAME_RULE` and `PARTICLE_TYPE` are static, while damage types
-and clocks are datapack tables that need a running server — `server.registry(Registries.DAMAGE_TYPE)` and
-[`clockById`](/api/native) take their ids, as do [`gameRuleValue` / `setGameRule`](/api/native).
+`SOUND_EVENT`, `ENTITY_TYPE`, `ATTRIBUTE`, `GAME_RULE` and `PARTICLE_TYPE` are static, while damage types,
+world clocks and timelines are datapack tables that need a running server — `server.registry(Registries.DAMAGE_TYPE)`,
+[`clockById`](/api/native) and [`timelineIds`](/api/native) take their ids, as do
+[`gameRuleValue` / `setGameRule`](/api/native).
 An unregistered id answers `false` to `contains` and an empty list to `membersOf` / `tagsOf`, and
 `byId` answers null rather than the table's default value: a typo is a quiet no, never air placed or
 silence played.
 
-::: warning Damage types and clocks need a running server
-`damageTypes` and `worldClocks` are the two tables that are not built into the game: both are loaded from
-datapacks, so reading them before a server exists fails with a named error instead of returning an empty
-list — which would be a lie about the damage types or clocks that exist.
+::: warning Damage types, clocks and timelines need a running server
+These three tables are not built into the game: they are loaded from datapacks, so reading them before a
+server exists fails with a named error instead of returning an empty list — which would be a lie about the
+damage types, clocks or timelines that exist.
 :::
 
 ::: warning Read them after the game is up
@@ -298,6 +332,13 @@ drop_count_max = 3
 message_id = "ruby_pack.melts"
 effects = "burning"
 exhaustion = 0.3
+
+[clock.tide]
+
+[timeline.surge]
+clock = "tide"
+period_ticks = 24000
+markers = { low_tide = 0, high_tide = { ticks = 12000, in_commands = true } }
 ```
 
 The fields map one-to-one onto the code API (`destroy_time` → `destroyTime`, …); `mines_and_drops`
@@ -309,7 +350,11 @@ pattern characters to item ids; shapeless needs an `ingredients` list; `count` i
 `furnace` selecting smelting / blasting / smoking, optional `experience` and `cooking_time`); a
 `[loot.<block-id>]` section declares that breaking the block drops `drop` instead of itself. A
 `[damage_type.<id>]` section declares a damage type (`message_id` required; `scaling`, `effects`,
-`exhaustion` and `death_message_type` optional, with the same accepted names as the code API). The
+`exhaustion` and `death_message_type` optional, with the same accepted names as the code API). A
+`[clock.<id>]` section declares a world clock and takes no fields (a 26.3 clock is nothing but its id); a
+`[timeline.<id>]` section declares a timeline (`clock` required, `period_ticks` optional, and `markers` an
+inline table whose value is either a tick number or `{ ticks = …, in_commands = … }` — the two forms the
+game's own codec takes). The
 `ore` inline table on a block mirrors `generateAsOre` (`vein_size`, `per_chunk`, `min_y`, `max_y`,
 `biomes`). Validation errors (ragged patterns, unknown types, missing fields) fail the pack
 with the reason. TOML packs share
