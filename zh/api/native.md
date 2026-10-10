@@ -69,6 +69,7 @@ val client: Minecraft? = OMLGame.client         // 专用服务端上为 null
 | `setBlockAt(pos, state)`  | 放置一个状态（含邻块更新与客户端同步），并回报该位置现在是否就是它 |
 | `isLoaded(pos)`           | 游戏自己的成员：该位置所在区块是否已加载                         |
 | `containerAt(pos)`        | 方块实体的 `Container`；该方块没有槽位时为 null                  |
+| `blockEntityAt(pos)`        | 方块自己的 `BlockEntity`；位置未加载或该方块没有块实体时为 null |
 | `playSoundAt(id, x, y, z, volume, pitch, category)` | 为所有听得见的人播放一个已注册音效          |
 | `clock`                   | 本维度所运行时钟的 `Holder<WorldClock>`，维度类型没指定时钟时为 null |
 | `clockInstance`           | 上面的时钟按游戏自己的计数读回（`ClockInstance`）                |
@@ -320,6 +321,14 @@ id 读回 null 而不是抛异常——游戏的时钟管理器对未知时钟�
 mod 声明的维度一旦被游戏建好，就与其他世界无异：[`clock`](#时钟) 回的是该类型 `default_clock` 指明的时钟，
 [`setWeather`](#天气与游戏规则)、[`spawnEntity`](#实体活体与玩家) 与方块读取在那里和在主世界一样可用。
 
+要走到那里只需一个调用，而且用的就是游戏自己的传送流程——传送门与 `/teleport` 走的同一条：
+
+| 调用 | 含义 |
+|------|------|
+| `entity.teleportToLevel(dimensionId, x, y, z)` | 把实体移过去，并返回游戏**移动之后**持有的那个实例；目标维度未加载时为 null |
+| `player.teleportToLevel(dimensionId, x, y, z)` | 对玩家同理，而玩家仍是同一个实例——游戏把连接一起搬了过去 |
+| `level.blockEntityAt(pos)` | 方块自己的 `BlockEntity`——位置、方块状态都在里面；位置未加载或该方块没有块实体时为 null |
+
 世界只在玩家附近生成区块，所以没人去的维度里什么也没有。强制加载用的就是游戏自己的票据，不是 OML 的计数器：
 
 | 调用 | 含义 |
@@ -332,6 +341,12 @@ mod 声明的维度一旦被游戏建好，就与其他世界无异：[`clock`](
 被强制加载的区块无需任何玩家在附近就会生成、发送并**开始 tick**，而区块的两个事件把游戏做出的这两次状态转变
 报告出来：服务端世界的某块区块转为运行时派发 `CHUNK_STARTED_TICKING`（位置在 `chunk.pos` 里），而它正在离开、
 尚可读取时派发 `CHUNK_UNLOADED`。
+
+::: warning 区块要等到开始 tick 才可写
+`CHUNK_STARTED_TICKING` 就是游戏已经把这块区块建完的信号。在此之前一个位置可以答 `isLoaded` 却仍然拒绝写入
+——真机实测：往游戏在这一 tick 刚提升的区块里写入会报 false，而一个 tick 之后再看，方块确实在那里；同样的写
+入若在事件之后隔一个 tick 进行就报 true。所以：强制加载、等那个事件、再写。
+:::
 
 
 ::: warning 游戏的天气判定读的就是声明的那些字段

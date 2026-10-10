@@ -73,6 +73,7 @@ where the game keeps authority — a client's level holds a prediction the serve
 | `setBlockAt(pos, state)`    | places a state with neighbour updates, and reports whether the position now holds it |
 | `isLoaded(pos)`             | the game's own member: whether the chunk holding `pos` is loaded     |
 | `containerAt(pos)`          | the block entity's `Container`, null where the block holds no slots  |
+| `blockEntityAt(pos)`        | the block entity itself, null for an unloaded position or a block with none |
 | `playSoundAt(id, x, y, z, volume, pitch, category)` | plays a registered sound for everyone who can hear it |
 | `clock`                     | the `Holder<WorldClock>` this dimension runs on, null when its dimension type names none |
 | `clockInstance`             | that clock as the game counts it (`ClockInstance`), null when there is none |
@@ -342,6 +343,14 @@ A dimension a mod declared is a level like any other once the game has built it:
 the type's `default_clock`, and [`setWeather`](#weather-and-game-rules), [`spawnEntity`](#entities-living-entities-and-players)
 and the block reads work there exactly as they do in the overworld.
 
+Reaching it is one call, and it is the game's own transition — the one portals and `/teleport` run:
+
+| Call | Meaning |
+|------|---------|
+| `entity.teleportToLevel(dimensionId, x, y, z)` | moves the entity and answers with the instance the game holds **after** the move; null when the destination is not loaded |
+| `player.teleportToLevel(dimensionId, x, y, z)` | the same for a player, who stays the same instance while the game moves the connection along with them |
+| `level.blockEntityAt(pos)` | the `BlockEntity` a block owns — position, state and all — null when the position is not loaded or its block has none |
+
 A level only generates chunks around players, so a dimension nobody visits holds nothing. Forcing a chunk is the
 game's own ticket, not an OML counter:
 
@@ -355,6 +364,13 @@ game's own ticket, not an OML counter:
 A forced chunk is generated, sent and **ticked** without any player nearby, and the two chunk events report the
 transitions the game made: `CHUNK_STARTED_TICKING` when a chunk of one of the server's levels becomes live
 (`chunk.pos` names it), `CHUNK_UNLOADED` while it is still readable on its way out.
+
+::: warning a chunk is writable only once it ticks
+`CHUNK_STARTED_TICKING` is the signal that the game has finished the chunk. Until then a position can answer
+`isLoaded` and still refuse a write — measured on the real machine: writing into a chunk the game promoted on
+that very tick reports false and holds the block a tick later, while the same write one tick after the event
+reports true. Force-load, wait for the event, then write.
+:::
 
 
 ::: warning the game's weather test reads the declared flags
