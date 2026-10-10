@@ -323,6 +323,31 @@ first and a typo cannot reach it. The game's `advance_time` game rule freezes ev
 of them; a pause reaches clients as a zero rate.
 :::
 
+## Dimensions
+
+A level is addressed by the dimension id the game knows it under, and the type it runs on is a registry entry
+like any other — so these reads answer whether the game took a mod's declaration, and what it is actually
+obeying:
+
+| Call | Meaning |
+|------|---------|
+| `server.dimensionIds` | the dimensions the server has levels for |
+| `server.levelById(dimensionId)` | that level, null when the server has not built one |
+| `server.dimensionTypeIds` | every dimension type, vanilla's and the ones a content pack declared |
+| `server.dimensionTypeById(id)` | the type itself, null for an unregistered id |
+| `level.dimensionTypeId` | the id of the type this level runs on |
+| `level.dimensionType()` | the game's own record: `height()`, `minY()`, `logicalHeight()`, `hasSkyLight()`, `hasCeiling()`, `coordinateScale()`, `ambientLight()` |
+
+A dimension a mod declared is a level like any other once the game has built it: [`clock`](#clocks) answers for
+the type's `default_clock`, and [`setWeather`](#weather-and-game-rules), [`spawnEntity`](#entities-living-entities-and-players)
+and the block reads work there exactly as they do in the overworld.
+
+::: warning the game's weather test reads the declared flags
+`level.canHaveWeather()` is the game's own `hasSkyLight() && !hasCeiling() && dimension != minecraft:the_end`,
+so a type declared with a roof or without skylight can be written a weather record and still never show rain.
+That is the declaration taking effect, not a failed write.
+:::
+
 ## Registries and tags
 
 Registry ids are still the currency, and the tables are the game's own: `BuiltInRegistries` for the built-ins,

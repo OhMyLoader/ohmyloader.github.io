@@ -252,6 +252,50 @@ clock before the timeline that drives it — collection is in order.
 Tracks (a timeline's environment-attribute keyframes) have no declaration form: their value type is
 per-attribute and version-facing, so write that JSON yourself.
 
+### Dimensions
+
+A dimension type and a dimension are datapack entries too, and 26.3 builds a level for **every** entry in its
+`dimension` table when the server starts — so this is a whole dimension, not a registration a mod has to drive
+itself:
+
+```kotlin
+registry.declareDimensionType("deep") {
+    skyLight = false                      // part of the game's own open-sky test
+    ceiling = true
+    minY = 0
+    height = 128
+    logicalHeight = 128
+    ambientLight = 0.1f
+    skybox = "none"
+    clock = "tide"                        // the dimension runs on the clock declared above
+    timelines += "surge"
+}
+registry.declareDimension("deep_home") {
+    type = "deep"                         // required; a bare id binds to this namespace
+    layer("minecraft:bedrock", 1)         // the flat generator's floor, bottom-up
+    biome = "minecraft:plains"
+}
+```
+
+`server.levelById("my_mod:deep_home")` then answers with a live `ServerLevel`, whose
+[`dimensionTypeId`, `dimensionType()` numbers and `clock`](/api/native) are what the declaration wrote. Those
+fields are not cosmetic: the game's own `canHaveWeather()` is `hasSkyLight && !hasCeiling && dimension != theEnd`,
+so a roofed, sunless type makes weather impossible there while the overworld, read through the same call, still
+allows it.
+
+`declareDimensionType`'s defaults are vanilla's own overworld values, because the game's codec marks eleven
+fields required; the four the codec defaults on its own (`has_fixed_time`, `skybox`, `cardinal_light`,
+`attributes`) are omitted from the file when the mod leaves them unset. `declareDimension` writes the three
+generators the game can build without code: `flat` (a stack of layers), `noise` (a settings id with one fixed
+biome) and `debug`.
+
+The declaration-time refusals are the game's codec windows, since a file outside them leaves the type — and
+every dimension naming it — absent from a registry with nothing in the log naming the pack: `min_y` in
+-2032..2031, `height` in 16..4064, `logical_height` in 0..4064, `coordinate_scale` in 0.00001..30000000,
+`ambient_light` in 0.0..1.0, light levels in 0..15, `infiniburn` a `#namespace:tag` reference, `skybox` one of
+the game's three names, a flat layer a block id with a positive height, and a `type` or `clock` this pack has
+not declared refused (declare them first: collection is in order).
+
 ## Reading the registries back
 
 The tables are the game's own — the same ones the declarations above are
@@ -339,6 +383,22 @@ exhaustion = 0.3
 clock = "tide"
 period_ticks = 24000
 markers = { low_tide = 0, high_tide = { ticks = 12000, in_commands = true } }
+
+[dimension_type.deep]
+sky_light = false
+ceiling = true
+min_y = 0
+height = 128
+logical_height = 128
+ambient_light = 0.1
+skybox = "none"
+clock = "tide"
+timelines = ["surge"]
+
+[dimension.deep_home]
+type = "deep"
+layers = [ { block = "minecraft:bedrock", height = 1 } ]
+biome = "minecraft:plains"
 ```
 
 The fields map one-to-one onto the code API (`destroy_time` → `destroyTime`, …); `mines_and_drops`
@@ -354,7 +414,12 @@ pattern characters to item ids; shapeless needs an `ingredients` list; `count` i
 `[clock.<id>]` section declares a world clock and takes no fields (a 26.3 clock is nothing but its id); a
 `[timeline.<id>]` section declares a timeline (`clock` required, `period_ticks` optional, and `markers` an
 inline table whose value is either a tick number or `{ ticks = …, in_commands = … }` — the two forms the
-game's own codec takes). The
+game's own codec takes). A `[dimension_type.<id>]` section takes the game's own field names in snake_case
+(`sky_light`, `ceiling`, `dragon_fight`, `coordinate_scale`, `min_y`, `height`, `logical_height`, `infiniburn`,
+`ambient_light`, `monster_spawn_light_level`, `monster_spawn_block_light_limit`, `fixed_time`, `skybox`, `clock`,
+`timelines`), every one optional with vanilla's overworld as the default; a `[dimension.<id>]` section takes
+`type` (required), `generator` (`flat`, `noise` or `debug`), `layers` (an array of
+`{ block = …, height = … }` tables), `noise_settings`, `biome`, `features` and `lakes`. The
 `ore` inline table on a block mirrors `generateAsOre` (`vein_size`, `per_chunk`, `min_y`, `max_y`,
 `biomes`). Validation errors (ragged patterns, unknown types, missing fields) fail the pack
 with the reason. TOML packs share

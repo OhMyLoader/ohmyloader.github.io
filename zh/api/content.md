@@ -234,6 +234,46 @@ OML 把 `data/my_mod/world_clock/tide.json` 与 `data/my_mod/timeline/surge.json
 
 轨道（tracks，时间线的属性关键帧那一半）没有声明形态：它的值类型逐属性而变、且面向版本，需要请自己写那份 JSON。
 
+### 维度
+
+维度类型与维度同样是数据包条目，而 26.3 在服务端启动时会为 `dimension` 表里的**每一条**建一个世界——
+所以这是一整个维度，不是还需要 mod 自己驱动的一处注册：
+
+```kotlin
+registry.declareDimensionType("deep") {
+    skyLight = false                      // 游戏自己的"露天"判定的输入之一
+    ceiling = true
+    minY = 0
+    height = 128
+    logicalHeight = 128
+    ambientLight = 0.1f
+    skybox = "none"
+    clock = "tide"                        // 这个维度跑在上面声明的那个时钟
+    timelines += "surge"
+}
+registry.declareDimension("deep_home") {
+    type = "deep"                         // 必填；裸 id 绑定到本命名空间
+    layer("minecraft:bedrock", 1)         // flat 生成器的地面，自下而上叠
+    biome = "minecraft:plains"
+}
+```
+
+于是 `server.levelById("my_mod:deep_home")` 会回一个活着的服务端世界，它的
+[`dimensionTypeId`、`dimensionType()` 里的数字与 `clock`](/zh/api/native) 就是声明写下的那些。这些字段不是装饰：
+游戏自己的 `canHaveWeather()` 是 `hasSkyLight && !hasCeiling && dimension != theEnd`，因此一个有顶、无日光
+的类型让那里根本不可能有天气，而同一个调用在主世界仍然回答"可以"。
+
+`declareDimensionType` 的默认值取自 vanilla 自己的主世界，因为游戏的 codec 把十一个字段标成必填；codec
+自带默认的那四个（`has_fixed_time`、`skybox`、`cardinal_light`、`attributes`）在 mod 未设置时不写进文件。
+`declareDimension` 写出游戏无需代码就能构建的三种生成器：`flat`（一层层叠起来的方块）、`noise`（一个
+settings id 配一个固定生物群系）与 `debug`。
+
+声明处的拒绝用的还是游戏 codec 的窗口，因为一个超出范围的包会让这个类型——以及所有指名它的维度——从注册表里
+消失，而日志不会说是哪个包写的：`min_y` ∈ -2032..2031、`height` ∈ 16..4064、`logical_height` ∈ 0..4064、
+`coordinate_scale` ∈ 0.00001..30000000、`ambient_light` ∈ 0.0..1.0、光照等级 ∈ 0..15、`infiniburn` 必须是
+`#namespace:tag` 引用、`skybox` 必须是游戏那三个名字之一、flat 的每一层必须是正高度的方块 id；本包没声明过的
+`type` 或 `clock` 同样被拒（**先声明它们**：收集按顺序进行）。
+
 ## 读回注册表
 
 这些表就是游戏自己的那几张——上面的声明正是材料化进它们，所以 mod 的内容与原版条目
@@ -316,6 +356,22 @@ exhaustion = 0.3
 clock = "tide"
 period_ticks = 24000
 markers = { low_tide = 0, high_tide = { ticks = 12000, in_commands = true } }
+
+[dimension_type.deep]
+sky_light = false
+ceiling = true
+min_y = 0
+height = 128
+logical_height = 128
+ambient_light = 0.1
+skybox = "none"
+clock = "tide"
+timelines = ["surge"]
+
+[dimension.deep_home]
+type = "deep"
+layers = [ { block = "minecraft:bedrock", height = 1 } ]
+biome = "minecraft:plains"
 ```
 
 字段与代码 API 一一对应（`destroy_time` → `destroyTime` …）；`mines_and_drops` 与 `override_speed`
@@ -327,7 +383,12 @@ shaped / shapeless；shaped 需要 `pattern`（行）与 `key` 内联表（图�
 `effects`、`exhaustion`、`death_message_type` 可选，可取值与代码 API 相同）。`[clock.<id>]` 段声明一个世界时钟，
 不带任何字段（26.3 的时钟除了身份什么都不带）；`[timeline.<id>]` 段声明一条时间线（`clock` 必填，`period_ticks`
 可选，`markers` 是内联表，其值要么是一个 tick 数，要么是 `{ ticks = …, in_commands = … }`——游戏自己的 codec
-就接受这两种写法）。方块段里的 `ore` 内联表对应 `generateAsOre`（`vein_size`、
+就接受这两种写法）。就接受这两种写法）。`[dimension_type.<id>]` 段用游戏自己的字段名（snake_case）：`sky_light`、`ceiling`、
+`dragon_fight`、`coordinate_scale`、`min_y`、`height`、`logical_height`、`infiniburn`、`ambient_light`、
+`monster_spawn_light_level`、`monster_spawn_block_light_limit`、`fixed_time`、`skybox`、`clock`、`timelines`，
+全部可选且默认取 vanilla 主世界的值；`[dimension.<id>]` 段接受 `type`（必填）、`generator`（`flat` / `noise` /
+`debug`）、`layers`（`{ block = …, height = … }` 内联表数组）、`noise_settings`、`biome`、`features`、`lakes`。
+方块段里的 `ore` 内联表对应 `generateAsOre`（`vein_size`、
 `per_chunk`、`min_y`、`max_y`、`biomes`）。格式错误（图案不齐、未知类型、缺字段）会让内容包加载失败
 并说明原因。TOML 包与代码 mod 共享同一条
 收集 → 冻结材料化管线，资产注入也把 TOML 包的命名空间当作 mod 域对待。字段拼错会在启动日志里

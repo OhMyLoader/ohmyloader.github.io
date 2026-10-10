@@ -303,6 +303,28 @@ id 读回 null 而不是抛异常——游戏的时钟管理器对未知时钟�
 也到不了它。游戏的 `advance_time` 游戏规则会让所有时钟停住却不暂停任何一个；暂停推给客户端的形式是速率为 0。
 :::
 
+## 维度
+
+世界按游戏认识的维度 id 寻址，而它跑在哪个维度类型上也是一条注册表条目——所以这些读取回答的是：游戏有没有
+收下 mod 的声明，以及它此刻真正在遵守什么。
+
+| 调用 | 含义 |
+|------|------|
+| `server.dimensionIds` | 服务端已经建好世界的维度 |
+| `server.levelById(dimensionId)` | 那个世界，服务端没建时为 null |
+| `server.dimensionTypeIds` | 全部维度类型，原版的与内容包声明的都算 |
+| `server.dimensionTypeById(id)` | 那个类型本身，未注册为 null |
+| `level.dimensionTypeId` | 这个世界跑在哪个类型上的 id |
+| `level.dimensionType()` | 游戏自己的记录：`height()`、`minY()`、`logicalHeight()`、`hasSkyLight()`、`hasCeiling()`、`coordinateScale()`、`ambientLight()` |
+
+mod 声明的维度一旦被游戏建好，就与其他世界无异：[`clock`](#时钟) 回的是该类型 `default_clock` 指明的时钟，
+[`setWeather`](#天气与游戏规则)、[`spawnEntity`](#实体活体与玩家) 与方块读取在那里和在主世界一样可用。
+
+::: warning 游戏的天气判定读的就是声明的那些字段
+`level.canHaveWeather()` 是游戏自己的 `hasSkyLight() && !hasCeiling() && dimension != minecraft:the_end`，
+所以一个声明成有顶、或没有天光的类型，即使天气记录被写了进去也永远不会下雨。这是声明在生效，不是写入失败。
+:::
+
 ## 注册表与标签
 
 id 仍然是通货，表仍然是游戏自己的：内置表在 `BuiltInRegistries`，数据包表走
