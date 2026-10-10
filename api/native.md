@@ -363,6 +363,35 @@ so a type declared with a roof or without skylight can be written a weather reco
 That is the declaration taking effect, not a failed write.
 :::
 
+## Permission nodes
+
+26.3 gates authority on **nodes**, not only on the 0..4 operator level: the game's own checks are
+`Permission.Atom` ids (`minecraft:chat/send_messages`, `minecraft:commands/entity_selectors`) plus
+`Permission.HasCommandLevel(level)`, and a `PermissionSet` is nothing but `hasPermission(node)`. OML addresses
+the same objects by id and adds one thing the game does not offer: a per-player override.
+
+| Call | Meaning |
+|------|---------|
+| `permissionNode(id)` | the game's atom node for an id, null for a string the game cannot parse |
+| `permissionNodeId(node)` | the id an atom carries, null for a command level (a level is not an id) |
+| `permissionLevelOf(name)` | one of the game's levels by its own name (`all`, `moderators`, …) |
+| `set.hasNode(id)` / `set.hasCommandLevel(name)` | the two answers a set gives; an unparseable id is simply false |
+| `player.hasPermissionNode(id)` / `source.hasPermissionNode(id)` | read through the set the game is using for that player |
+| `player.grantPermissionNode(id)` / `revokePermissionNode(id)` | force the answer for this player; reports whether an override was written |
+| `player.clearPermissionNodeGrant(id)` | drop the override, so the game's own composition is the whole answer again |
+| `player.permissionNodeOverrides` | what OML currently forces for this player, id to forced answer |
+
+The hook sits on `ServerPlayer.permissions()` — the one funnel every consumer of a player's authority reads
+through, chat gates and command gates included — so granting changes what **the game** answers, not what an OML
+mirror says. With no overrides for a player the game's own set is returned unchanged: no wrapper, no allocation.
+Overrides are keyed by player id, not by the entity instance, and the loader drops them when the player leaves.
+
+::: warning overrides cover atoms only
+A command level is carried as `Permission.HasCommandLevel`, which has no id to name — granting or revoking
+never touches it, and `hasCommandLevel` keeps reading the game's operator levels. Use `permissionLevel` on a
+command for that, and a node for everything finer.
+:::
+
 ## Registries and tags
 
 Registry ids are still the currency, and the tables are the game's own: `BuiltInRegistries` for the built-ins,

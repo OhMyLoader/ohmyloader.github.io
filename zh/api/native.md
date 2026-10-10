@@ -339,6 +339,33 @@ mod 声明的维度一旦被游戏建好，就与其他世界无异：[`clock`](
 所以一个声明成有顶、或没有天光的类型，即使天气记录被写了进去也永远不会下雨。这是声明在生效，不是写入失败。
 :::
 
+## 权限节点
+
+26.3 的权限判定落在**节点**上，而不只是 0..4 的 OP 等级：游戏自己的检查项是 `Permission.Atom` 形式的 id
+（`minecraft:chat/send_messages`、`minecraft:commands/entity_selectors`），再加上
+`Permission.HasCommandLevel(level)`，而 `PermissionSet` 说到底就是一个 `hasPermission(node)`。OML 用同样的
+id 寻址这些对象，并补上游戏本身没有的一样东西：按玩家的覆盖表。
+
+| 调用 | 含义 |
+|------|------|
+| `permissionNode(id)` | 该 id 对应的游戏 atom 节点；游戏无法解析的字符串返回 null |
+| `permissionNodeId(node)` | atom 携带的 id；命令等级返回 null（等级不是 id） |
+| `permissionLevelOf(name)` | 按游戏自己的名字取等级（`all`、`moderators`…） |
+| `set.hasNode(id)` / `set.hasCommandLevel(name)` | 一个集合能给的两种回答；解析不了的 id 就是 false |
+| `player.hasPermissionNode(id)` / `source.hasPermissionNode(id)` | 穿过游戏此刻正在使用的那个集合去读 |
+| `player.grantPermissionNode(id)` / `revokePermissionNode(id)` | 为该玩家强制规定回答；回报是否写入了覆盖 |
+| `player.clearPermissionNodeGrant(id)` | 撤下覆盖，让游戏自己的组合重新成为全部答案 |
+| `player.permissionNodeOverrides` | OML 当前为该玩家强制了什么，id → 被规定的值 |
+
+钩子打在 `ServerPlayer.permissions()` 上——玩家权限的每一个消费者（聊天闸门与命令闸门都算）都只经这一处读取。
+因此授予改变的是**游戏**的回答，而不是 OML 镜像里的说法。玩家没有任何覆盖时，返回的就是游戏自己那个集合，
+原封不动：不包装、不分配。覆盖按玩家 id 记录而非实体实例，玩家离线时由加载器清掉。
+
+::: warning 覆盖只作用于 atom 节点
+命令等级由 `Permission.HasCommandLevel` 承载，它没有可用于命名的 id——授予或撤销都碰不到它，
+`hasCommandLevel` 依旧读游戏的 OP 等级。要管那一层请用命令上的 `permissionLevel`，更细的才用节点。
+:::
+
 ## 注册表与标签
 
 id 仍然是通货，表仍然是游戏自己的：内置表在 `BuiltInRegistries`，数据包表走

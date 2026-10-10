@@ -43,9 +43,15 @@ class MyMod : OMLModInitializer, OMLCommandProvider {
 | `argument(name, type) { }`         | 带类型的子节点：`/root <name> <value> …`                        |
 | `executes { source -> }`           | 该节点作为命令终点时执行                                        |
 | `permissionLevel`                  | 该节点**及其以下所有节点**的最低权限等级                        |
+| `permissionNode`                   | 调用者的权限集必须回答的细粒度节点 id（`mymod:build`）           |
 
 `permissionLevel` 默认 `0`（所有人）。等级为 `0` 的节点根本不会挂权限检查，所以受保护父节点下面一个没设
 权限的子节点，仍然受父节点保护。
+
+`permissionNode` 是更细的一道闸，两者同时设置时**都要**通过：游戏的 OP 等级检查与节点检查。节点按 id 寻址——
+与游戏自己的 `minecraft:chat/send_messages` 同一套写法——并由调用者自己的 `PermissionSet` 回答，
+[`grantPermissionNode`](/zh/api/native) 写的就是这里。没有任何东西授予的节点会让命令既看不见也调不动；给某个
+玩家授予，就只对那个玩家恢复可用。
 
 ## 参数类型
 

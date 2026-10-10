@@ -45,9 +45,16 @@ by the name given to `argument`, and only when that argument is on the executed 
 | `argument(name, type) { }`         | a typed child: `/root <name> <value> …`                        |
 | `executes { source -> }`           | runs when this node terminates the command                     |
 | `permissionLevel`                  | minimum level for this node **and everything below it**        |
+| `permissionNode`                   | a fine-grained node id the invoker's set must answer (`mymod:build`) |
 
 `permissionLevel` defaults to `0` (everyone). Nodes at `0` get no check attached at all, so an
 unprotected subcommand under a protected parent stays protected by the parent.
+
+`permissionNode` is the finer gate and the two combine: with both set, the game's operator check **and** the
+node check have to pass. The node is addressed by id — the same `minecraft:chat/send_messages` style ids the
+game's own nodes use — and is answered by the invoker's own `PermissionSet`, which is where
+[`grantPermissionNode`](/api/native) writes. A node nothing grants keeps the command invisible and
+undispatchable; granting it to one player puts it back for that player alone.
 
 ## Argument types
 
