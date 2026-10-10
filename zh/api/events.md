@@ -32,6 +32,8 @@ Events.CLIENT_TICK.register { /* 每逻辑帧 */ }
 | `CLIENT_TICK`      | 客户端每逻辑 tick                                   | –      | –                                                                        |
 | `SERVER_TICK`      | 服务端每逻辑 tick（专用或集成）                     | –      | –                                                                        |
 | `LEVEL_TICK`       | 某个世界开始一次 tick                                | –      | `level: Level`                                                      |
+| `CHUNK_STARTED_TICKING` | 一个区块成为某服务端世界的运行中区块                    | –           | `level: ServerLevel`、`chunk: LevelChunk`                                  |
+| `CHUNK_UNLOADED`   | 一个区块正离开某服务端世界，此刻仍可读                     | –           | `level: ServerLevel`、`chunk: LevelChunk`                                  |
 | `SERVER_STARTED`   | 每次服务端启动，在其首个 tick                       | –      | `server: MinecraftServer`                                                      |
 | `SERVER_STOPPING`  | 每次关闭，在存档保存与循环退出之前                  | –      | `server: MinecraftServer`                                                      |
 | `PLAYER_JOINED`    | 玩家完成进入世界                                    | –      | `player: ServerPlayer`                                                      |
@@ -59,6 +61,11 @@ Events.CLIENT_TICK.register { /* 每逻辑帧 */ }
 `LEVEL_TICK` 的范围是**单个世界**而不是单个侧：服务端每 tick 为每个已加载世界派发一次，客户端则为它渲染
 中的世界派发一次。因此单人游戏里两者都会触发——集成世界与渲染世界是同一维度的两个投影，用
 靠游戏自己的 [`Level.isClientSide`](/zh/api/native) 区分。
+
+区块那一对事件是**服务端世界**上的观察而非决定：`CHUNK_STARTED_TICKING` 派发时游戏已经把这个区块提升到运行
+状态，`CHUNK_UNLOADED` 则在区块仍可读、但已经拦不住它离开的那一刻派发。两者都直接带上 `LevelChunk` 本体，
+位置就在里面，所以 mod 清理自己的按区块状态时不必再回查任何东西。没有任何东西会替 mod 留着区块——维度只在
+玩家附近生成区块，想让它一直运行就得持有票据，那就是 [`forceLoadChunk`](/zh/api/native) 的用途。
 
 ### 示例
 

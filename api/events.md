@@ -37,6 +37,8 @@ Events.CLIENT_TICK.register { /* every logical tick */ }
 | `CLIENT_TICK`      | every client logical tick                                             | –           | –                                                                          |
 | `SERVER_TICK`      | every server logical tick (dedicated or integrated)                   | –           | –                                                                          |
 | `LEVEL_TICK`       | one level starting one tick                                             | –           | `level: Level`                                                             |
+| `CHUNK_STARTED_TICKING` | a chunk became a ticking chunk of a server level              | –           | `level: ServerLevel`, `chunk: LevelChunk`                                  |
+| `CHUNK_UNLOADED`   | a chunk is leaving a server level, while still readable                  | –           | `level: ServerLevel`, `chunk: LevelChunk`                                  |
 | `SERVER_STARTED`   | once per server start, on its first tick                              | –           | `server: MinecraftServer`                                                        |
 | `SERVER_STOPPING`  | once per shutdown, before the worlds are saved                        | –           | `server: MinecraftServer`                                                        |
 | `PLAYER_JOINED`    | a player finished entering the world                                  | –           | `player: ServerPlayer`                                                        |
@@ -68,6 +70,13 @@ reads as removed and has to be swapped for the one the event carries.
 per server tick, and a client for the level it renders. In singleplayer that means both — the integrated
 level and the rendered one, two objects for the same dimension, told apart by the game's own
 [`Level.isClientSide`](/api/native).
+
+The chunk pair is a server-level observation, not a decision: the game has already promoted the chunk by the
+time `CHUNK_STARTED_TICKING` arrives, and `CHUNK_UNLOADED` is dispatched while the chunk is still readable but
+cannot be kept. Both carry the `LevelChunk` itself, position included, so a mod sweeping its own per-chunk
+state does not have to look anything up again. Nothing loads a chunk on its own — a dimension only generates
+around players unless something holds a ticket, which is what
+[`forceLoadChunk`](/api/native) is for.
 
 ### Examples
 

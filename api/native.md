@@ -342,6 +342,21 @@ A dimension a mod declared is a level like any other once the game has built it:
 the type's `default_clock`, and [`setWeather`](#weather-and-game-rules), [`spawnEntity`](#entities-living-entities-and-players)
 and the block reads work there exactly as they do in the overworld.
 
+A level only generates chunks around players, so a dimension nobody visits holds nothing. Forcing a chunk is the
+game's own ticket, not an OML counter:
+
+| Call | Meaning |
+|------|---------|
+| `level.forceLoadChunk(pos)` | the `/forceload add` call for `pos`'s chunk; true when the game's ticket table changed |
+| `level.releaseForceLoadedChunk(pos)` | `/forceload remove`; false when nothing was held there |
+| `level.isForceLoaded(pos)` | asked of the same ticket table the command writes |
+| `level.forceLoadedChunkPositions` | every chunk the table holds, unpacked from the longs the game packs |
+
+A forced chunk is generated, sent and **ticked** without any player nearby, and the two chunk events report the
+transitions the game made: `CHUNK_STARTED_TICKING` when a chunk of one of the server's levels becomes live
+(`chunk.pos` names it), `CHUNK_UNLOADED` while it is still readable on its way out.
+
+
 ::: warning the game's weather test reads the declared flags
 `level.canHaveWeather()` is the game's own `hasSkyLight() && !hasCeiling() && dimension != minecraft:the_end`,
 so a type declared with a roof or without skylight can be written a weather record and still never show rain.

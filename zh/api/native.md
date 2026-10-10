@@ -320,6 +320,20 @@ id 读回 null 而不是抛异常——游戏的时钟管理器对未知时钟�
 mod 声明的维度一旦被游戏建好，就与其他世界无异：[`clock`](#时钟) 回的是该类型 `default_clock` 指明的时钟，
 [`setWeather`](#天气与游戏规则)、[`spawnEntity`](#实体活体与玩家) 与方块读取在那里和在主世界一样可用。
 
+世界只在玩家附近生成区块，所以没人去的维度里什么也没有。强制加载用的就是游戏自己的票据，不是 OML 的计数器：
+
+| 调用 | 含义 |
+|------|------|
+| `level.forceLoadChunk(pos)` | 对 `pos` 所在区块执行 `/forceload add`；游戏的票据表发生变化时为 true |
+| `level.releaseForceLoadedChunk(pos)` | `/forceload remove`；那里本来没被持有则为 false |
+| `level.isForceLoaded(pos)` | 直接问同一张票据表，也就是命令写入的那一张 |
+| `level.forceLoadedChunkPositions` | 票据表持有的全部区块，按游戏打包好的 long 解回来 |
+
+被强制加载的区块无需任何玩家在附近就会生成、发送并**开始 tick**，而区块的两个事件把游戏做出的这两次状态转变
+报告出来：服务端世界的某块区块转为运行时派发 `CHUNK_STARTED_TICKING`（位置在 `chunk.pos` 里），而它正在离开、
+尚可读取时派发 `CHUNK_UNLOADED`。
+
+
 ::: warning 游戏的天气判定读的就是声明的那些字段
 `level.canHaveWeather()` 是游戏自己的 `hasSkyLight() && !hasCeiling() && dimension != minecraft:the_end`，
 所以一个声明成有顶、或没有天光的类型，即使天气记录被写了进去也永远不会下雨。这是声明在生效，不是写入失败。
