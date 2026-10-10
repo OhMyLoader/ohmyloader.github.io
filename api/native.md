@@ -458,8 +458,12 @@ BuiltInRegistries.BLOCK.ids()                     // every id in the table
 BuiltInRegistries.BLOCK.contains("my_mod:ruby_ore")
 BuiltInRegistries.BLOCK.membersOf(Registries.BLOCK, "minecraft:dirt")   // ids carrying a tag
 BuiltInRegistries.BLOCK.tagsOf("minecraft:stone")                       // tags this id belongs to
+BuiltInRegistries.BLOCK.tagIds(Registries.BLOCK)                        // every tag this table holds
 tagKeyOf(Registries.BLOCK, "minecraft:dirt")      // the TagKey the game's own tag reads take
 ```
+
+`tagIds` separates an empty tag from one the game never loaded; what a mod *contributes* to a tag is a
+declaration, not a write here — see [`declareTag`](/api/content#tags).
 
 An id with no namespace is not a failure: the game fills in `minecraft`, so `"stone"` and
 `"minecraft:stone"` are the same lookup. Only characters the game rejects answer null.

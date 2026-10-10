@@ -427,8 +427,12 @@ BuiltInRegistries.BLOCK.ids()                     // 表里全部 id
 BuiltInRegistries.BLOCK.contains("my_mod:ruby_ore")
 BuiltInRegistries.BLOCK.membersOf(Registries.BLOCK, "minecraft:dirt")   // 带该标签的 id
 BuiltInRegistries.BLOCK.tagsOf("minecraft:stone")                       // 该 id 属于哪些标签
+BuiltInRegistries.BLOCK.tagIds(Registries.BLOCK)                        // 这张表持有的全部标签
 tagKeyOf(Registries.BLOCK, "minecraft:dirt")      // 游戏自己的标签读取所取的 TagKey
 ```
+
+`tagIds` 分得清"空标签"与"游戏根本没读到的标签"；mod 往标签里*贡献*什么属于声明而不是这里的写入——见
+[`declareTag`](/zh/api/content#标签)。
 
 不带命名空间的 id 不算错误：游戏会补上 `minecraft`，所以 `"stone"` 与 `"minecraft:stone"` 是同一次查找。
 只有游戏拒绝的字符才会答 null。

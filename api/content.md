@@ -296,6 +296,39 @@ every dimension naming it — absent from a registry with nothing in the log nam
 the game's three names, a flat layer a block id with a positive height, and a `type` or `clock` this pack has
 not declared refused (declare them first: collection is in order).
 
+### Tags
+
+A tag is the game's own name for a group of registry entries, and the group is what behaviour reads —
+`#minecraft:is_fire` decides which damage a fire-immune mob shrugs off, `#minecraft:mineable/pickaxe` decides
+what an ore drops. `declareTag` writes the file the game's tag loader reads,
+`data/<tag namespace>/tags/<registry path>/<tag path>.json`:
+
+```kotlin
+registry.declareTag("minecraft:damage_type", "minecraft:is_fire") { element("melt") }
+registry.declareTag("minecraft:damage_type", "melting_causes") {
+    element("melt")
+    tag("minecraft:is_drowning")                        // another group's members join this one
+    element("minecraft:some_optional", required = false) // absent is fine, present is used
+}
+```
+
+The tag's **namespace is where the file lands**, not who wrote it: naming `minecraft:is_fire` joins the vanilla
+group, which is the ordinary case, and naming `melting_causes` bare opens a group in the declaring pack's own
+namespace. Because the game reads one file per tag, every pack that names the same tag contributes to it — two
+mods joining `#minecraft:is_fire` arrive in one file, in declaration order, deduplicated. A second declaration
+that asks for the opposite `replace` is refused with both packs named: one file cannot both add to a group and
+be its whole content, and OML does not pick by declaration order.
+
+`replace = true` makes the file's members the group's entire content, which drops what the vanilla pack put
+there. Measured on the real machine: a pack replacing `#minecraft:is_freezing` with one member leaves the game
+holding exactly that member — which also says OML's injected pack ranks **above** the builtin resources for
+tags.
+
+Refused at declaration, because the game would otherwise store the file and simply never read it: a registry or
+tag name that is not a datapack path (`worldgen/biome` is one name; `worldgen//biome` is not), a member id that
+is not a datapack id, and a group with no members that is not replacing anything — a file that adds nothing has
+nothing to say.
+
 ## Reading the registries back
 
 The tables are the game's own — the same ones the declarations above are
@@ -309,7 +342,13 @@ BuiltInRegistries.BLOCK.contains("my_mod:ruby_ore")      // does this id exist
 BuiltInRegistries.BLOCK.ids()                            // every id in the table
 BuiltInRegistries.BLOCK.membersOf(Registries.BLOCK, "minecraft:dirt")  // ids carrying this tag
 BuiltInRegistries.BLOCK.tagsOf("minecraft:stone")        // tags this id belongs to
+BuiltInRegistries.BLOCK.tagIds(Registries.BLOCK)         // every group this table holds
 ```
+
+`tagIds` is the one read that separates an empty group from a group the game never loaded — a tag file in a
+folder the loader does not scan leaves no tag at all, while an adopted group with no members is real. The other
+two answers are the game's own: `membersOf` reads the holder set the reload built, `tagsOf` reads the tags the
+holder carries.
 
 Any of the game's tables can be read this way: `BuiltInRegistries.BLOCK`, `ITEM`, `MOB_EFFECT`,
 `SOUND_EVENT`, `ENTITY_TYPE`, `ATTRIBUTE`, `GAME_RULE` and `PARTICLE_TYPE` are static, while damage types,
@@ -399,7 +438,23 @@ timelines = ["surge"]
 type = "deep"
 layers = [ { block = "minecraft:bedrock", height = 1 } ]
 biome = "minecraft:plains"
+
+[tag.fire_join]
+registry = "minecraft:damage_type"
+tag = "minecraft:is_fire"
+values = ["melt", "#minecraft:is_projectile", { id = "minecraft:optional", required = false }]
+
+[tag.my_group]
+registry = "item"
+tag = "ruby_tools"
+values = ["ruby_sword"]
+replace = true
 ```
+
+The tag section is the one whose ids are **fields**: a TOML bare key cannot spell the `:` of
+`minecraft:is_fire` or the `/` of `worldgen/biome`, both of which are ordinary tag names, so the section name
+only labels the declaration while `registry` and `tag` say what the game reads. `values` entries are id strings,
+optionally prefixed with `#` for a reference to another group, or inline tables carrying `id` and `required`.
 
 The fields map one-to-one onto the code API (`destroy_time` → `destroyTime`, …); `mines_and_drops`
 and `override_speed` entries carry `block` and `speed`, `denies_drops` entries carry `block` alone.

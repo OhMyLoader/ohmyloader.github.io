@@ -274,6 +274,35 @@ settings id 配一个固定生物群系）与 `debug`。
 `#namespace:tag` 引用、`skybox` 必须是游戏那三个名字之一、flat 的每一层必须是正高度的方块 id；本包没声明过的
 `type` 或 `clock` 同样被拒（**先声明它们**：收集按顺序进行）。
 
+### 标签
+
+标签是游戏自己给"一批注册表条目"起的名字，而行为读的就是这个组——`#minecraft:is_fire` 决定哪种伤害会被免疫火的
+实体挡掉，`#minecraft:mineable/pickaxe` 决定矿石掉落什么。`declareTag` 写出的就是游戏标签加载器读的那个文件：
+`data/<标签命名空间>/tags/<注册表路径>/<标签路径>.json`。
+
+```kotlin
+registry.declareTag("minecraft:damage_type", "minecraft:is_fire") { element("melt") }
+registry.declareTag("minecraft:damage_type", "melting_causes") {
+    element("melt")
+    tag("minecraft:is_drowning")                        // 另一个组的成员并进来
+    element("minecraft:some_optional", required = false) // 不存在也行，存在就用上
+}
+```
+
+标签的**命名空间决定文件落在哪**，而不是谁写的：写 `minecraft:is_fire` 就是加入原版那个组（这是最常见的用法），
+而裸写 `melting_causes` 会在声明方自己的命名空间里开一个新组。因为游戏对每个标签只读一个文件，凡是提到同一个标签
+的包都会进到同一个文件里——两个 mod 加入 `#minecraft:is_fire`，成员按声明顺序合并并去重。第二个声明如果要求相反
+的 `replace` 会被拒绝，日志会把两个包都点名：一个文件不可能既是"往组里加东西"又是"组的全部内容"，OML 不按声明
+顺序猜。
+
+`replace = true` 让文件里的成员成为该组的全部内容，原版包放进去的成员就此消失。真机实测：一个包把
+`#minecraft:is_freezing` 换成自己的一条成员后，游戏拿到的就恰好只有那一条——这也说明 OML 注入的包在标签上排在
+内置资源**之上**。
+
+声明处就拒绝、而不是让游戏把文件存下却永远读不到情况有：注册表名或标签名不是合法的数据包路径（`worldgen/biome`
+是一个名字，`worldgen//biome` 不是）、成员 id 不是数据包 id、以及一个既不想替换、又没有任何成员的组——什么都不加
+的文件没有可说的内容。
+
 ## 读回注册表
 
 这些表就是游戏自己的那几张——上面的声明正是材料化进它们，所以 mod 的内容与原版条目
@@ -287,7 +316,12 @@ BuiltInRegistries.BLOCK.contains("my_mod:ruby_ore")      // 这个 id 存在吗
 BuiltInRegistries.BLOCK.ids()                            // 表里的全部 id
 BuiltInRegistries.BLOCK.membersOf(Registries.BLOCK, "minecraft:dirt")  // 带该标签的 id 列表
 BuiltInRegistries.BLOCK.tagsOf("minecraft:stone")        // 该 id 属于哪些标签
+BuiltInRegistries.BLOCK.tagIds(Registries.BLOCK)         // 这张表持有的全部标签
 ```
+
+`tagIds` 分得清"空标签"与"游戏根本没读到的标签"：放在加载器不会扫的目录里的标签文件，根本不会留下标签，
+而被采纳却没有成员的标签是真实存在的空标签。另外两个回答都来自游戏自己：`membersOf` 读重载建好的 holder
+集合，`tagsOf` 读该 holder 身上挂的标签。
 
 任何一张都可以这样读：`BuiltInRegistries.BLOCK`、`ITEM`、`MOB_EFFECT`、`SOUND_EVENT`、`ENTITY_TYPE`、
 `ATTRIBUTE`、`GAME_RULE`、`PARTICLE_TYPE` 是静态表，而伤害类型、世界时钟与时间线是数据包表，需要运行中的服务端——
@@ -372,7 +406,23 @@ timelines = ["surge"]
 type = "deep"
 layers = [ { block = "minecraft:bedrock", height = 1 } ]
 biome = "minecraft:plains"
+
+[tag.fire_join]
+registry = "minecraft:damage_type"
+tag = "minecraft:is_fire"
+values = ["melt", "#minecraft:is_projectile", { id = "minecraft:optional", required = false }]
+
+[tag.my_group]
+registry = "item"
+tag = "ruby_tools"
+values = ["ruby_sword"]
+replace = true
 ```
+
+标签段是唯一把 id 写在**字段**里的：TOML 的裸键写不出 `minecraft:is_fire` 里的 `:`，也写不出
+`worldgen/biome` 里的 `/`，而这两个都是再正常不过的标签名。于是段名只是这条声明自己的标签，真正被游戏读取的是
+`registry` 与 `tag`。`values` 的每一项可以是 id 字符串（前面加 `#` 就是引用另一个组），也可以是带 `id` 与
+`required` 的内联表。
 
 字段与代码 API 一一对应（`destroy_time` → `destroyTime` …）；`mines_and_drops` 与 `override_speed`
 的条目带 `block` 与 `speed`，`denies_drops` 的条目只带 `block`。`[crafting.<产出物 id>]` 段声明一个合成配方：`type` 选择
