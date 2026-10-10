@@ -87,7 +87,11 @@ registry.declareBlock("press") {
 - `tick` 在区块加载期间每个游戏 tick 运行一次， **仅服务端**（客户端收不到该事件——机器 tick 是
   模拟概念）。
 - `event.data` 是 `OMLBlockData`：基础类型键值对（`int` / `long` / `float` / `double` / `boolean` /
-  `string`），随世界持久化；写入会标记方块实体等待下次自动保存。
+  `string`），随世界持久化；写入会标记方块实体等待下次自动保存。`getString` 对缺失的键答 null，而
+  `hasKey` / `remove` / `keys` 是默认值给不了的三个回答——存着 0 和根本没这个键是两回事，会清除设置的机器
+  必须能把这层意思说出来；`keys()` 保持写入顺序，且交出的是副本。
+- 同一个存储也能从 ticker 之外按维度与坐标取到，走 [`blockDataAt`](/zh/api/native#世界)——命令、网络包处理器
+  或另一个方块不必绕道该方块的 tick 处理器就能读到一台机器的状态。
 - 行为钩子与方块实体可以自由组合在同一个方块上。
 
 ### 世界生成：矿石

@@ -74,6 +74,7 @@ where the game keeps authority — a client's level holds a prediction the serve
 | `isLoaded(pos)`             | the game's own member: whether the chunk holding `pos` is loaded     |
 | `containerAt(pos)`          | the block entity's `Container`, null where the block holds no slots  |
 | `blockEntityAt(pos)`        | the block entity itself, null for an unloaded position or a block with none |
+| `blockDataAt(pos)`          | the persistent `OMLBlockData` of a declared block entity — the same store its ticker writes |
 | `playSoundAt(id, x, y, z, volume, pitch, category)` | plays a registered sound for everyone who can hear it |
 | `clock`                     | the `Holder<WorldClock>` this dimension runs on, null when its dimension type names none |
 | `clockInstance`             | that clock as the game counts it (`ClockInstance`), null when there is none |
@@ -350,6 +351,13 @@ Reaching it is one call, and it is the game's own transition — the one portals
 | `entity.teleportToLevel(dimensionId, x, y, z)` | moves the entity and answers with the instance the game holds **after** the move; null when the destination is not loaded |
 | `player.teleportToLevel(dimensionId, x, y, z)` | the same for a player, who stays the same instance while the game moves the connection along with them |
 | `level.blockEntityAt(pos)` | the `BlockEntity` a block owns — position, state and all — null when the position is not loaded or its block has none |
+| `server.blockDataAt(dimensionId, pos)` | the persistent `OMLBlockData` of a declared block entity in that dimension, reached from outside its ticker |
+
+The game holds one block entity per position **per level**, so the same coordinates in two dimensions are two
+machines with two stores: measured with the same declared block stood at one position in each of two mod
+dimensions, one store holding `side = 1` and the other `side = 2`, and neither seeing the other's keys. The
+address is also the live store rather than a copy — the press counts a cycle in `progress` every tick, so a
+value that does not move would mean the address reached something the game never ticks.
 
 A level only generates chunks around players, so a dimension nobody visits holds nothing. Forcing a chunk is the
 game's own ticket, not an OML counter:

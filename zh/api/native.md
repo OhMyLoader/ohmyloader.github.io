@@ -70,6 +70,7 @@ val client: Minecraft? = OMLGame.client         // 专用服务端上为 null
 | `isLoaded(pos)`           | 游戏自己的成员：该位置所在区块是否已加载                         |
 | `containerAt(pos)`        | 方块实体的 `Container`；该方块没有槽位时为 null                  |
 | `blockEntityAt(pos)`        | 方块自己的 `BlockEntity`；位置未加载或该方块没有块实体时为 null |
+| `blockDataAt(pos)`          | 声明式方块实体的持久 `OMLBlockData`——与它的 ticker 写的是同一个存储 |
 | `playSoundAt(id, x, y, z, volume, pitch, category)` | 为所有听得见的人播放一个已注册音效          |
 | `clock`                   | 本维度所运行时钟的 `Holder<WorldClock>`，维度类型没指定时钟时为 null |
 | `clockInstance`           | 上面的时钟按游戏自己的计数读回（`ClockInstance`）                |
@@ -328,6 +329,12 @@ mod 声明的维度一旦被游戏建好，就与其他世界无异：[`clock`](
 | `entity.teleportToLevel(dimensionId, x, y, z)` | 把实体移过去，并返回游戏**移动之后**持有的那个实例；目标维度未加载时为 null |
 | `player.teleportToLevel(dimensionId, x, y, z)` | 对玩家同理，而玩家仍是同一个实例——游戏把连接一起搬了过去 |
 | `level.blockEntityAt(pos)` | 方块自己的 `BlockEntity`——位置、方块状态都在里面；位置未加载或该方块没有块实体时为 null |
+| `server.blockDataAt(dimensionId, pos)` | 该维度里声明式方块实体的持久 `OMLBlockData`，从它自己的 ticker 之外取到 |
+
+游戏按**每个维度、每个位置**各持有一个块实体，所以同一个坐标在两个维度里是两台机器、两份存储：真机实测把同一个
+声明方块同时放进两个模组维度的同一坐标，一份存着 `side = 1`、另一份存着 `side = 2`，彼此看不见对方的键。取到的
+地址也是游戏正在 tick 的那份存储而不是副本——techmod 的 press 每个 tick 都在 `progress` 里数一个周期，值不动就
+说明地址取到了游戏根本没运行的东西。
 
 世界只在玩家附近生成区块，所以没人去的维度里什么也没有。强制加载用的就是游戏自己的票据，不是 OML 的计数器：
 

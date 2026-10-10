@@ -95,7 +95,12 @@ registry.declareBlock("press") {
   sees the event — a machine tick is a simulation concept).
 - `event.data` is an `OMLBlockData`: primitive-typed key-value pairs (`int` / `long` / `float` /
   `double` / `boolean` / `string`) that persist with the world; writes mark the block entity for
-  the next autosave.
+  the next autosave. `getString` answers null for an absent key, and `hasKey` / `remove` / `keys` are the
+  three answers a default cannot give — a stored zero and a missing key are different facts, and a machine
+  that clears a setting has to be able to say so. `keys()` keeps write order and is a copy.
+- The same store is reachable from outside the ticker by dimension and position, through
+  [`blockDataAt`](/api/native#levels) — what lets a command, a packet handler or another block
+  read a machine without going through its tick handler.
 - A block may combine behavior hooks and a block entity freely.
 
 ### World generation: ores
