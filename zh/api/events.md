@@ -127,7 +127,8 @@ Events.LIVING_HURT.register { event ->
   会开始。
 - `LIVING_HURT`——伤害完全不生效。`amount` 起始是原版算出的值，**可写**：handler 写下的数字就是游戏作
   用的数字，同一次调用里随后的计算（盾牌减免、游戏自己的伤害冷却）也按它进行。取消优先于改写。mod 用
-  `OMLLivingEntity.hurt` 造成的伤害和怪物的攻击落进同一个钩子，因此同样受这些 handler 约束。
+  `LivingEntity.hurt(damageTypeId, amount, attacker = null)` 扩展（`org.ohmyloader.api26_3`）造成的伤害和
+  怪物的攻击落进同一个钩子，因此同样受这些 handler 约束。
 - `LIVING_DIED`——死亡流程停止，实体停在 0 血，直到下一次伤害重新走一遍判定；原版不死图腾就是这一
   形状。
 - `GUI_OPEN` / `CHAT_SENT` / `CHAT_RECEIVED`——GUI 不打开 / 消息不发出 / 不显示。

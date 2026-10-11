@@ -141,8 +141,9 @@ Events.LIVING_HURT.register { event ->
 - `LIVING_HURT` — the damage is not applied at all. `amount` starts as what vanilla computed and is
   **writable**: the number a handler writes is the number the game applies, and the arithmetic that
   follows it in the same call (shield reduction, the game's own damage cooldown) runs on it too. A
-  cancel wins over a rewrite. Damage a mod deals through `OMLLivingEntity.hurt` arrives here the same way
-  an attack does, so it is subject to the same handlers.
+  cancel wins over a rewrite. Damage a mod deals through the
+  `LivingEntity.hurt(damageTypeId, amount, attacker = null)` extension (`org.ohmyloader.api26_3`) arrives
+  here the same way an attack does, so it is subject to the same handlers.
 - `LIVING_DIED` — the death routine stops and the entity stays at zero health until the next damage
   re-runs the check; that is the shape of the game's own totem path.
 - `GUI_OPEN`, `CHAT_SENT`, `CHAT_RECEIVED` — the GUI does not open / the message is not sent / it is
