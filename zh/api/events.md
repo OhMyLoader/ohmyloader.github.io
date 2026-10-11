@@ -50,7 +50,7 @@ Events.CLIENT_TICK.register { /* 每逻辑帧 */ }
 | `ENTITY_INTERACT`  | 玩家右键实体                                        | ✅     | `player`、`target: Entity`、`hand: InteractionHand` |
 | `BLOCK_USED`       | 玩家右键一个方块                                    | ✅     | `player`、`position: BlockPos`、`hit: BlockHitResult`、`state`、`stack: ItemStack`、`hand`    |
 | `ITEM_USED`        | 玩家对手上的东西空点一下（没点到方块也没点到实体）  | ✅     | `player`、`stack: ItemStack`、`hand: InteractionHand`                                                |
-| `LIVING_HURT`      | 伤害即将作用到某个生物实体                          | ✅     | `entity`、**可写**的 `amount: Float`、`source: DamageSource`、`source: DamageSource` |
+| `LIVING_HURT`      | 伤害即将作用到某个生物实体                          | ✅     | `entity`、**可写**的 `amount: Float`、`source: DamageSource` |
 | `LIVING_DIED`      | 生物实体的死亡流程启动                              | ✅     | `entity`、`source: DamageSource`                                             |
 
 这些对象上还有什么可用，见[游戏对象与 26.3 扩展层](/zh/api/native)。递来的是游戏准备拿去行动的对象，不是副本，所以 handler 可以直接在其上调用游戏自己的方法。
@@ -59,8 +59,8 @@ Events.CLIENT_TICK.register { /* 每逻辑帧 */ }
 所以重生前存下的句柄读起来已是"已移除"，必须换成事件递来的这个。
 
 `LEVEL_TICK` 的范围是**单个世界**而不是单个侧：服务端每 tick 为每个已加载世界派发一次，客户端则为它渲染
-中的世界派发一次。因此单人游戏里两者都会触发——集成世界与渲染世界是同一维度的两个投影，用
-靠游戏自己的 [`Level.isClientSide`](/zh/api/native) 区分。
+中的世界派发一次。因此单人游戏里两者都会触发——集成世界与渲染世界是同一维度的两个投影，用游戏自己的
+[`Level.isClientSide`](/zh/api/native) 区分。
 
 区块那一对事件是**服务端世界**上的观察而非决定：`CHUNK_STARTED_TICKING` 派发时游戏已经把这个区块提升到运行
 状态，`CHUNK_UNLOADED` 则在区块仍可读、但已经拦不住它离开的那一刻派发。两者都直接带上 `LevelChunk` 本体，

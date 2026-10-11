@@ -236,7 +236,7 @@ OML 把 `data/my_mod/world_clock/tide.json` 与 `data/my_mod/timeline/surge.json
 整条消失）、时间线必须指明时钟，而本包没有声明条目的时钟也会被拒绝——codec 在加载时解析这个引用，引用坏了
 时间线就无声失踪。声明顺序有要求：**先声明时钟，再声明驱动它的时间线**（收集按顺序进行）。
 
-轨道（tracks，时间线的属性关键帧那一半）没有声明形态：它的值类型逐属性而变、且面向版本，需要请自己写那份 JSON。
+轨道（tracks，时间线的属性关键帧那一半）没有声明形态：它的值类型逐属性而变、且面向版本，需要时请自己写那份 JSON。
 
 ### 维度
 
@@ -437,7 +437,7 @@ shaped / shapeless；shaped 需要 `pattern`（行）与 `key` 内联表（图�
 `effects`、`exhaustion`、`death_message_type` 可选，可取值与代码 API 相同）。`[clock.<id>]` 段声明一个世界时钟，
 不带任何字段（26.3 的时钟除了身份什么都不带）；`[timeline.<id>]` 段声明一条时间线（`clock` 必填，`period_ticks`
 可选，`markers` 是内联表，其值要么是一个 tick 数，要么是 `{ ticks = …, in_commands = … }`——游戏自己的 codec
-就接受这两种写法）。就接受这两种写法）。`[dimension_type.<id>]` 段用游戏自己的字段名（snake_case）：`sky_light`、`ceiling`、
+就接受这两种写法）。`[dimension_type.<id>]` 段用游戏自己的字段名（snake_case）：`sky_light`、`ceiling`、
 `dragon_fight`、`coordinate_scale`、`min_y`、`height`、`logical_height`、`infiniburn`、`ambient_light`、
 `monster_spawn_light_level`、`monster_spawn_block_light_limit`、`fixed_time`、`skybox`、`clock`、`timelines`，
 全部可选且默认取 vanilla 主世界的值；`[dimension.<id>]` 段接受 `type`（必填）、`generator`（`flat` / `noise` /
