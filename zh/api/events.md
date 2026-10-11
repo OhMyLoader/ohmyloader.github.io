@@ -24,7 +24,7 @@ class MyMod : OMLModInitializer {
 ```kotlin
 import org.ohmyloader.api26_3.event.Events
 
-Events.CLIENT_TICK.register { /* 每逻辑帧 */ }
+Events.CLIENT_TICK.register { /* 每逻辑 tick */ }
 ```
 
 | 事件               | 触发时机                                            | 可取消 | 字段                                                                     |
