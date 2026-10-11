@@ -124,4 +124,4 @@ API, as a working reference beyond the sample mod's `/techmod_ping`.
 ::: warning Still settling
 The command DSL is in the *provided, still settling* tier: during 0.x its shape may change, with
 the changes recorded in the release notes.
-::
+:::

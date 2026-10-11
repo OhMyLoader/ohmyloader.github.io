@@ -42,7 +42,7 @@ val client: Minecraft? = OMLGame.client         // 专用服务端上为 null
 | `gameRuleValue(ruleId)`        | 游戏规则按游戏自己的拼法读回（`"true"`），未注册 id 为 null        |
 | `setGameRule(ruleId, value)`   | 用游戏自己的序列化器写入；id 未知或值解析不过返回 false            |
 | `clockById(clockId)`           | 该 id 对应的 `Holder<WorldClock>`，没有注册则为 null               |
-| `registry(registryKey)`        | 数据包表（`Registries.DAMAGE_TYPE`、`Registries.WORLD_CLOCK`），无服务端时为 null |
+| `registry(registryKey)`        | 数据包表（`Registries.DAMAGE_TYPE`、`Registries.WORLD_CLOCK`），服务端未加载该表时为 null |
 | `damageTypeIds` / `clockIds`   | 上面两张数据包表里的 id                                            |
 | `tickCount`、`isDedicatedServer()` | 游戏自己的成员                                                |
 
@@ -255,7 +255,7 @@ server.setGameRule("minecraft:keep_inventory", "3")        // false：该规则�
 | `clockManager.instanceOf(holder)`          | 游戏的 `ClockInstance`：`totalTicks()`、`partialTick()`、`rate()`、`isPaused()` |
 | `level.clockInstance`                      | 直接取本维度所运行时钟的那份读数                         |
 
-写入侧是 `ServerClockManager`（服务端世界的 `server.clockManager()`），每个调用都把结论回读一遍：
+写入侧是 `ServerClockManager`（服务端世界的 `level.clockManager()`），每个调用都把结论回读一遍：
 
 | 调用                                        | 含义                                                    |
 |---------------------------------------------|-----------------------------------------------------------|

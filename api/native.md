@@ -46,7 +46,7 @@ server's construction, before its first tick, and stops being handed out when th
 | `gameRuleValue(ruleId)`          | the rule's value as the game spells it (`"true"`), null for an unknown id |
 | `setGameRule(ruleId, value)`     | writes it through the game's own serializer; false for an unknown id or an unparsable value |
 | `clockById(clockId)`             | the `Holder<WorldClock>` that id names, null when nothing registers it |
-| `registry(registryKey)`          | a datapack table (`Registries.DAMAGE_TYPE`, `Registries.WORLD_CLOCK`), null with no server |
+| `registry(registryKey)`          | a datapack table (`Registries.DAMAGE_TYPE`, `Registries.WORLD_CLOCK`), null when the server has not loaded it |
 | `damageTypeIds` / `clockIds`     | the ids in those two datapack tables                                 |
 | `tickCount`, `isDedicatedServer()` | the game's own members                                            |
 
@@ -270,7 +270,7 @@ A clock is addressed by its `Holder<WorldClock>` and read through a `ClockInstan
 | `clockManager.instanceOf(holder)`          | the game's `ClockInstance`: `totalTicks()`, `partialTick()`, `rate()`, `isPaused()` |
 | `level.clockInstance`                      | the same, resolved for that dimension's own clock      |
 
-The write side is `ServerClockManager` (`server.clockManager()` on a server level), and each call reads the
+The write side is `ServerClockManager` (`level.clockManager()` on a `ServerLevel`), and each call reads the
 verdict back:
 
 | Call                                        | Meaning                                                      |
