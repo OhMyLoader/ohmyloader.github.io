@@ -22,7 +22,7 @@ features:
     details: A self-developed declarative injection DSL with Mixin class merging.
   - icon: 🧩
     title: Unified Mod API
-    details: Program against high-level game semantics — functional event registration, lifecycle entry points, a content declaration DSL. Never touch version internals; native objects stay reachable through the platform escape hatch.
+    details: Program against high-level game semantics — functional event registration, lifecycle entry points, a content declaration DSL. Event payloads and extensions are the game's own `net.minecraft.*` types, no wrapper layer in between; a few handles keep a `platform` escape hatch.
   - icon: 📝
     title: Declarative content
     details: Declare blocks, items and recipes with a few lines of Kotlin or a TOML content pack (an `.oml` archive). They are materialized into native content at the registry freeze point and flow through vanilla's own validation and datapack paths.
