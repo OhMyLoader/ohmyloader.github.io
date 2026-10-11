@@ -96,7 +96,8 @@ where the game keeps authority — a client's level holds a prediction the serve
 
 ::: warning An unloaded position has no meaning
 `blockIdAt` never fails, but for a position outside the loaded chunks its answer is whatever the game's own
-getter holds there — `minecraft:air` on one run, real terrain on another. `isLoaded` is the check that means
+getter holds there — `minecraft:air` on one run, real terrain on another, depending on the side and on what
+the chunk manager happens to have loaded. `isLoaded` is the check that means
 something; read a position only after it. `blockStateAt` returns null there for exactly that reason.
 :::
 
@@ -134,7 +135,7 @@ still address the game's data, so the extensions take an id where the game takes
 |---------------------------------|-----------------------------------------------------------------|
 | `typeId`                        | registry id of the entity type, e.g. `minecraft:cow`             |
 | `dimensionId`                   | registry id of the dimension it is in                            |
-| `discard()` then `isRemoved`    | the game's own removal, read back — not for players, whose connection keeps pointing at the detached instance |
+| `discard()` then `isRemoved`    | the game's own removal, read back — not for players: removing one only detaches it from the world, and its connection keeps pointing at the detached instance |
 
 | On `LivingEntity`         | Meaning                                                            |
 |---------------------------|----------------------------------------------------------------------|
@@ -146,7 +147,7 @@ still address the game's data, so the extensions take an id where the game takes
 | `addAttributeModifier(attributeId, modifierId, amount, operation)` | a permanent modifier the game keeps until removed; `operation` is `add_value` / `add_multiplied_base` / `add_multiplied_total`; false for an attribute this entity does not carry |
 | `removeAttributeModifier(attributeId, modifierId)` | false when nothing was held under that id                    |
 | `hurt(damageTypeId, amount, attacker = null)` | deals damage through the game's own damage path          |
-| `ignite(ticks)` / `extinguish()` | the game's burning state read back after the request — a fire-immune mob answers `false` |
+| `ignite(ticks)` / `extinguish()` | the game's burning state read back after the request — a fire-immune mob answers `false` rather than the request being silently ignored |
 | `health`, `maxHealth`, `activeEffects`, `isOnFire`, `remainingFireTicks`, `heal(amount)` | the game's own members |
 
 `activeEffects` hands out the game's `MobEffectInstance` objects; `effectId` is the registry id of one, its
@@ -163,7 +164,7 @@ rules the event enforces.
 | `gameModeName`               | `survival` / `creative` / `adventure` / `spectator`, or null before the server has sent one |
 | `permissionLevel`            | vanilla's own level: 0 player, 1 moderator, 2 gamemaster, 3 admin, 4 owner |
 | `sendSystemMessage(text)`    | shows `text` to this player only — through its server-side connection, so a multiplayer client's own local player is a no-op |
-| `giveItem(itemId, count)`    | false when not everything fit                                    |
+| `giveItem(itemId, count)`    | false when not everything fit — what fit stays, as with a vanilla pickup |
 | `teleport(x, y, z, dimensionId = null)` | server-authoritative; false when the dimension id is unknown, the game refused the destination, or the handle is one the game has replaced — a death or a respawn hands out a new instance and the old one reads removed, so a mod that keeps a player addresses the server's live counterpart by its uuid |
 | `playSound(id, volume, pitch)` | plays so **this** player hears it, which is the game's own per-listener split |
 
