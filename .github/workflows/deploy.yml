@@ -25,6 +25,8 @@ jobs:
           node-version: 26
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # en/zh pages must stay one-to-one; fail the build before the docs compile
+      - run: pnpm run check:sync
       # vitepress build fails on dead links, so this doubles as a docs-link check
       - run: pnpm build
       # the artifact is only consumed by deploy on main; on PRs it is just a build check
@@ -44,5 +46,14 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # verify the en/zh pairing once more against what is actually being deployed
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run check:sync
       - id: deployment
         uses: actions/deploy-pages@v5
