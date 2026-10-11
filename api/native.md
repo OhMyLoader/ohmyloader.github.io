@@ -141,9 +141,9 @@ still address the game's data, so the extensions take an id where the game takes
 | `hasEffect(effectId)`     | false for an unregistered id                                           |
 | `applyEffect(effectId, durationTicks, amplifier = 0)` | applies it; re-applying follows the game's own merge rule |
 | `removeEffect(effectId)`  | false when the id is unknown or it was not on it                       |
-| `attributeValue(id)` / `attributeBase(id)` | the game's computed value (base + modifiers) and the base alone, addressed by `minecraft:max_health`-style ids |
-| `setAttributeBase(id, value)` | the game clamps the write into the attribute's range and applies its own consequence |
-| `addAttributeModifier(attributeId, modifierId, amount, operation)` | a permanent modifier the game keeps until removed; `operation` is `add_value` / `add_multiplied_base` / `add_multiplied_total` |
+| `attributeValue(id)` / `attributeBase(id)` | the game's computed value (base + modifiers) and the base alone, addressed by `minecraft:max_health`-style ids; null when this kind of entity carries no such attribute — `minecraft:attack_damage` belongs to attackers, so a cow has none |
+| `setAttributeBase(id, value)` | the game clamps the write into the attribute's range and applies its own consequence; false when there is no such instance to write |
+| `addAttributeModifier(attributeId, modifierId, amount, operation)` | a permanent modifier the game keeps until removed; `operation` is `add_value` / `add_multiplied_base` / `add_multiplied_total`; false for an attribute this entity does not carry |
 | `removeAttributeModifier(attributeId, modifierId)` | false when nothing was held under that id                    |
 | `hurt(damageTypeId, amount, attacker = null)` | deals damage through the game's own damage path          |
 | `ignite(ticks)` / `extinguish()` | the game's burning state read back after the request — a fire-immune mob answers `false` |
@@ -164,7 +164,7 @@ rules the event enforces.
 | `permissionLevel`            | vanilla's own level: 0 player, 1 moderator, 2 gamemaster, 3 admin, 4 owner |
 | `sendSystemMessage(text)`    | shows `text` to this player only — through its server-side connection, so a multiplayer client's own local player is a no-op |
 | `giveItem(itemId, count)`    | false when not everything fit                                    |
-| `teleport(x, y, z, dimensionId = null)` | server-authoritative; false when the dimension id is unknown or the game refused the destination |
+| `teleport(x, y, z, dimensionId = null)` | server-authoritative; false when the dimension id is unknown, the game refused the destination, or the handle is one the game has replaced — a death or a respawn hands out a new instance and the old one reads removed, so a mod that keeps a player addresses the server's live counterpart by its uuid |
 | `playSound(id, volume, pitch)` | plays so **this** player hears it, which is the game's own per-listener split |
 
 ### Worn items

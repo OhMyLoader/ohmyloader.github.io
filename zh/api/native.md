@@ -135,9 +135,9 @@ state.propertyValues                                   // 该方块的全部属�
 | `hasEffect(effectId)`      | 未注册 id 返回 false                                             |
 | `applyEffect(effectId, durationTicks, amplifier = 0)` | 施加效果；重复施加遵循游戏自己的合并规则 |
 | `removeEffect(effectId)`   | id 未知或本就没有该效果时返回 false                              |
-| `attributeValue(id)` / `attributeBase(id)` | 游戏算出的值（基础值 + 修正）与纯基础值，按 `minecraft:max_health` 这类 id 寻址 |
-| `setAttributeBase(id, value)` | 游戏会把写入值夹进该属性的取值范围，并施加它自己的后果         |
-| `addAttributeModifier(attributeId, modifierId, amount, operation)` | 常驻修正，游戏会一直保留到被移除；`operation` 取 `add_value` / `add_multiplied_base` / `add_multiplied_total` |
+| `attributeValue(id)` / `attributeBase(id)` | 游戏算出的值（基础值 + 修正）与纯基础值，按 `minecraft:max_health` 这类 id 寻址；这类实体不带该属性时返回 null——`minecraft:attack_damage` 属于攻击者，牛就没有 |
+| `setAttributeBase(id, value)` | 游戏会把写入值夹进该属性的取值范围，并施加它自己的后果；没有这个属性可写时返回 false |
+| `addAttributeModifier(attributeId, modifierId, amount, operation)` | 常驻修正，游戏会一直保留到被移除；`operation` 取 `add_value` / `add_multiplied_base` / `add_multiplied_total`；这类实体不带该属性时返回 false |
 | `removeAttributeModifier(attributeId, modifierId)` | 该 id 名下没有持有时返回 false                               |
 | `hurt(damageTypeId, amount, attacker = null)` | 走游戏自己的伤害路径造成一次伤害                    |
 | `ignite(ticks)` / `extinguish()` | 请求之后回读游戏自己的燃烧状态——免疫火焰的生物答 `false`，而不是被静默忽略 |
@@ -157,7 +157,7 @@ tick 数，`amplifier` 从 0 起算，所以 0 就是一级。
 | `permissionLevel`             | vanilla 自己的等级：0 玩家、1 管理员、2 游戏主管、3 操作员、4 服主 |
 | `sendSystemMessage(text)`     | 只向这位玩家显示 `text`——经它的服务端连接，所以多人客户端的本地玩家是空操作 |
 | `giveItem(itemId, count)`     | 装不下时返回 false（装下的那部分仍然留下，与原版拾取一致）        |
-| `teleport(x, y, z, dimensionId = null)` | 服务端权威；维度 id 未知或游戏拒绝该目的地时返回 false     |
+| `teleport(x, y, z, dimensionId = null)` | 服务端权威；维度 id 未知、游戏拒绝该目的地，或这个句柄已被游戏换掉时返回 false——死亡或重生会让游戏拿出一个新实例，旧的那个读作 removed，所以长期持有玩家的模组要按 uuid 去寻服务端当前持有的那个实例 |
 | `playSound(id, volume, pitch)` | 让**这位**玩家听见，正是游戏自己的分侧行为                     |
 
 ### 穿戴中的物品
