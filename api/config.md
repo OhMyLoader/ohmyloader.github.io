@@ -60,7 +60,7 @@ bug; a mod that wants its users to see a new option has to mention it itself.
 String defaults are emitted between plain quotes with no escaping. A default containing a `"` or a
 newline produces a file that does not parse, and an unparseable file fails that mod's init. Keep
 string defaults single-line and free of quote characters.
-::
+:::
 
 ## Reading values
 
@@ -112,4 +112,4 @@ network or worker thread is safe — what it returns is the startup snapshot eit
 ::: warning Still settling
 `config` is in the *provided, still settling* tier: during 0.x its shape may change, with the
 changes recorded in the release notes.
-::
+:::

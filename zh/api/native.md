@@ -139,7 +139,7 @@ state.propertyValues                                   // 该方块的全部属�
 | `setAttributeBase(id, value)` | 游戏会把写入值夹进该属性的取值范围，并施加它自己的后果；没有这个属性可写时返回 false |
 | `addAttributeModifier(attributeId, modifierId, amount, operation)` | 常驻修正，游戏会一直保留到被移除；`operation` 取 `add_value` / `add_multiplied_base` / `add_multiplied_total`；这类实体不带该属性时返回 false |
 | `removeAttributeModifier(attributeId, modifierId)` | 该 id 名下没有持有时返回 false                               |
-| `hurt(damageTypeId, amount, attacker = null)` | 走游戏自己的伤害路径造成一次伤害                    |
+| `hurt(damageTypeId, amount, attacker = null)` | 走游戏自己的伤害路径造成一次伤害；伤害类型未注册、实体不在服务端世界、或游戏未实际施加伤害时返回 false |
 | `ignite(ticks)` / `extinguish()` | 请求之后回读游戏自己的燃烧状态——免疫火焰的生物答 `false`，而不是被静默忽略 |
 | `health`、`maxHealth`、`activeEffects`、`isOnFire`、`remainingFireTicks`、`heal(amount)` | 游戏自己的成员 |
 
@@ -199,7 +199,7 @@ chest.openedByPlayerNames                               // 游戏认为正在使
 产出槽与燃料槽拒绝 OML 的方式与拒绝玩家完全一致——写不进去，不是加载器替方块做主。读槽位请用游戏自己的
 `getItem(index)`：越界时与游戏一样抛异常，边界就是 `containerSize`。
 
-修改本身不带锁：请在拥有该玩家的那条线程上执行，这正是 [主线程调度器](/api/scheduler) 的用途。
+修改本身不带锁：请在拥有该玩家的那条线程上执行，这正是 [主线程调度器](/zh/api/scheduler) 的用途。
 
 ::: warning 菜单 id 不是方块 id
 `openedMenuId` 报的是游戏让玩家使用的那个**菜单**，两者不同：单个箱子打开的是
