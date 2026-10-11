@@ -2,7 +2,7 @@
 
 ## mod 入口
 
-`@Mod` 标记模组入口类，实现 [`OMLModInitializer`](https://github.com/OhMyLoader/OhMyLoader) 接口。
+`@Mod` 标记模组入口类，实现 [`OMLModInitializer`](https://github.com/OhMyLoader/OhMyLoader/blob/main/oml-api/src/main/kotlin/org/ohmyloader/api/OMLMod.kt) 接口。
 游戏初始化完成后，加载器实例化该类并调用 `onInitialize`，传入模组自身的元数据：
 
 ```kotlin

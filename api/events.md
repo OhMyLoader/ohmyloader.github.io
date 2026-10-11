@@ -2,10 +2,10 @@
 
 ## Mod entry
 
-`@Mod` marks the mod's entry class, which implements the [`OMLModInitializer`](https://github.com/OhMyLoader/OhMyLoader)
-interface. After the
-game finishes initializing, the loader instantiates the class and calls `onInitialize` with the
-mod's own metadata:
+`@Mod` marks the mod's entry class, which implements the
+[`OMLModInitializer`](https://github.com/OhMyLoader/OhMyLoader/blob/main/oml-api/src/main/kotlin/org/ohmyloader/api/OMLMod.kt)
+interface. After the game finishes initializing, the loader instantiates the class and calls
+`onInitialize` with the mod's own metadata:
 
 ```kotlin
 @Mod(id = "my_mod", name = "My Mod", version = "1.0.0")
