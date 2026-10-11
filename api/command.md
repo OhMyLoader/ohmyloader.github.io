@@ -43,7 +43,7 @@ by the name given to `argument`, and only when that argument is on the executed 
 |------------------------------------|----------------------------------------------------------------|
 | `subcommand(name) { }`             | a literal child: `/root <name> …`                              |
 | `argument(name, type) { }`         | a typed child: `/root <name> <value> …`                        |
-| `executes { source -> }`           | runs when this node terminates the command                     |
+| `executes { source -> }`           | runs when this node terminates the command; the handler answers by calling `source.reply` / `source.replyError` — a value it returns goes nowhere |
 | `permissionLevel`                  | minimum level for this node **and everything below it**        |
 | `permissionNode`                   | a fine-grained node id the invoker's set must answer (`mymod:build`) |
 

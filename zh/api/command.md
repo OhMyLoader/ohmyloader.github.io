@@ -41,7 +41,7 @@ class MyMod : OMLModInitializer, OMLCommandProvider {
 |------------------------------------|-----------------------------------------------------------------|
 | `subcommand(name) { }`             | 字面量子节点：`/root <name> …`                                  |
 | `argument(name, type) { }`         | 带类型的子节点：`/root <name> <value> …`                        |
-| `executes { source -> }`           | 该节点作为命令终点时执行                                        |
+| `executes { source -> }`           | 该节点作为命令终点时执行；处理器靠调用 `source.reply` / `source.replyError` 回答——它返回的值不会送到任何地方 |
 | `permissionLevel`                  | 该节点**及其以下所有节点**的最低权限等级                        |
 | `permissionNode`                   | 调用者的权限集必须回答的细粒度节点 id（`mymod:build`）           |
 
