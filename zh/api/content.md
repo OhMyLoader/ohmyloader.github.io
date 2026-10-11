@@ -262,7 +262,7 @@ registry.declareDimension("deep_home") {
 }
 ```
 
-于是 `server.levelById("my_mod:deep_home")` 会回一个活着的服务端世界，它的
+于是 `server.levelById("my_mod:deep_home")` 会回一个活的 `ServerLevel`（服务端世界），它的
 [`dimensionTypeId`、`dimensionType()` 里的数字与 `clock`](/zh/api/native) 就是声明写下的那些。这些字段不是装饰：
 游戏自己的 `canHaveWeather()` 是 `hasSkyLight && !hasCeiling && dimension != theEnd`，因此一个有顶、无日光
 的类型让那里根本不可能有天气，而同一个调用在主世界仍然回答"可以"。

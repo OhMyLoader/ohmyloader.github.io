@@ -372,7 +372,7 @@ pitch。
 | `player.setRespawnAnchor(dimensionId, position, yaw, pitch, announce)` | 移动它并读回校验；维度不是服务器认识的那个、玩家不在服务端、或锚点没有落在请求的位置时返回 false |
 | `player.clearRespawnAnchor()` | 抹掉它，并回报确实已经不剩任何锚点 |
 | `server.worldSpawn` | 没有自己锚点的玩家会回去的那条记录 |
-| `server.setWorldSpawn(dimensionId, position, yaw, pitch)` | 重新指向这条记录；维度不认识、或游戏不会把重生放到该位置时返回 false |
+| `server.setWorldSpawn(dimensionId, position, yaw, pitch)` | 重新指向这条记录；维度不认识、或游戏不会把玩家重生放到 `position` 时返回 false |
 
 锚点指向的维度可以是内容包声明的那个，所以重生可以落在模组自己的世界里。`announce` 是游戏自己的聊天提示，
 也就是 `/spawnpoint` 发的那条。显式选定的位置会被标成 **forced**，这是游戏自己的说法：直接采用这个坐标，

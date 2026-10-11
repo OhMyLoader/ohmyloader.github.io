@@ -22,7 +22,7 @@ features:
     details: 自研声明式注入 DSL 与 Mixin 类合并。
   - icon: 🧩
     title: 统一 Mod API
-    details: 面向高层游戏语义编程：函数式事件注册、生命周期入口、内容声明 DSL。事件载荷与扩展直接就是游戏自己的 `net.minecraft.*` 类型，没有包装层；个别句柄保留 platform 逃生舱。
+    details: 面向高层游戏语义编程：函数式事件注册、生命周期入口、内容声明 DSL。事件载荷与扩展直接就是游戏自己的 `net.minecraft.*` 类型，没有包装层；个别句柄保留 `platform` 逃生舱。
   - icon: 📝
     title: 声明式内容
     details: 几行 Kotlin 或一个 TOML 内容包（`.oml` 归档）即可声明方块、物品与配方，在注册表冻结点材料化为原生内容，走 vanilla 自己的校验与数据包路径。

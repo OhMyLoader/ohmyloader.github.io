@@ -66,7 +66,7 @@ Kotlin 版本必须能产出 Java 27 字节码，`2.5.0-Beta1` 正是 loader 自
 例外。缺它时解析 `compileOnly` 会以「无值」失败，而不是悄悄少掉那个工件。
 
 ::: warning 包名不要借用 `org.ohmyloader.`
-mod 的类不要放在这个前缀下。该命名空间是 parent-first：处在其中的 mod 由启动器层定义，而启动器层的搜索
+mod 的类不要放在 `org.ohmyloader.` 这个前缀下。该命名空间是 parent-first：处在其中的 mod 由启动器层定义，而启动器层的搜索
 路径只有游戏 jar、没有该版本的运行库，于是它第一次引用 `net.minecraft.*` 就会以 `NoClassDefFoundError`
 失败。换任何其他前缀（例如 `com.example.…`），就和所有真实 mod 一样按 child-first 加载。
 :::

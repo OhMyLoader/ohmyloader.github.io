@@ -16,8 +16,8 @@ the game's own state read back rather than OML's bookkeeping.
 ::: warning A mod's classes must not live under `org.ohmyloader.`
 That prefix is parent-first: a mod inside it is defined by the launcher layer, whose search path carries the
 game jar but not the version's libraries, so its first `net.minecraft.*` reference dies with
-`NoClassDefFoundError`. Mods are loaded child-first, and that is what makes the game's own classes the same
-classes the game runs.
+`NoClassDefFoundError`. Mods are loaded child-first, and that is what makes the `net.minecraft` classes a
+mod sees the same classes the game runs.
 :::
 
 ## The running game
