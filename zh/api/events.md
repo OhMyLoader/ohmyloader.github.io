@@ -50,8 +50,8 @@ Events.CLIENT_TICK.register { /* 每逻辑帧 */ }
 | `ENTITY_INTERACT`  | 玩家右键实体                                        | ✅     | `player`、`target: Entity`、`hand: InteractionHand` |
 | `BLOCK_USED`       | 玩家右键一个方块                                    | ✅     | `player`、`position: BlockPos`、`hit: BlockHitResult`、`state`、`stack: ItemStack`、`hand`    |
 | `ITEM_USED`        | 玩家对手上的东西空点一下（没点到方块也没点到实体）  | ✅     | `player`、`stack: ItemStack`、`hand: InteractionHand`                                                |
-| `LIVING_HURT`      | 伤害即将作用到某个生物实体                          | ✅     | `entity`、**可写**的 `amount: Float`、`source: DamageSource` |
-| `LIVING_DIED`      | 生物实体的死亡流程启动                              | ✅     | `entity`、`source: DamageSource`                                             |
+| `LIVING_HURT`      | 伤害即将作用到某个生物实体                          | ✅     | `entity: LivingEntity`、**可写**的 `amount: Float`、`source: DamageSource` |
+| `LIVING_DIED`      | 生物实体的死亡流程启动                              | ✅     | `entity: LivingEntity`、`source: DamageSource`                                             |
 
 这些对象上还有什么可用，见[游戏对象与 26.3 扩展层](/zh/api/native)。递来的是游戏准备拿去行动的对象，不是副本，所以 handler 可以直接在其上调用游戏自己的方法。
 

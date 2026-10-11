@@ -146,7 +146,7 @@ still address the game's data, so the extensions take an id where the game takes
 | `setAttributeBase(id, value)` | the game clamps the write into the attribute's range and applies its own consequence; false when there is no such instance to write |
 | `addAttributeModifier(attributeId, modifierId, amount, operation)` | a permanent modifier the game keeps until removed; `operation` is `add_value` / `add_multiplied_base` / `add_multiplied_total`; false for an attribute this entity does not carry |
 | `removeAttributeModifier(attributeId, modifierId)` | false when nothing was held under that id                    |
-| `hurt(damageTypeId, amount, attacker = null)` | deals damage through the game's own damage path          |
+| `hurt(damageTypeId, amount, attacker = null)` | deals damage through the game's own damage path; false for an unregistered damage type, an entity not in a server-side level, or when the game applied nothing |
 | `ignite(ticks)` / `extinguish()` | the game's burning state read back after the request — a fire-immune mob answers `false` rather than the request being silently ignored |
 | `health`, `maxHealth`, `activeEffects`, `isOnFire`, `remainingFireTicks`, `heal(amount)` | the game's own members |
 
