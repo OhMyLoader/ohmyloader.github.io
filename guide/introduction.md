@@ -61,9 +61,15 @@ The mod-facing surface comes in three tiers, contracted in the loader's
 [`oml-api/README.md`](https://github.com/OhMyLoader/OhMyLoader/blob/main/oml-api/README.md):
 
 - **Contracted**: the `@Mod` entry, `OMLModInitializer` / `ModContext`, `Events`, the content
-  declaration DSL and the injection DSL — semantically backward-compatible; breaking changes are
-  deprecated for one minor release first.
+  declaration DSL and the injection DSL. During 0.x, breaking changes land directly as `!` commits —
+  no deprecation window, the migration path written into each commit body. From 1.0 the tier
+  freezes: breaking changes become major-version events, and old signatures are deprecated for one
+  major release.
 - **Provided, settling**: commands, config, network, key bindings / HUD / creative tabs — shipped,
   allowed to adjust until 1.0, changes recorded in the release notes.
-- **Escape hatches**: everything a `platform` property hands you — the raw game objects, free to
-  change with any game version, by design.
+- **Version-facing, tracks the game**: the whole `oml-api-26_3` artifact — event payloads and
+  extensions directly name the game's own classes (`ServerPlayer`, `BlockPos`, `DamageSource`…).
+  There is no wrapper layer in between; what needs a game type simply is that game type. This tier
+  is contracted to one game version, not across them — moving to a new game version means swapping
+  to the matching `oml-api-<version>` artifact. A few handles (`OMLCommandSource`, `OMLNetworkContext`,
+  `OMLBlock`) keep a `platform` property for reaching the raw game object.

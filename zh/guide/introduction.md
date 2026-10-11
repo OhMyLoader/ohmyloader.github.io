@@ -50,7 +50,11 @@ mod 面向统一的高层游戏语义编程（事件、生命周期、内容注�
 [`oml-api/README.md`](https://github.com/OhMyLoader/OhMyLoader/blob/main/oml-api/README.md)：
 
 - **契约层**：`@Mod` 入口、`OMLModInitializer` / `ModContext`、`Events`、内容声明 DSL 与注入
-  DSL——按语义化版本向后兼容；破坏性变更先以弃用形式存在一个次版本。
-- **逃生舱之外的一切**：命令、配置、网络、按键 / HUD / 创造标签——已交付，1.0 前允许调整，
+  DSL。0.x 阶段破坏性变更以 `!` 提交直接落地——不留弃用过渡，迁移方式写入提交正文；1.0 起
+  冻结：破坏性变更升为大版本事件，旧签名经弃用保留一个大版本。
+- **已提供、仍在沉淀**：命令、配置、网络、按键 / HUD / 创造标签——已交付，1.0 前允许调整，
   变更记录进发布说明。
-- **逃生舱**：一切 `platform` 属性交到你手里的原生对象——随游戏版本自由变动，设计如此。
+- **版本面向，随游戏版本变动**：整个 `oml-api-26_3` 工件——事件载荷与扩展函数直接命名游戏自己的类
+  （`ServerPlayer`、`BlockPos`、`DamageSource`…），中间没有包装层，需要游戏类型的那一层直接就是
+  游戏类型。这一层只对单一游戏版本负责，不跨版本兼容——换游戏版本就是换 `oml-api-<version>` 工件。
+  个别句柄（`OMLCommandSource`、`OMLNetworkContext`、`OMLBlock`）保留 `platform` 属性，用于拿到原生游戏对象。
