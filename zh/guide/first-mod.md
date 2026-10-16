@@ -58,7 +58,8 @@ oml {
 Kotlin 版本必须能产出 Java 27 字节码，`2.5.0-Beta1` 正是 loader 自用的版本。
 
 `oml-gradle` 插件会自动完成其余一切。编译类路径上它会放好 `oml-api`、版本面向的 `oml-api-<version>`
-（26.3 即 `oml-api-26_3`，坐标由 `minecraftVersion` 推导）、游戏自己的客户端 jar 与该版本的运行库 jar
+（26.3 即 `oml-api-26_3`，坐标由 `minecraftVersion` 推导；追快照时需要自己命名，见下文「追快照」）、
+游戏自己的客户端 jar 与该版本的运行库 jar
 ——mod 源码可以直接命名 `net.minecraft.*` 类型，而它编译时所面对的就是游戏运行的那批类。此外它按版本解析
 运行层（含 per-version adapter）、提供 `runClient` / `runServer`、下载并校验游戏 jar / 运行库 / natives / 资产。
 
@@ -116,8 +117,14 @@ SHA-1 校验），本工程构建出的 jar 会被装进 `mods/`。游戏目录�
 ```kotlin
 oml {
     minecraftVersion.set("snapshot")
+    // 版本面向的 API 只有一份，快照也用它——不存在 oml-api-snapshot
+    apiArtifact.set("oml-api-26_3")
 }
 ```
 
 此时运行层使用 `oml-adapter-snapshot`——它是 loader 仓库里跟随快照迭代的工作副本，钩子与快照的兼容性由
 loader 仓库的形状测试持续验证。
+
+`apiArtifact` 是追快照时唯一需要显式命名的属性：loader 只发布一份版本面向的 API 模块，快照适配器也是
+针对它构建的，因此由游戏版本推导出的坐标（`oml-api-snapshot`）从未发布过。插件会在配置阶段直接失败并
+点名这个属性，而不是把问题留给依赖解析去报告。

@@ -60,7 +60,8 @@ The Kotlin version has to be one that can target Java 27 class files; `2.5.0-Bet
 loader itself is built with.
 
 The `oml-gradle` plugin does everything else. On the compile classpath it puts `oml-api`, the
-version-facing `oml-api-<version>` (`oml-api-26_3` for 26.3, named from `minecraftVersion`), the game's
+version-facing `oml-api-<version>` (`oml-api-26_3` for 26.3, named from `minecraftVersion` —
+[Tracking snapshots](#tracking-snapshots) covers the case where a project has to name it), the game's
 own client jar and that version's library jars — a mod's sources can name `net.minecraft.*` types, and
 they compile against the same classes the game runs. It also resolves the runtime layer (including the
 per-version adapter), provides `runClient` / `runServer`, and downloads and verifies the game jar,
@@ -125,9 +126,16 @@ snapshot, and a new snapshot needs no configuration change:
 ```kotlin
 oml {
     minecraftVersion.set("snapshot")
+    // one version-facing API module covers the snapshots too — there is no oml-api-snapshot
+    apiArtifact.set("oml-api-26_3")
 }
 ```
 
 The runtime layer then uses `oml-adapter-snapshot`, the working copy in the loader repository that
 iterates with the snapshots. Its compatibility with the snapshot is continuously verified by the
 loader's shape tests.
+
+`apiArtifact` is the one property a snapshot project has to name: the loader publishes a single
+version-facing API module and builds the snapshot adapter against it, so the coordinate derived from
+the game version (`oml-api-snapshot`) was never published. The plugin fails the configuration naming
+this property instead of leaving dependency resolution to report it.
