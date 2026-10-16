@@ -1,0 +1,11 @@
+# The site's scripts and Markdown are LF; a contributor whose git has core.autocrlf=true would otherwise
+# commit CRLF through them. Only the listed types are touched — nothing is renormalized wholesale, and
+# images stay untouched because they are detected as binary.
+*.mjs text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.vue text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
