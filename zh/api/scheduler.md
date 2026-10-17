@@ -11,11 +11,11 @@ OMLScheduler.schedule(OMLSide.SERVER) {
 
 ## 接口
 
-| 调用                                                                  | 运行时机                   |
-|-----------------------------------------------------------------------|----------------------------|
-| `schedule(side, delayTicks = 0, task)`                                 | 在 `delayTicks` 之后运行一次 |
-| `repeat(side, intervalTicks, initialDelay = 0, task)`                  | 每 `intervalTicks` 运行一次  |
-| `OMLTask.cancel()` / `OMLTask.canceled`                                | 取消，可重复调用             |
+| 调用                                                  | 运行时机                     |
+|-------------------------------------------------------|------------------------------|
+| `schedule(side, delayTicks = 0, task)`                | 在 `delayTicks` 之后运行一次 |
+| `repeat(side, intervalTicks, initialDelay = 0, task)` | 每 `intervalTicks` 运行一次  |
+| `OMLTask.cancel()` / `OMLTask.canceled`               | 取消，可重复调用             |
 
 - `delayTicks = 0` 表示「下一个 tick」。任务绝不会早于入队后的那个 tick 运行，而入队本身在任意线程
   都安全。
@@ -27,10 +27,10 @@ OMLScheduler.schedule(OMLSide.SERVER) {
 
 `OMLSide` 选择队列，每个队列随自己的 tick 事件前进：
 
-| 边       | 由谁推进                                              |
-|----------|-------------------------------------------------------|
-| `CLIENT` | `CLIENT_TICK`——客户端逻辑/渲染线程                      |
-| `SERVER` | `SERVER_TICK`——专用或集成服务端线程                     |
+| 边       | 由谁推进                            |
+|----------|-------------------------------------|
+| `CLIENT` | `CLIENT_TICK`——客户端逻辑/渲染线程  |
+| `SERVER` | `SERVER_TICK`——专用或集成服务端线程 |
 
 ::: warning 不 tick 的一侧永远不会运行你的任务
 专用服务端没有客户端 tick，因此在上面排给 `OMLSide.CLIENT` 的任务会无限留在队列里。反过来同样成立：

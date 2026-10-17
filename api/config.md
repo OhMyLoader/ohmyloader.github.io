@@ -50,8 +50,8 @@ max_veins = 8
 spread = 0.25
 ```
 
-Keys appear in declaration order, one `#` comment line each, entries separated by a blank line.
-**An existing file is never rewritten**, so the user's edits and their own comments survive upgrades
+Keys appear in declaration order, one `#` comment line each, entries separated by a blank line. **An existing file is
+never rewritten**, so the user's edits and their own comments survive upgrades
 — which also means an entry added in a new mod version does not show up in the player's file. Reads
 still return the declared default for a key the file lacks, so the file being incomplete is not a
 bug; a mod that wants its users to see a new option has to mention it itself.
@@ -105,7 +105,7 @@ generates.
 
 ## Threading
 
-The snapshot is filled at construction and never mutated afterwards, and the entry table is written
+The snapshot is filled at construction and never mutated afterward, and the entry table is written
 only during `onInitialize`. Reads carry no lock and no side is enforced, so a config read from a
 network or worker thread is safe — what it returns is the startup snapshot either way.
 

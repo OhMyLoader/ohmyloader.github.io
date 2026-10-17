@@ -39,13 +39,13 @@ by the name given to `argument`, and only when that argument is on the executed 
 
 ## Declaration members
 
-| Member                             | Meaning                                                        |
-|------------------------------------|----------------------------------------------------------------|
-| `subcommand(name) { }`             | a literal child: `/root <name> …`                              |
-| `argument(name, type) { }`         | a typed child: `/root <name> <value> …`                        |
-| `executes { source -> }`           | runs when this node terminates the command; the handler answers by calling `source.reply` / `source.replyError` — a value it returns goes nowhere |
-| `permissionLevel`                  | minimum level for this node **and everything below it**        |
-| `permissionNode`                   | a fine-grained node id the invoker's set must answer (`mymod:build`) |
+| Member                     | Meaning                                                                                                                                           |
+|----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| `subcommand(name) { }`     | a literal child: `/root <name> …`                                                                                                                 |
+| `argument(name, type) { }` | a typed child: `/root <name> <value> …`                                                                                                           |
+| `executes { source -> }`   | runs when this node terminates the command; the handler answers by calling `source.reply` / `source.replyError` — a value it returns goes nowhere |
+| `permissionLevel`          | minimum level for this node **and everything below it**                                                                                           |
+| `permissionNode`           | a fine-grained node id the invoker's set must answer (`mymod:build`)                                                                              |
 
 `permissionLevel` defaults to `0` (everyone). Nodes at `0` get no check attached at all, so an
 unprotected subcommand under a protected parent stays protected by the parent.
@@ -58,14 +58,14 @@ undispatchable; granting it to one player puts it back for that player alone.
 
 ## Argument types
 
-| `OMLArgumentType` | Game parser            | Value type | Read with        |
-|-------------------|------------------------|------------|------------------|
-| `WORD`            | single unquoted word   | `String`   | `getString`      |
-| `STRING`          | quoted or single word  | `String`   | `getString`      |
-| `GREEDY_STRING`   | the rest of the line   | `String`   | `getString`      |
-| `INTEGER`         | whole number           | `Int`      | `getInt`         |
-| `FLOAT`           | number with fraction   | `Double`   | `getDouble`      |
-| `BOOLEAN`         | `true` / `false`       | `Boolean`  | `getBoolean`     |
+| `OMLArgumentType` | Game parser           | Value type | Read with    |
+|-------------------|-----------------------|------------|--------------|
+| `WORD`            | single unquoted word  | `String`   | `getString`  |
+| `STRING`          | quoted or single word | `String`   | `getString`  |
+| `GREEDY_STRING`   | the rest of the line  | `String`   | `getString`  |
+| `INTEGER`         | whole number          | `Int`      | `getInt`     |
+| `FLOAT`           | number with fraction  | `Double`   | `getDouble`  |
+| `BOOLEAN`         | `true` / `false`      | `Boolean`  | `getBoolean` |
 
 Each type has exactly one getter. The getters are unchecked casts, so reaching for the wrong one
 throws `ClassCastException` inside your handler — the command bridge catches it and answers the
@@ -92,13 +92,13 @@ itself uses when the surface above is not enough.
 
 `permissionLevel` maps onto the game's operator levels, not onto a number OML invents:
 
-| Value | Meaning                     |
-|-------|-----------------------------|
-| `0`   | everyone                    |
-| `1`   | moderators                  |
-| `2`   | game masters                |
-| `3`   | admins                      |
-| `4`+  | the server owner            |
+| Value | Meaning          |
+|-------|------------------|
+| `0`   | everyone         |
+| `1`   | moderators       |
+| `2`   | game masters     |
+| `3`   | admins           |
+| `4`+  | the server owner |
 
 ## When a declaration stops being a declaration
 
@@ -111,8 +111,8 @@ worth knowing:
 - A malformed declaration is contained. Brigadier rejects an empty name, an illegal character or a
   duplicate root literal; the bridge logs `registering /<name> from mod [<id>] failed` and skips
   that one command, so the other mods' commands still land. Two mods claiming the same root literal:
-  the one declared first wins and the other loses with that log line — pick namespaced roots
-  (`my_mod_cool` rather than `cool`) if you expect collisions.
+  the one declared first wins and the other loses with that log line — pick namespaced roots (`my_mod_cool` rather than
+  `cool`) if you expect collisions.
 
 ## Not covered yet
 

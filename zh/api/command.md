@@ -1,7 +1,7 @@
 # 斜杠命令
 
 mod 只对着 loader 的类型声明命令树，不碰 Brigadier，也不碰任何版本的命令类。`declareCommands` 在
-`onInitialize` 之后被调用一次，它留下的只是一棵纯数据树；每版本适配器在游戏**每次**构建 dispatcher 时
+`onInitialize` 之后被调用一次，它留下的只是一棵纯数据树；每版本适配器在游戏 **每次**构建 dispatcher 时
 （服务端启动、以及每一次数据包重载）把这棵树翻译成真正的命令。这个分工正是命令能在 dispatcher 重建后
 继续工作的原因：mod 自己往 dispatcher 里注册的话，第一次重载就会把命令丢掉。
 
@@ -37,32 +37,32 @@ class MyMod : OMLModInitializer, OMLCommandProvider {
 
 ## 声明节点的成员
 
-| 成员                               | 含义                                                            |
-|------------------------------------|-----------------------------------------------------------------|
-| `subcommand(name) { }`             | 字面量子节点：`/root <name> …`                                  |
-| `argument(name, type) { }`         | 带类型的子节点：`/root <name> <value> …`                        |
-| `executes { source -> }`           | 该节点作为命令终点时执行；处理器靠调用 `source.reply` / `source.replyError` 回答——它返回的值不会送到任何地方 |
-| `permissionLevel`                  | 该节点**及其以下所有节点**的最低权限等级                        |
-| `permissionNode`                   | 调用者的权限集必须回答的细粒度节点 id（`mymod:build`）           |
+| 成员                       | 含义                                                                                                         |
+|----------------------------|--------------------------------------------------------------------------------------------------------------|
+| `subcommand(name) { }`     | 字面量子节点：`/root <name> …`                                                                               |
+| `argument(name, type) { }` | 带类型的子节点：`/root <name> <value> …`                                                                     |
+| `executes { source -> }`   | 该节点作为命令终点时执行；处理器靠调用 `source.reply` / `source.replyError` 回答——它返回的值不会送到任何地方 |
+| `permissionLevel`          | 该节点**及其以下所有节点**的最低权限等级                                                                     |
+| `permissionNode`           | 调用者的权限集必须回答的细粒度节点 id（`mymod:build`）                                                       |
 
 `permissionLevel` 默认 `0`（所有人）。等级为 `0` 的节点根本不会挂权限检查，所以受保护父节点下面一个没设
 权限的子节点，仍然受父节点保护。
 
-`permissionNode` 是更细的一道闸，两者同时设置时**都要**通过：游戏的 OP 等级检查与节点检查。节点按 id 寻址——
+`permissionNode` 是更细的一道闸，两者同时设置时 **都要**通过：游戏的 OP 等级检查与节点检查。节点按 id 寻址——
 与游戏自己的 `minecraft:chat/send_messages` 同一套写法——并由调用者自己的 `PermissionSet` 回答，
 [`grantPermissionNode`](/zh/api/native) 写的就是这里。没有任何东西授予的节点会让命令既看不见也调不动；给某个
 玩家授予，就只对那个玩家恢复可用。
 
 ## 参数类型
 
-| `OMLArgumentType` | 游戏侧解析         | 值类型    | 读取方式         |
-|-------------------|--------------------|-----------|------------------|
-| `WORD`            | 单个不带引号的词   | `String`  | `getString`      |
-| `STRING`          | 带引号或单个词     | `String`  | `getString`      |
-| `GREEDY_STRING`   | 吞掉整行剩余输入   | `String`  | `getString`      |
-| `INTEGER`         | 整数               | `Int`     | `getInt`         |
-| `FLOAT`           | 带小数的数         | `Double`  | `getDouble`      |
-| `BOOLEAN`         | `true` / `false`   | `Boolean` | `getBoolean`     |
+| `OMLArgumentType` | 游戏侧解析       | 值类型    | 读取方式     |
+|-------------------|------------------|-----------|--------------|
+| `WORD`            | 单个不带引号的词 | `String`  | `getString`  |
+| `STRING`          | 带引号或单个词   | `String`  | `getString`  |
+| `GREEDY_STRING`   | 吞掉整行剩余输入 | `String`  | `getString`  |
+| `INTEGER`         | 整数             | `Int`     | `getInt`     |
+| `FLOAT`           | 带小数的数       | `Double`  | `getDouble`  |
+| `BOOLEAN`         | `true` / `false` | `Boolean` | `getBoolean` |
 
 每种类型只对应一个 getter。getter 内部是不做检查的强转，因此拿错 getter 会在你的处理器里抛
 `ClassCastException`——命令桥接层接住它，给调用者回一条红色的 `[my_mod] command failed: …`，同时把堆栈
@@ -114,5 +114,5 @@ loader 自己就是通过同一套 API 注册了 `/oml mods`（列出已加载 m
 `/oml version`；除示例模组的 `/techmod_ping` 之外，这两条就是能跑的真实参考。
 
 ::: warning 仍在沉淀
-命令 DSL 属于**已提供、仍在沉淀**层：0.x 阶段允许调整形态，调整会记进发布说明。
+命令 DSL 属于 **已提供、仍在沉淀**层：0.x 阶段允许调整形态，调整会记进发布说明。
 :::

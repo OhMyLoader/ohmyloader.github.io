@@ -219,7 +219,8 @@ its own default rather than OML guessing one.
 
 This is the same datapack route as recipes: OML writes
 `data/my_mod/damage_type/melt.json` into its injected pack and the game's reload registers it, so the type
-is in `server.registry(Registries.DAMAGE_TYPE)` and the 26.3 [`hurt`](/api/native) extension accepts `"my_mod:melt"` like
+is in `server.registry(Registries.DAMAGE_TYPE)` and the 26.3 [`hurt`](/api/native) extension accepts `"my_mod:melt"`
+like
 any vanilla id — and a handler sees the declared `messageId` in `LIVING_HURT`. An unknown enum name is
 refused at declaration with a warning, because a file the datapack codec rejects would otherwise disappear
 during reload with no owner to blame.
@@ -303,7 +304,7 @@ not declared refused (declare them first: collection is in order).
 
 ### Tags
 
-A tag is the game's own name for a group of registry entries, and the group is what behaviour reads —
+A tag is the game's own name for a group of registry entries, and the group is what behavior reads —
 `#minecraft:is_fire` decides which damage a fire-immune mob shrugs off, `#minecraft:mineable/pickaxe` decides
 what an ore drops. `declareTag` writes the file the game's tag loader reads,
 `data/<tag namespace>/tags/<registry path>/<tag path>.json`:
@@ -474,8 +475,8 @@ pattern characters to item ids; shapeless needs an `ingredients` list; `count` i
 `[clock.<id>]` section declares a world clock and takes no fields (a 26.3 clock is nothing but its id); a
 `[timeline.<id>]` section declares a timeline (`clock` required, `period_ticks` optional, and `markers` an
 inline table whose value is either a tick number or `{ ticks = …, in_commands = … }` — the two forms the
-game's own codec takes). A `[dimension_type.<id>]` section takes the game's own field names in snake_case
-(`sky_light`, `ceiling`, `dragon_fight`, `coordinate_scale`, `min_y`, `height`, `logical_height`, `infiniburn`,
+game's own codec takes). A `[dimension_type.<id>]` section takes the game's own field names in snake_case (`sky_light`,
+`ceiling`, `dragon_fight`, `coordinate_scale`, `min_y`, `height`, `logical_height`, `infiniburn`,
 `ambient_light`, `monster_spawn_light_level`, `monster_spawn_block_light_limit`, `fixed_time`, `skybox`, `clock`,
 `timelines`), every one optional with vanilla's overworld as the default; a `[dimension.<id>]` section takes
 `type` (required), `generator` (`flat`, `noise` or `debug`), `layers` (an array of

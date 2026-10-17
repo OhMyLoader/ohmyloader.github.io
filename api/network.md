@@ -61,17 +61,17 @@ message naming the first claimant; the other mods still load.
 
 `OMLPacketBuffer` is the whole wire surface — no version-internal type appears in it:
 
-| Write                | Read               | Framing                              |
-|----------------------|--------------------|--------------------------------------|
-| `writeBoolean`       | `readBoolean`      | 1 byte                               |
-| `writeByte`          | `readByte`         | 1 byte                               |
-| `writeInt`           | `readInt`          | variable-length (1–5 bytes)          |
-| `writeLong`          | `readLong`         | variable-length (1–10 bytes)         |
-| `writeFloat`         | `readFloat`        | 4 bytes                              |
-| `writeDouble`        | `readDouble`       | 8 bytes                              |
-| `writeString`        | `readString`       | length-prefixed UTF-8                |
-| `writeUuid`          | `readUuid`         | 16 bytes                             |
-| `writeBytes`         | `readBytes`        | length-prefixed, no argument needed  |
+| Write          | Read          | Framing                             |
+|----------------|---------------|-------------------------------------|
+| `writeBoolean` | `readBoolean` | 1 byte                              |
+| `writeByte`    | `readByte`    | 1 byte                              |
+| `writeInt`     | `readInt`     | variable-length (1–5 bytes)         |
+| `writeLong`    | `readLong`    | variable-length (1–10 bytes)        |
+| `writeFloat`   | `readFloat`   | 4 bytes                             |
+| `writeDouble`  | `readDouble`  | 8 bytes                             |
+| `writeString`  | `readString`  | length-prefixed UTF-8               |
+| `writeUuid`    | `readUuid`    | 16 bytes                            |
+| `writeBytes`   | `readBytes`   | length-prefixed, no argument needed |
 
 `write` and `read` consume the same sequence positionally, so both sides must run the same codec —
 which they do, since the declaration is shared. Keep codecs to pure field shuffling: they run on
@@ -112,6 +112,6 @@ belongs on the game thread goes to the [Tick Scheduler](/api/scheduler) — `OML
 points are safe from any thread.
 :::
 
-Channels are published into the game's **play-phase** payload registry. The configuration phase
-(login, capability negotiation) uses a registry OML cannot extend, so a payload sent before the
+Channels are published into the game's **play-phase** payload registry. The configuration phase (login, capability
+negotiation) uses a registry OML cannot extend, so a payload sent before the
 play phase begins arrives on a channel the peer does not know. Send after the world is loaded.

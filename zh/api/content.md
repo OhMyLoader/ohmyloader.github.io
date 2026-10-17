@@ -206,13 +206,13 @@ registry.declareDamageType(
 这与合成表走的是同一条数据包路径：OML 把 `data/my_mod/damage_type/melt.json` 写进注入的资源包，游戏的
 重载把它注册成条目——于是它在 `server.registry(Registries.DAMAGE_TYPE)` 里读得回来，26.3 的
 [`hurt`](/zh/api/native) 扩展也能像用原版 id 一样用 `"my_mod:melt"`，而 handler 在 `LIVING_HURT`
-里读到的正是声明里写的 `messageId`。未知的枚举名在**声明处**就被拒绝并给出警告：否则那个文件会在数据包
+里读到的正是声明里写的 `messageId`。未知的枚举名在 **声明处**就被拒绝并给出警告：否则那个文件会在数据包
 重载时被 codec 悄悄丢弃，没人知道伤害类型为什么不见了。
 
 ### 时钟与它上面的时刻
 
-26.3 的时间按注册表 id 寻址的**时钟**计，而 `/time set` 能把时钟移到的那些具名时刻，是时间线声明的
-**标记（marker）**。两者都是数据包条目，所以 mod 可以给自己开一片时间域：
+26.3 的时间按注册表 id 寻址的 **时钟**计，而 `/time set` 能把时钟移到的那些具名时刻，是时间线声明的 **标记（marker）**
+。两者都是数据包条目，所以 mod 可以给自己开一片时间域：
 
 ```kotlin
 registry.declareClock("tide")                 // 变成 my_mod:tide——时钟除了身份什么都不带
@@ -226,7 +226,7 @@ registry.declareTimeline("surge") {
 
 OML 把 `data/my_mod/world_clock/tide.json` 与 `data/my_mod/timeline/surge.json` 写进注入的资源包，游戏的重载
 把它们注册进 `Registries.WORLD_CLOCK` 与 `Registries.TIMELINE`。游戏接下来做的事才是重点：
-`ServerClockManager` 给**每一个已注册的时钟**都跑一个实例，于是 `my_mod:tide` 每个游戏 tick 走一格、也照常同步给
+`ServerClockManager` 给 **每一个已注册的时钟**都跑一个实例，于是 `my_mod:tide` 每个游戏 tick 走一格、也照常同步给
 客户端，哪怕没有任何维度跑在它上面；而 [`applyMarker`](/zh/api/native) 能把它移到 `"my_mod:high_tide"`——这与
 `/time set` 移动主世界时钟是同一条路径。用来确认声明真的落地的读取是
 [`timelineIds`、`clockDrivenBy` 与 `timeMarkersOf`](/zh/api/native)。
@@ -234,13 +234,13 @@ OML 把 `data/my_mod/world_clock/tide.json` 与 `data/my_mod/timeline/surge.json
 拒绝用的还是游戏自己的规则，只是提前到 mod 声明时而不是数据包加载时：标记的 tick 必须落在声明的周期内
 （时间线 codec 的检查）、一个标记在每个时钟上只属于一条时间线（注册表校验器的检查，冲突会让整条时间线
 整条消失）、时间线必须指明时钟，而本包没有声明条目的时钟也会被拒绝——codec 在加载时解析这个引用，引用坏了
-时间线就无声失踪。声明顺序有要求：**先声明时钟，再声明驱动它的时间线**（收集按顺序进行）。
+时间线就无声失踪。声明顺序有要求： **先声明时钟，再声明驱动它的时间线**（收集按顺序进行）。
 
 轨道（tracks，时间线的属性关键帧那一半）没有声明形态：它的值类型逐属性而变、且面向版本，需要时请自己写那份 JSON。
 
 ### 维度
 
-维度类型与维度同样是数据包条目，而 26.3 在服务端启动时会为 `dimension` 表里的**每一条**建一个世界——
+维度类型与维度同样是数据包条目，而 26.3 在服务端启动时会为 `dimension` 表里的 **每一条**建一个世界——
 所以这是一整个维度，不是还需要 mod 自己驱动的一处注册：
 
 ```kotlin
@@ -276,7 +276,7 @@ settings id 配一个固定生物群系）与 `debug`。
 消失，而日志不会说是哪个包写的：`min_y` ∈ -2032..2031、`height` ∈ 16..4064、`logical_height` ∈ 0..4064、
 `coordinate_scale` ∈ 0.00001..30000000、`ambient_light` ∈ 0.0..1.0、光照等级 ∈ 0..15、`infiniburn` 必须是
 `#namespace:tag` 引用、`skybox` 必须是游戏那三个名字之一、flat 的每一层必须是正高度的方块 id；本包没声明过的
-`type` 或 `clock` 同样被拒（**先声明它们**：收集按顺序进行）。
+`type` 或 `clock` 同样被拒（ **先声明它们**：收集按顺序进行）。
 
 ### 标签
 
@@ -293,7 +293,7 @@ registry.declareTag("minecraft:damage_type", "melting_causes") {
 }
 ```
 
-标签的**命名空间决定文件落在哪**，而不是谁写的：写 `minecraft:is_fire` 就是加入原版那个组（这是最常见的用法），
+标签的 **命名空间决定文件落在哪**，而不是谁写的：写 `minecraft:is_fire` 就是加入原版那个组（这是最常见的用法），
 而裸写 `melting_causes` 会在声明方自己的命名空间里开一个新组。因为游戏对每个标签只读一个文件，凡是提到同一个标签
 的包都会进到同一个文件里——两个 mod 加入 `#minecraft:is_fire`，成员按声明顺序合并并去重。第二个声明如果要求相反
 的 `replace` 会被拒绝，日志会把两个包都点名：一个文件不可能既是"往组里加东西"又是"组的全部内容"，OML 不按声明
@@ -301,7 +301,7 @@ registry.declareTag("minecraft:damage_type", "melting_causes") {
 
 `replace = true` 让文件里的成员成为该组的全部内容，原版包放进去的成员就此消失。真机实测：一个包把
 `#minecraft:is_freezing` 换成自己的一条成员后，游戏拿到的就恰好只有那一条——这也说明 OML 注入的包在标签上排在
-内置资源**之上**。
+内置资源 **之上**。
 
 声明处就拒绝、而不是让游戏把文件存下却永远读不到情况有：注册表名或标签名不是合法的数据包路径（`worldgen/biome`
 是一个名字，`worldgen//biome` 不是）、成员 id 不是数据包 id、以及一个既不想替换、又没有任何成员的组——什么都不加
@@ -423,7 +423,7 @@ values = ["ruby_sword"]
 replace = true
 ```
 
-标签段是唯一把 id 写在**字段**里的：TOML 的裸键写不出 `minecraft:is_fire` 里的 `:`，也写不出
+标签段是唯一把 id 写在 **字段**里的：TOML 的裸键写不出 `minecraft:is_fire` 里的 `:`，也写不出
 `worldgen/biome` 里的 `/`，而这两个都是再正常不过的标签名。于是段名只是这条声明自己的标签，真正被游戏读取的是
 `registry` 与 `tag`。`values` 的每一项可以是 id 字符串（前面加 `#` 就是引用另一个组），也可以是带 `id` 与
 `required` 的内联表。

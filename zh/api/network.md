@@ -1,7 +1,7 @@
 # 自定义网络载荷
 
 mod 的流量走 Minecraft 的自定义载荷包（custom payload）。26.x 按注册顺序分配包 id，mod 若新增自己的
-包类型，会把其后的所有 id 往后挪，直接让原版客户端解包错位。载荷走的是**两个固定的包 id + 按通道名
+包类型，会把其后的所有 id 往后挪，直接让原版客户端解包错位。载荷走的是 **两个固定的包 id + 按通道名
 路由**，所以 OML 暴露的是"通道"而不是"包类型"。
 
 通道只声明一次，双端共用同一份代码：loader 在客户端进程和服务端进程里发布的是同一批声明，所以同一个
@@ -26,7 +26,7 @@ class MyMod : OMLModInitializer, OMLNetworkProvider {
 }
 ```
 
-每个方向指的都是**注册它的那一端要接收的方向**。没有任何一端声明该方向的包会交回原版逻辑处理；
+每个方向指的都是 **注册它的那一端要接收的方向**。没有任何一端声明该方向的包会交回原版逻辑处理；
 发送同理——一个类型只能按它声明时的方向发出去，方向不符会抛异常，消息里带上通道名。
 
 ## 载荷类型与编解码
@@ -55,17 +55,17 @@ val SYNC = OMLPayloadType("sync", SyncCodec)
 
 `OMLPacketBuffer` 就是全部的线路接口——它不暴露任何版本内部类型：
 
-| 写                 | 读                 | 编码方式                        |
-|--------------------|--------------------|---------------------------------|
-| `writeBoolean`     | `readBoolean`      | 1 字节                          |
-| `writeByte`        | `readByte`         | 1 字节                          |
-| `writeInt`         | `readInt`          | 变长（1–5 字节）                |
-| `writeLong`        | `readLong`         | 变长（1–10 字节）               |
-| `writeFloat`       | `readFloat`        | 4 字节                          |
-| `writeDouble`      | `readDouble`       | 8 字节                          |
-| `writeString`      | `readString`       | 长度前缀 UTF-8                  |
-| `writeUuid`        | `readUuid`         | 16 字节                         |
-| `writeBytes`       | `readBytes`        | 长度前缀，读取时不需传长度      |
+| 写             | 读            | 编码方式                   |
+|----------------|---------------|----------------------------|
+| `writeBoolean` | `readBoolean` | 1 字节                     |
+| `writeByte`    | `readByte`    | 1 字节                     |
+| `writeInt`     | `readInt`     | 变长（1–5 字节）           |
+| `writeLong`    | `readLong`    | 变长（1–10 字节）          |
+| `writeFloat`   | `readFloat`   | 4 字节                     |
+| `writeDouble`  | `readDouble`  | 8 字节                     |
+| `writeString`  | `readString`  | 长度前缀 UTF-8             |
+| `writeUuid`    | `readUuid`    | 16 字节                    |
+| `writeBytes`   | `readBytes`   | 长度前缀，读取时不需传长度 |
 
 `write` 与 `read` 按位置消费同一串字段，两端必须写同样的顺序——这由共享的声明本身保证。编解码里只做
 字段搬运：它跑在网络线程上。

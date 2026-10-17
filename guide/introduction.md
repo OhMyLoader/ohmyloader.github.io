@@ -54,7 +54,6 @@ native types. The current stable line is **26.3**; the latest snapshot is tracke
 The three repositories consume each other by Maven coordinate only. See the loader repository's
 README for the module layout.
 
-
 ## API stability
 
 The mod-facing surface comes in three tiers, contracted in the loader's

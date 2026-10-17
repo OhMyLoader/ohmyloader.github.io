@@ -12,11 +12,11 @@ OMLScheduler.schedule(OMLSide.SERVER) {
 
 ## API
 
-| Call                                                                   | Runs                      |
-|------------------------------------------------------------------------|---------------------------|
-| `schedule(side, delayTicks = 0, task)`                                  | once, after `delayTicks`   |
-| `repeat(side, intervalTicks, initialDelay = 0, task)`                   | every `intervalTicks`      |
-| `OMLTask.cancel()` / `OMLTask.canceled`                                 | stops it, idempotent        |
+| Call                                                  | Runs                     |
+|-------------------------------------------------------|--------------------------|
+| `schedule(side, delayTicks = 0, task)`                | once, after `delayTicks` |
+| `repeat(side, intervalTicks, initialDelay = 0, task)` | every `intervalTicks`    |
+| `OMLTask.cancel()` / `OMLTask.canceled`               | stops it, idempotent     |
 
 - `delayTicks = 0` means "the next tick". A task never runs earlier than the tick after it was
   queued, and queueing is safe from any thread.
@@ -29,10 +29,10 @@ OMLScheduler.schedule(OMLSide.SERVER) {
 
 `OMLSide` selects the queue, and each queue advances with its own tick event:
 
-| Side     | Advanced by                                             |
-|----------|---------------------------------------------------------|
-| `CLIENT` | `CLIENT_TICK` — the client's logic/render thread         |
-| `SERVER` | `SERVER_TICK` — dedicated or integrated server thread    |
+| Side     | Advanced by                                           |
+|----------|-------------------------------------------------------|
+| `CLIENT` | `CLIENT_TICK` — the client's logic/render thread      |
+| `SERVER` | `SERVER_TICK` — dedicated or integrated server thread |
 
 ::: warning A side that does not tick never runs your task
 There is no client tick on a dedicated server, so a task queued for `OMLSide.CLIENT` there stays in
