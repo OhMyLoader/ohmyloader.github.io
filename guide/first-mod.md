@@ -74,8 +74,10 @@ fails with "no value" rather than quietly dropping the artifact.
 ::: warning Name your packages somewhere else
 Keep mod classes out of the `org.ohmyloader.` prefix. That namespace is parent-first: a mod inside it is
 defined by the launcher layer, whose search path carries the game jar but not the version's libraries, so
-its first `net.minecraft.*` reference fails with `NoClassDefFoundError`. Any other prefix — `com.example.…`
-— is loaded child-first like every real mod.
+its first `net.minecraft.*` reference fails with `NoClassDefFoundError`. The loader refuses such a jar while
+it scans the mods directory and names the jar and the packed classes, so this lands as a start-up log line
+rather than a crash inside your mod. Any other prefix — `com.example.…` — is loaded child-first like every
+real mod.
 :::
 
 ## Write the code

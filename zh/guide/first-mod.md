@@ -69,7 +69,9 @@ Kotlin 版本必须能产出 Java 27 字节码，`2.5.0-Beta1` 正是 loader 自
 ::: warning 包名不要借用 `org.ohmyloader.`
 mod 的类不要放在 `org.ohmyloader.` 这个前缀下。该命名空间是 parent-first：处在其中的 mod 由启动器层定义，而启动器层的搜索
 路径只有游戏 jar、没有该版本的运行库，于是它第一次引用 `net.minecraft.*` 就会以 `NoClassDefFoundError`
-失败。换任何其他前缀（例如 `com.example.…`），就和所有真实 mod 一样按 child-first 加载。
+失败。加载器在扫描 mods 目录时就会拒绝这种 jar，并点名是哪个 jar、哪些被打进去的类，所以它落在启动日志里，
+而不是变成 mod 运行到一半的崩溃。换任何其他前缀（例如 `com.example.…`），就和所有真实 mod 一样按 child-first
+加载。
 :::
 
 ## 写代码

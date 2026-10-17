@@ -14,8 +14,9 @@ import org.ohmyloader.api26_3.event.Events
 
 ::: warning mod 的类不要放在 `org.ohmyloader.` 前缀下
 那一段是 parent-first：处在该前缀里的 mod 由启动器层定义，而启动器层的搜索路径只有游戏 jar、没有该版本
-的运行库，于是它第一次引用 `net.minecraft.*` 就以 `NoClassDefFoundError` 收场。mod 按 child-first 加载，
-这正是"mod 看到的 `net.minecraft` 与游戏运行的那个是同一个类"的前提。
+的运行库，于是它第一次引用 `net.minecraft.*` 就以 `NoClassDefFoundError` 收场。加载器在扫描 mods 目录时就
+会拒绝这种 jar，并点名被打进去的那些类。mod 按 child-first 加载，这正是"mod 看到的 `net.minecraft` 与游戏
+运行的那个是同一个类"的前提。
 :::
 
 ## 正在运行的游戏
