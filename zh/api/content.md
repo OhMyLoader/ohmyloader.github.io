@@ -346,56 +346,101 @@ BuiltInRegistries.BLOCK.tagIds(Registries.BLOCK)         // 这张表持有的�
 
 ## 数据轨：TOML 内容包
 
-不需要写代码的内容：声明写在 **`.oml` 归档**根目录的 `content.toml`（普通 zip 改名，目录结构见下方
-"分发形态"）。归档名即命名空间，包内可声明方块、物品与配方：
+不需要写代码的内容：声明以**一文件一实体**的 TOML 形式放在 **`.oml` 归档**的 `content/` 目录树下
+（普通 zip 改名，目录结构见下方"分发形态"）。归档名即命名空间；**目录名即类型，文件路径即 id**
+（vanilla 的 path-is-id 惯例），每个文件只声明一个实体——文件的根表就是它的字段。下面示例对应的包：
+
+```
+MyPack.oml (zip)
+└── content/
+    ├── block/ruby_ore.toml
+    ├── item/ruby.toml
+    ├── crafting/ruby_block.toml
+    ├── crafting/ruby_from_ore.toml
+    ├── smelting/ruby.toml
+    ├── loot/ruby_ore.toml
+    ├── damage_type/melt.toml
+    ├── clock/tide.toml
+    ├── timeline/surge.toml
+    ├── dimension_type/deep.toml
+    ├── dimension/deep_home.toml
+    └── tag/fire_join.toml
+```
+
+`content/block/ruby_ore.toml`、`content/item/ruby.toml`：
 
 ```toml
-[block.ruby_ore]
+# content/block/ruby_ore.toml
 hardness = 3.0
 blast_resistance = 6.0
 drops_require_correct_tool = true
+```
 
-[item.ruby]
+```toml
+# content/item/ruby.toml
 max_durability = 64
 attack_damage = 2.0
-# 工具规则是内联表数组，每个方块一项。
+# 工具规则是内联表数组，每个目标方块一条。
 mines_and_drops = [{ block = "minecraft:stone", speed = 8.0 }]
 override_speed = [{ block = "minecraft:dirt", speed = 4.0 }]
+```
 
-[crafting.ruby_block]
+`content/crafting/ruby_block.toml`、`content/crafting/ruby_from_ore.toml`、`content/smelting/ruby.toml`、
+`content/loot/ruby_ore.toml`：
+
+```toml
+# content/crafting/ruby_block.toml —— 文件 id 就是配方的产物
 type = "shaped"
 pattern = ["RR", "RR"]
 key = { R = "ruby" }
+```
 
-[crafting.ruby_from_ore]
+```toml
+# content/crafting/ruby_from_ore.toml
 type = "shapeless"
 count = 2
 ingredients = ["ruby_ore", "minecraft:stick"]
+```
 
-[smelting.ruby]
+```toml
+# content/smelting/ruby.toml
 input = "raw_ruby"
 experience = 0.7
 cooking_time = 100
 # furnace = "blasting"   # smelting（默认）/ blasting / smoking
+```
 
-[loot.ruby_ore]
+```toml
+# content/loot/ruby_ore.toml —— 文件 id 是被改掉落的方块
 drop = "raw_ruby"
 drop_count_min = 1
 drop_count_max = 3
+```
 
-[damage_type.melt]
+`content/damage_type/melt.toml`、`content/clock/tide.toml`、`content/timeline/surge.toml`：
+
+```toml
+# content/damage_type/melt.toml
 message_id = "ruby_pack.melts"
 effects = "burning"
 exhaustion = 0.3
+```
 
-[clock.tide]
+```toml
+# content/clock/tide.toml —— 时钟没有字段
+```
 
-[timeline.surge]
+```toml
+# content/timeline/surge.toml
 clock = "tide"
 period_ticks = 24000
 markers = { low_tide = 0, high_tide = { ticks = 12000, in_commands = true } }
+```
 
-[dimension_type.deep]
+`content/dimension_type/deep.toml`、`content/dimension/deep_home.toml`：
+
+```toml
+# content/dimension_type/deep.toml
 sky_light = false
 ceiling = true
 min_y = 0
@@ -405,68 +450,68 @@ ambient_light = 0.1
 skybox = "none"
 clock = "tide"
 timelines = ["surge"]
+```
 
-[dimension.deep_home]
+```toml
+# content/dimension/deep_home.toml
 type = "deep"
 layers = [ { block = "minecraft:bedrock", height = 1 } ]
 biome = "minecraft:plains"
+```
 
-[tag.fire_join]
+`content/tag/fire_join.toml`：
+
+```toml
+# content/tag/fire_join.toml
 registry = "minecraft:damage_type"
 tag = "minecraft:is_fire"
 values = ["melt", "#minecraft:is_projectile", { id = "minecraft:optional", required = false }]
-
-[tag.my_group]
-registry = "item"
-tag = "ruby_tools"
-values = ["ruby_sword"]
-replace = true
 ```
 
-标签段是唯一把 id 写在 **字段**里的：TOML 的裸键写不出 `minecraft:is_fire` 里的 `:`，也写不出
-`worldgen/biome` 里的 `/`，而这两个都是再正常不过的标签名。于是段名只是这条声明自己的标签，真正被游戏读取的是
-`registry` 与 `tag`。`values` 的每一项可以是 id 字符串（前面加 `#` 就是引用另一个组），也可以是带 `id` 与
-`required` 的内联表。
+标签文件是唯一把 id 放在**字段**里的：TOML 裸键拼不出 `minecraft:is_fire` 的 `:` 和 `worldgen/biome` 的
+`/`，而这两者都是普通的标签名，所以文件名只作标识，`registry` 与 `tag` 才是游戏读到的东西。`values`
+条目是 id 字符串，可加 `#` 前缀表示引用另一个组，也可以是带 `id` 与 `required` 的内联表。
 
-字段与代码 API 一一对应（`hardness` → `hardness`、`blast_resistance` → `blastResistance` …）；`mines_and_drops` 与 `override_speed`
-的条目带 `block` 与 `speed`，`denies_drops` 的条目只带 `block`。`[crafting.<产出物 id>]` 段声明一个合成配方：`type` 选择
-shaped / shapeless；shaped 需要 `pattern`（行）与 `key` 内联表（图案字符 → 物品 id）；shapeless 需要
-`ingredients` 列表；`count` 可选（默认 1）。`[smelting.<产出物 id>]` 段声明熔炼配方（`input` 必填，
-`furnace` 选择 smelting / blasting / smoking，`experience` 与 `cooking_time` 可选）；`[loot.<方块 id>]`
-段声明破坏该方块改为掉落 `drop`。`[damage_type.<id>]` 段声明伤害类型（`message_id` 必填，`scaling`、
-`effects`、`exhaustion`、`death_message_type` 可选，可取值与代码 API 相同）。`[clock.<id>]` 段声明一个世界时钟，
-不带任何字段（26.3 的时钟除了身份什么都不带）；`[timeline.<id>]` 段声明一条时间线（`clock` 必填，`period_ticks`
-可选，`markers` 是内联表，其值要么是一个 tick 数，要么是 `{ ticks = …, in_commands = … }`——游戏自己的 codec
-就接受这两种写法）。`[dimension_type.<id>]` 段用游戏自己的字段名（snake_case）：`sky_light`、`ceiling`、
+字段与代码 API 一一对应（`hardness` → `hardness`、`blast_resistance` → `blastResistance` …）；
+`mines_and_drops` 与 `override_speed` 条目带 `block` 与 `speed`，`denies_drops` 条目只带 `block`。crafting
+文件声明一条产物为文件 id 的配方：`type` 选择有序/无序；有序需要 `pattern`（行）加 `key` 内联表（图案字符
+到物品 id）；无序需要 `ingredients` 列表；`count` 可选（默认 1）。smelting 文件声明熔炉配方（`input`
+必填，`furnace` 选 smelting / blasting / smoking，`experience` 与 `cooking_time` 可选）；loot 文件声明
+id 所指方块被破坏时掉落 `drop` 而不是它自己。damage-type 文件声明一种伤害类型（`message_id` 必填；
+`scaling`、`effects`、`exhaustion`、`death_message_type` 可选，取值与代码 API 相同）。clock 文件声明一个
+世界时钟且没有字段（26.3 的时钟只有 id）；timeline 文件声明一条时间线（`clock` 必填，`period_ticks`
+可选，`markers` 是内联表，值要么是 tick 数，要么是 `{ ticks = …, in_commands = … }`——游戏自己的 codec
+就认这两种形态）。dimension-type 文件按 snake_case 使用游戏自己的字段名（`sky_light`、`ceiling`、
 `dragon_fight`、`coordinate_scale`、`min_y`、`height`、`logical_height`、`infiniburn`、`ambient_light`、
-`monster_spawn_light_level`、`monster_spawn_block_light_limit`、`fixed_time`、`skybox`、`clock`、`timelines`，
-全部可选且默认取 vanilla 主世界的值；`[dimension.<id>]` 段接受 `type`（必填）、`generator`（`flat` / `noise` /
-`debug`）、`layers`（`{ block = …, height = … }` 内联表数组）、`noise_settings`、`biome`、`features`、`lakes`。
-方块段里的 `ore` 内联表对应 `generateAsOre`（`vein_size`、
-`per_chunk`、`min_y`、`max_y`、`biomes`）。格式错误（图案不齐、未知类型、缺字段）会让内容包加载失败
-并说明原因。TOML 包与代码 mod 共享同一条
-收集 → 冻结材料化管线，资产注入也把 TOML 包的命名空间当作 mod 域对待。字段拼错会在启动日志里
-被逐条点名——不存在静默忽略。数据轨 **不**覆盖：行为钩子与方块实体是 mod 代码，没有 TOML 形态。
+`monster_spawn_light_level`、`monster_spawn_block_light_limit`、`fixed_time`、`skybox`、`clock`、
+`timelines`），全部可选、默认取原版主世界；dimension 文件收 `type`（必填）、`generator`（`flat`、`noise`
+或 `debug`）、`layers`（`{ block = …, height = … }` 表的数组）、`noise_settings`、`biome`、`features` 与
+`lakes`。方块上的内联 `ore` 表镜像 `generateAsOre`（`vein_size`、`per_chunk`、`min_y`、`max_y`、
+`biomes`）。校验错误（图案不齐、未知类型、缺字段）会带着原因让整个包失败。TOML 包与代码 mod 共用同一条
+collect → 冻结点材料化管线，资产注入也把包的命名空间当作一个 mod 域对待。拼错的字段会在启动日志里被点名
+——没有任何东西被静默忽略。数据轨**不**覆盖的：行为钩子与方块实体是 mod 代码，没有 TOML 形态。
 
-散装 `.toml` 文件丢进 `mods/` **不是**受支持的包形态：它无法携带自己的贴图，方块会渲染成缺失材质，
-因此 loader 会明确报错并拒绝加载。请打成 `.oml` 归档。
+把散装 `.toml` 丢进 `mods/` **不是**包形态，会被一条明确的报错拒绝：它无法携带包自己的贴图，方块会渲染
+成缺失材质。请把包打成 `.oml` 归档。
 
 ## 分发形态：`.oml` 归档
 
-内容包以 **`.oml` 归档**分发（普通 zip 改名）：根目录放 `content.toml`，随包携带自己的 `assets/`
-与 `data/`：
+内容包以 **`.oml` 归档**分发（普通 zip 改名）：`content/` 目录树下的单实体声明文件，随包携带自己的
+`assets/` 与 `data/`：
 
 ```
 MyPack.oml (zip)
-├── content.toml
+├── content/
+│   ├── block/ruby_ore.toml
+│   └── item/ruby.toml
 └── assets/
     └── my_pack/
         ├── textures/block/ruby_ore.png
         └── lang/en_us.json
 ```
 
-丢进 `mods/`。归档名即命名空间；归档内的贴图与 lang 经 OML 注入的资源包对外服务。
-
+放进 `mods/` 即可。归档名即命名空间；归档里的贴图与语言文件经 OML 注入的资源包对外提供。归档里还带着
+已退场的单文件 `content.toml` 布局时，会被一条指明迁移方式的报错拒绝。
 ## 热重载
 
 内容轨的配方跟随 vanilla 的数据包重载：

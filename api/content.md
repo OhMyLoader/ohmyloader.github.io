@@ -379,57 +379,103 @@ event that has a running game behind it (a tick, a world load, a command).
 
 ## The data track: TOML content packs
 
-Content without code: a pack's declarations live in `content.toml` at the root of an **`.oml` archive**
-(a plain zip renamed — see the distribution section below for the layout). The archive name is the
-namespace, and the pack declares blocks, items and recipes:
+Content without code: a pack's declarations live as per-entity TOML files under `content/` inside an
+**`.oml` archive** (a plain zip renamed — see the distribution section below for the layout). The
+archive name is the namespace; **the directory names the type and the file's path names the id**
+(vanilla's path-is-id rule), and each file declares exactly one entity — the file's root table holds
+the fields. The pack from the examples below:
+
+```
+MyPack.oml (zip)
+└── content/
+    ├── block/ruby_ore.toml
+    ├── item/ruby.toml
+    ├── crafting/ruby_block.toml
+    ├── crafting/ruby_from_ore.toml
+    ├── smelting/ruby.toml
+    ├── loot/ruby_ore.toml
+    ├── damage_type/melt.toml
+    ├── clock/tide.toml
+    ├── timeline/surge.toml
+    ├── dimension_type/deep.toml
+    ├── dimension/deep_home.toml
+    └── tag/fire_join.toml
+```
+
+`content/block/ruby_ore.toml`, `content/item/ruby.toml`:
 
 ```toml
-[block.ruby_ore]
+# content/block/ruby_ore.toml
 hardness = 3.0
 blast_resistance = 6.0
 drops_require_correct_tool = true
+```
 
-[item.ruby]
+```toml
+# content/item/ruby.toml
 max_durability = 64
 attack_damage = 2.0
 # Tool rules are arrays of inline tables, one entry per block.
 mines_and_drops = [{ block = "minecraft:stone", speed = 8.0 }]
 override_speed = [{ block = "minecraft:dirt", speed = 4.0 }]
+```
 
-[crafting.ruby_block]
+`content/crafting/ruby_block.toml`, `content/crafting/ruby_from_ore.toml`, `content/smelting/ruby.toml`,
+`content/loot/ruby_ore.toml`:
+
+```toml
+# content/crafting/ruby_block.toml — the file id is the recipe's result
 type = "shaped"
 pattern = ["RR", "RR"]
 key = { R = "ruby" }
+```
 
-[crafting.ruby_from_ore]
+```toml
+# content/crafting/ruby_from_ore.toml
 type = "shapeless"
 count = 2
 ingredients = ["ruby_ore", "minecraft:stick"]
+```
 
-[smelting.ruby]
+```toml
+# content/smelting/ruby.toml
 input = "raw_ruby"
 experience = 0.7
 cooking_time = 100
 # furnace = "blasting"   # smelting (default) / blasting / smoking
+```
 
-[loot.ruby_ore]
+```toml
+# content/loot/ruby_ore.toml — the file id is the block whose drops are replaced
 drop = "raw_ruby"
 drop_count_min = 1
 drop_count_max = 3
+```
 
-[damage_type.melt]
+`content/damage_type/melt.toml`, `content/clock/tide.toml`, `content/timeline/surge.toml`:
+
+```toml
+# content/damage_type/melt.toml
 message_id = "ruby_pack.melts"
 effects = "burning"
 exhaustion = 0.3
+```
 
-[clock.tide]
+```toml
+# content/clock/tide.toml — a clock takes no fields
+```
 
-[timeline.surge]
+```toml
+# content/timeline/surge.toml
 clock = "tide"
 period_ticks = 24000
 markers = { low_tide = 0, high_tide = { ticks = 12000, in_commands = true } }
+```
 
-[dimension_type.deep]
+`content/dimension_type/deep.toml`, `content/dimension/deep_home.toml`:
+
+```toml
+# content/dimension_type/deep.toml
 sky_light = false
 ceiling = true
 min_y = 0
@@ -439,55 +485,51 @@ ambient_light = 0.1
 skybox = "none"
 clock = "tide"
 timelines = ["surge"]
+```
 
-[dimension.deep_home]
+```toml
+# content/dimension/deep_home.toml
 type = "deep"
 layers = [ { block = "minecraft:bedrock", height = 1 } ]
 biome = "minecraft:plains"
+```
 
-[tag.fire_join]
+`content/tag/fire_join.toml`:
+
+```toml
+# content/tag/fire_join.toml
 registry = "minecraft:damage_type"
 tag = "minecraft:is_fire"
 values = ["melt", "#minecraft:is_projectile", { id = "minecraft:optional", required = false }]
-
-[tag.my_group]
-registry = "item"
-tag = "ruby_tools"
-values = ["ruby_sword"]
-replace = true
 ```
 
-The tag section is the one whose ids are **fields**: a TOML bare key cannot spell the `:` of
-`minecraft:is_fire` or the `/` of `worldgen/biome`, both of which are ordinary tag names, so the section name
+The tag file is the one whose ids are **fields**: a TOML bare key cannot spell the `:` of
+`minecraft:is_fire` or the `/` of `worldgen/biome`, both of which are ordinary tag names, so the file name
 only labels the declaration while `registry` and `tag` say what the game reads. `values` entries are id strings,
 optionally prefixed with `#` for a reference to another group, or inline tables carrying `id` and `required`.
-
-The fields map one-to-one onto the code API (`hardness` → `hardness`, `blast_resistance` → `blastResistance`, …); `mines_and_drops`
-and `override_speed` entries carry `block` and `speed`, `denies_drops` entries carry `block` alone.
-A `[crafting.<result-id>]` section declares a crafting recipe whose result is that item: `type`
-selects shaped / shapeless; shaped needs `pattern` (rows) plus a `key` inline table mapping
-pattern characters to item ids; shapeless needs an `ingredients` list; `count` is optional (default 1). A
-`[smelting.<result-id>]` section declares a furnace recipe (`input` required,
-`furnace` selecting smelting / blasting / smoking, optional `experience` and `cooking_time`); a
-`[loot.<block-id>]` section declares that breaking the block drops `drop` instead of itself. A
-`[damage_type.<id>]` section declares a damage type (`message_id` required; `scaling`, `effects`,
-`exhaustion` and `death_message_type` optional, with the same accepted names as the code API). A
-`[clock.<id>]` section declares a world clock and takes no fields (a 26.3 clock is nothing but its id); a
-`[timeline.<id>]` section declares a timeline (`clock` required, `period_ticks` optional, and `markers` an
-inline table whose value is either a tick number or `{ ticks = …, in_commands = … }` — the two forms the
-game's own codec takes). A `[dimension_type.<id>]` section takes the game's own field names in snake_case (`sky_light`,
-`ceiling`, `dragon_fight`, `coordinate_scale`, `min_y`, `height`, `logical_height`, `infiniburn`,
-`ambient_light`, `monster_spawn_light_level`, `monster_spawn_block_light_limit`, `fixed_time`, `skybox`, `clock`,
-`timelines`), every one optional with vanilla's overworld as the default; a `[dimension.<id>]` section takes
-`type` (required), `generator` (`flat`, `noise` or `debug`), `layers` (an array of
-`{ block = …, height = … }` tables), `noise_settings`, `biome`, `features` and `lakes`. The
-`ore` inline table on a block mirrors `generateAsOre` (`vein_size`, `per_chunk`, `min_y`, `max_y`,
-`biomes`). Validation errors (ragged patterns, unknown types, missing fields) fail the pack
-with the reason. TOML packs share
-the same collect → freeze-materialize pipeline as code mods, and asset injection treats the pack's
-namespace like a mod domain. A misspelled field is called out by name in the startup log — nothing
-is silently ignored. What the data track does **not** cover: behavior hooks and block entities are
-mod code and have no TOML form.
+The fields map one-to-one onto the code API (`hardness` → `hardness`, `blast_resistance` → `blastResistance`, …);
+`mines_and_drops` and `override_speed` entries carry `block` and `speed`, `denies_drops` entries carry
+`block` alone. A crafting file declares a recipe whose result is the file's id: `type` selects shaped /
+shapeless; shaped needs `pattern` (rows) plus a `key` inline table mapping pattern characters to item ids;
+shapeless needs an `ingredients` list; `count` is optional (default 1). A smelting file declares a furnace
+recipe (`input` required, `furnace` selecting smelting / blasting / smoking, optional `experience` and
+`cooking_time`); a loot file declares that breaking the block named by the file id drops `drop` instead of
+itself. A damage-type file declares a damage type (`message_id` required; `scaling`, `effects`, `exhaustion`
+and `death_message_type` optional, with the same accepted names as the code API). A clock file declares a
+world clock and takes no fields (a 26.3 clock is nothing but its id); a timeline file declares a timeline
+(`clock` required, `period_ticks` optional, and `markers` an inline table whose value is either a tick number
+or `{ ticks = …, in_commands = … }` — the two forms the game's own codec takes). A dimension-type file takes
+the game's own field names in snake_case (`sky_light`, `ceiling`, `dragon_fight`, `coordinate_scale`, `min_y`,
+`height`, `logical_height`, `infiniburn`, `ambient_light`, `monster_spawn_light_level`,
+`monster_spawn_block_light_limit`, `fixed_time`, `skybox`, `clock`, `timelines`), every one optional with
+vanilla's overworld as the default; a dimension file takes `type` (required), `generator` (`flat`, `noise` or
+`debug`), `layers` (an array of `{ block = …, height = … }` tables), `noise_settings`, `biome`, `features` and
+`lakes`. The inline `ore` table on a block mirrors `generateAsOre` (`vein_size`, `per_chunk`, `min_y`, `max_y`,
+`biomes`). Validation errors (ragged patterns, unknown types, missing fields) fail the pack with the reason.
+TOML packs share the same collect → freeze-materialize pipeline as code mods, and asset injection treats the
+pack's namespace like a mod domain. A misspelled field is called out by name in the startup log — nothing is
+silently ignored. What the data track does **not** cover: behavior hooks and block entities are mod code and
+have no TOML form.
 
 A loose `.toml` file dropped into `mods/` is **not** a pack form and is refused with an explicit
 message: it cannot carry the pack's own textures, so its blocks would render with missing textures.
@@ -495,12 +537,14 @@ Ship the pack as an `.oml` archive.
 
 ## Distribution form: `.oml` archives
 
-A content pack ships as a **`.oml` archive** (a plain zip renamed): `content.toml` at the root,
-plus the pack's own `assets/` and `data/`:
+A content pack ships as a **`.oml` archive** (a plain zip renamed): the per-entity files under
+`content/`, plus the pack's own `assets/` and `data/`:
 
 ```
 MyPack.oml (zip)
-├── content.toml
+├── content/
+│   ├── block/ruby_ore.toml
+│   └── item/ruby.toml
 └── assets/
     └── my_pack/
         ├── textures/block/ruby_ore.png
@@ -508,7 +552,9 @@ MyPack.oml (zip)
 ```
 
 Drop it into `mods/`. The archive name is the namespace; the archive's textures and lang files are
-served through OML's injected resource pack.
+served through OML's injected resource pack. An archive still carrying the retired single-file
+`content.toml` layout is refused with a message naming the migration.
+Ship the pack as an `.oml` archive.
 
 ## Hot reload
 

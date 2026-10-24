@@ -40,7 +40,7 @@ native types. The current stable line is **26.3**; the latest snapshot is tracke
 
 - **Code track**: declare blocks / items / recipes through `ContentRegistry`; they are materialized
   into native content at the registry freeze point;
-- **Data track**: declare data-driven blocks and items in a `content.toml` inside a `.oml` archive —
+- **Data track**: declare data-driven blocks and items as per-entity TOML files under `content/` in a `.oml` archive —
   no code at all.
 
 ## Repositories
