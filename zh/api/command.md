@@ -33,7 +33,7 @@ class MyMod : OMLModInitializer, OMLCommandProvider {
 `register` 声明根字面量（`/mycmd`）。`subcommand` 加一个子命令字面量，`argument` 加一个带类型的参数；
 `executes` 可以挂在任何节点上，包括已经有子节点的节点——上面的 `/mycmd`、`/mycmd 5`、`/mycmd 5 loud`
 是三个各自独立的处理器。`argument` 还会把参数句柄（`OMLArgument<T>`）传给配置回调——捕获它，
-用 `source[句柄]` 读取值，类型在编译期就定死。
+用 `source[handle]` 读取值，类型在编译期就定死。
 
 ## 声明节点的成员
 
