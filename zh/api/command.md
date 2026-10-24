@@ -19,10 +19,10 @@ class MyMod : OMLModInitializer, OMLCommandProvider {
             executes { source ->
                 source.reply("hello from my_mod, executed by ${source.name}")
             }
-            argument("count", OMLArgumentType.INTEGER) {
-                executes { source -> source.reply("count=${source.getInt("count")}") }
+            argument("count", OMLArgumentType.INTEGER) { count ->
+                executes { source -> source.reply("count=${source[count]}") }
                 subcommand("loud") {
-                    executes { source -> source.reply("COUNT=${source.getInt("count")}") }
+                    executes { source -> source.reply("COUNT=${source[count]}") }
                 }
             }
         }
@@ -32,15 +32,15 @@ class MyMod : OMLModInitializer, OMLCommandProvider {
 
 `register` 声明根字面量（`/mycmd`）。`subcommand` 加一个子命令字面量，`argument` 加一个带类型的参数；
 `executes` 可以挂在任何节点上，包括已经有子节点的节点——上面的 `/mycmd`、`/mycmd 5`、`/mycmd 5 loud`
-是三个各自独立的处理器。参数值在处理器里按 `argument` 给的名字读取，且只有当这个参数真的落在被执行的那条
-路径上时才读得到。
+是三个各自独立的处理器。`argument` 还会把参数句柄（`OMLArgument<T>`）传给配置回调——捕获它，
+用 `source[句柄]` 读取值，类型在编译期就定死。
 
 ## 声明节点的成员
 
 | 成员                       | 含义                                                                                                         |
 |----------------------------|--------------------------------------------------------------------------------------------------------------|
 | `subcommand(name) { }`     | 字面量子节点：`/root <name> …`                                                                               |
-| `argument(name, type) { }` | 带类型的子节点：`/root <name> <value> …`                                                                     |
+| `argument(name, type) { arg -> }` | 带类型的子节点：`/root <name> <value> …`                                                                     |
 | `executes { source -> }`   | 该节点作为命令终点时执行；处理器靠调用 `source.reply` / `source.replyError` 回答——它返回的值不会送到任何地方 |
 | `permissionLevel`          | 该节点**及其以下所有节点**的最低权限等级                                                                     |
 | `permissionNode`           | 调用者的权限集必须回答的细粒度节点 id（`mymod:build`）                                                       |
@@ -55,31 +55,31 @@ class MyMod : OMLModInitializer, OMLCommandProvider {
 
 ## 参数类型
 
-| `OMLArgumentType` | 游戏侧解析       | 值类型    | 读取方式     |
-|-------------------|------------------|-----------|--------------|
-| `WORD`            | 单个不带引号的词 | `String`  | `getString`  |
-| `STRING`          | 带引号或单个词   | `String`  | `getString`  |
-| `GREEDY_STRING`   | 吞掉整行剩余输入 | `String`  | `getString`  |
-| `INTEGER`         | 整数             | `Int`     | `getInt`     |
-| `FLOAT`           | 带小数的数       | `Double`  | `getDouble`  |
-| `BOOLEAN`         | `true` / `false` | `Boolean` | `getBoolean` |
+| `OMLArgumentType` | 游戏侧解析       | 读回类型  |
+|-------------------|------------------|-----------|
+| `WORD`            | 单个不带引号的词 | `String`  |
+| `STRING`          | 带引号或单个词   | `String`  |
+| `GREEDY_STRING`   | 吞掉整行剩余输入 | `String`  |
+| `INTEGER`         | 整数             | `Int`     |
+| `FLOAT`           | 带小数的数       | `Double`  |
+| `BOOLEAN`         | `true` / `false` | `Boolean` |
 
-每种类型只对应一个 getter。getter 内部是不做检查的强转，因此拿错 getter 会在你的处理器里抛
-`ClassCastException`——命令桥接层接住它，给调用者回一条红色的 `[my_mod] command failed: …`，同时把堆栈
-打进日志。读一个不在执行路径上的参数名也是同一套表现（`… is not part of the executed path`）。
+句柄同时固定了参数的身份和值的类型，所以拼错名字或拿错类型是编译错误，不是运行期强转。读一个不在执行
+路径上的参数会在处理器里抛 `… is not part of the executed path`——命令桥接层接住它，给调用者回一条红色的
+`[my_mod] command failed: …`，同时把堆栈打进日志。
 
 ## 命令来源
 
 每次调用会给处理器一个 `OMLCommandSource`：
 
-| 成员                                    | 含义                                                          |
-|-----------------------------------------|---------------------------------------------------------------|
-| `name`                                  | 调用者的显示名——控制台是 `Server`                             |
-| `hasPlayer`                             | 只有玩家执行时为 true（控制台、function、命令方块都是 false） |
-| `reply(message)`                        | 成功通道：玩家收到聊天消息，控制台是普通 stdout               |
-| `replyError(message)`                   | 失败通道：玩家侧渲染为红色                                    |
-| `getString/getInt/getDouble/getBoolean` | 按声明名读取参数值                                            |
-| `platform`                              | 原生版本对象（26.x 是 `CommandSourceStack`）                  |
+| 成员                  | 含义                                                          |
+|-----------------------|---------------------------------------------------------------|
+| `name`                | 调用者的显示名——控制台是 `Server`                             |
+| `hasPlayer`           | 只有玩家执行时为 true（控制台、function、命令方块都是 false） |
+| `reply(message)`      | 成功通道：玩家收到聊天消息，控制台是普通 stdout               |
+| `replyError(message)` | 失败通道：玩家侧渲染为红色                                    |
+| `source[arg]`         | 读取一个已声明参数的值，类型由其 `OMLArgument<T>` 句柄决定    |
+| `platform`            | 原生版本对象（26.x 是 `CommandSourceStack`）                  |
 
 `platform` 就是那个常规逃生舱：当上面这套表面不够用时，用它去拿玩家、世界或游戏自己的权限状态。
 

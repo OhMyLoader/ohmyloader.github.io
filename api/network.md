@@ -41,16 +41,13 @@ mod's id, so `sync` from `my_mod` becomes `my_mod:sync`:
 ```kotlin
 data class Sync(val count: Int, val label: String)
 
-object SyncCodec : OMLPayloadCodec<Sync> {
-    override fun write(buffer: OMLPacketBuffer, value: Sync) {
+val SYNC = OMLPayloadType(
+    "sync",
+    codec({ buffer, value ->
         buffer.writeInt(value.count)
         buffer.writeString(value.label)
-    }
-
-    override fun read(buffer: OMLPacketBuffer): Sync = Sync(buffer.readInt(), buffer.readString())
-}
-
-val SYNC = OMLPayloadType("sync", SyncCodec)
+    }, { buffer -> Sync(buffer.readInt(), buffer.readString()) }),
+)
 ```
 
 Channel names must match `<namespace>:<path>`, where the namespace allows lowercase letters,

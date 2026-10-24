@@ -32,17 +32,17 @@ binds them under the mod id.
 
 ```kotlin
 val block = registry.declareBlock("ruby_ore") {
-    destroyTime = 3.0f
-    explosionResistance = 6.0f
-    requiresCorrectToolForDrops = true
+    hardness = 3.0f
+    blastResistance = 6.0f
+    dropsRequireCorrectTool = true
 }
 ```
 
 | Property                      | Default               | Meaning                          |
 |-------------------------------|-----------------------|----------------------------------|
-| `destroyTime`                 | vanilla default       | hardness (time to break)         |
-| `explosionResistance`         | follows `destroyTime` | blast resistance                 |
-| `requiresCorrectToolForDrops` | `false`               | drops only with the correct tool |
+| `hardness`                 | vanilla default       | hardness (time to break)         |
+| `blastResistance`         | follows `hardness` | blast resistance                 |
+| `dropsRequireCorrectTool` | `false`               | drops only with the correct tool |
 
 Every block automatically registers its block item. The returned `OMLBlock` exposes `platform`
 (the native block object) once content registration completes — the escape hatch for
@@ -111,8 +111,8 @@ chunks** are affected:
 
 ```kotlin
 registry.declareBlock("ruby_ore") {
-    destroyTime = 3.0f
-    requiresCorrectToolForDrops = true
+    hardness = 3.0f
+    dropsRequireCorrectTool = true
     generateAsOre {
         veinSize = 8        // blocks per vein
         perChunk = 6        // placement attempts per chunk
@@ -130,7 +130,7 @@ safe outside the overworld for the same reason — netherrack and end stone do n
 
 ```kotlin
 registry.declareItem("ruby_sword") {
-    maxDamage = 592
+    maxDurability = 592
     attackDamage = 7.0
     attackSpeed = -2.4   // vanilla base 4.0 → effective 1.6
     miningSpeed = 1.0f
@@ -143,12 +143,12 @@ registry.declareItem("ruby_sword") {
 
 | Property                     | Default            | Meaning                                                         |
 |------------------------------|--------------------|-----------------------------------------------------------------|
-| `maxDamage`                  | none (unbreakable) | max durability; > 0 shows the durability bar                    |
+| `maxDurability`                  | none (unbreakable) | max durability; > 0 shows the durability bar                    |
 | `attackDamage`               | none               | main-hand attack damage **modifier** (vanilla fists: 1.0)       |
 | `attackSpeed`                | none               | main-hand attack speed **modifier** (vanilla base: 4.0)         |
 | `miningSpeed`                | –                  | default mining speed when no rule matches (requires tool rules) |
 | `toolDamagePerBlock`         | `1`                | durability cost per broken block                                |
-| `canDestroyBlocksInCreative` | `true`             | instant breaking in creative mode                               |
+| `breaksBlocksInCreative` | `true`             | instant breaking in creative mode                               |
 
 Tool rule semantics: `minesAndDrops` = matched blocks mine at the given speed **and drop loot**;
 `overrideSpeed` = speed only, vanilla drops; `deniesDrops` = vanilla speed, never drops. These map
@@ -385,12 +385,12 @@ namespace, and the pack declares blocks, items and recipes:
 
 ```toml
 [block.ruby_ore]
-destroy_time = 3.0
-explosion_resistance = 6.0
-requires_correct_tool = true
+hardness = 3.0
+blast_resistance = 6.0
+drops_require_correct_tool = true
 
 [item.ruby]
-max_damage = 64
+max_durability = 64
 attack_damage = 2.0
 # Tool rules are arrays of inline tables, one entry per block.
 mines_and_drops = [{ block = "minecraft:stone", speed = 8.0 }]
@@ -462,7 +462,7 @@ The tag section is the one whose ids are **fields**: a TOML bare key cannot spel
 only labels the declaration while `registry` and `tag` say what the game reads. `values` entries are id strings,
 optionally prefixed with `#` for a reference to another group, or inline tables carrying `id` and `required`.
 
-The fields map one-to-one onto the code API (`destroy_time` → `destroyTime`, …); `mines_and_drops`
+The fields map one-to-one onto the code API (`hardness` → `hardness`, `blast_resistance` → `blastResistance`, …); `mines_and_drops`
 and `override_speed` entries carry `block` and `speed`, `denies_drops` entries carry `block` alone.
 A `[crafting.<result-id>]` section declares a crafting recipe whose result is that item: `type`
 selects shaped / shapeless; shaped needs `pattern` (rows) plus a `key` inline table mapping

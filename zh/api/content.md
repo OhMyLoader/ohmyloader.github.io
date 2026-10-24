@@ -28,17 +28,17 @@ class MyMod : OMLModInitializer, OMLContentProvider {
 
 ```kotlin
 val block = registry.declareBlock("ruby_ore") {
-    destroyTime = 3.0f
-    explosionResistance = 6.0f
-    requiresCorrectToolForDrops = true
+    hardness = 3.0f
+    blastResistance = 6.0f
+    dropsRequireCorrectTool = true
 }
 ```
 
 | 属性                          | 默认               | 说明                   |
 |-------------------------------|--------------------|------------------------|
-| `destroyTime`                 | vanilla 默认       | 硬度（破坏耗时）       |
-| `explosionResistance`         | 跟随 `destroyTime` | 爆炸抗性               |
-| `requiresCorrectToolForDrops` | `false`            | 是否需要正确工具才掉落 |
+| `hardness`                 | vanilla 默认       | 硬度（破坏耗时）       |
+| `blastResistance`         | 跟随 `hardness` | 爆炸抗性               |
+| `dropsRequireCorrectTool` | `false`            | 是否需要正确工具才掉落 |
 
 每个方块自动注册对应的方块物品。返回的 `OMLBlock` 在内容注册完成后可访问 `platform`（原生方块对象）——
 需要版本特定行为时的逃生舱。
@@ -101,8 +101,8 @@ registry.declareBlock("press") {
 
 ```kotlin
 registry.declareBlock("ruby_ore") {
-    destroyTime = 3.0f
-    requiresCorrectToolForDrops = true
+    hardness = 3.0f
+    dropsRequireCorrectTool = true
     generateAsOre {
         veinSize = 8        // 每条矿脉的方块数
         perChunk = 6        // 每区块的尝试次数
@@ -120,7 +120,7 @@ registry.declareBlock("ruby_ore") {
 
 ```kotlin
 registry.declareItem("ruby_sword") {
-    maxDamage = 592
+    maxDurability = 592
     attackDamage = 7.0
     attackSpeed = -2.4   // vanilla 基础 4.0 → 实际 1.6
     miningSpeed = 1.0f
@@ -133,12 +133,12 @@ registry.declareItem("ruby_sword") {
 
 | 属性                         | 默认           | 说明                                        |
 |------------------------------|----------------|---------------------------------------------|
-| `maxDamage`                  | 无（不可损坏） | 最大耐久，>0 时显示耐久条                   |
+| `maxDurability`                  | 无（不可损坏） | 最大耐久，>0 时显示耐久条                   |
 | `attackDamage`               | 无             | 主手攻击伤害 **加成值**（vanilla 空手 1.0） |
 | `attackSpeed`                | 无             | 主手攻击速度 **加成值**（vanilla 基础 4.0） |
 | `miningSpeed`                | –              | 无匹配规则时的默认挖掘速度（需有工具规则）  |
 | `toolDamagePerBlock`         | `1`            | 每破坏一个方块的耐久消耗                    |
-| `canDestroyBlocksInCreative` | `true`         | 创造模式能否瞬间破坏                        |
+| `breaksBlocksInCreative` | `true`         | 创造模式能否瞬间破坏                        |
 
 工具规则的语义：`minesAndDrops` = 匹配方块按指定速度挖掘 **且掉落战利品**；`overrideSpeed` = 只改速度、
 掉落同 vanilla；`deniesDrops` = vanilla 速度且永不掉落。这些映射到原生的 `DataComponents.TOOL`。
@@ -351,12 +351,12 @@ BuiltInRegistries.BLOCK.tagIds(Registries.BLOCK)         // 这张表持有的�
 
 ```toml
 [block.ruby_ore]
-destroy_time = 3.0
-explosion_resistance = 6.0
-requires_correct_tool = true
+hardness = 3.0
+blast_resistance = 6.0
+drops_require_correct_tool = true
 
 [item.ruby]
-max_damage = 64
+max_durability = 64
 attack_damage = 2.0
 # 工具规则是内联表数组，每个方块一项。
 mines_and_drops = [{ block = "minecraft:stone", speed = 8.0 }]
@@ -428,7 +428,7 @@ replace = true
 `registry` 与 `tag`。`values` 的每一项可以是 id 字符串（前面加 `#` 就是引用另一个组），也可以是带 `id` 与
 `required` 的内联表。
 
-字段与代码 API 一一对应（`destroy_time` → `destroyTime` …）；`mines_and_drops` 与 `override_speed`
+字段与代码 API 一一对应（`hardness` → `hardness`、`blast_resistance` → `blastResistance` …）；`mines_and_drops` 与 `override_speed`
 的条目带 `block` 与 `speed`，`denies_drops` 的条目只带 `block`。`[crafting.<产出物 id>]` 段声明一个合成配方：`type` 选择
 shaped / shapeless；shaped 需要 `pattern`（行）与 `key` 内联表（图案字符 → 物品 id）；shapeless 需要
 `ingredients` 列表；`count` 可选（默认 1）。`[smelting.<产出物 id>]` 段声明熔炼配方（`input` 必填，

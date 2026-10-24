@@ -4,24 +4,28 @@
 跑在 Netty 线程上，而它接到的游戏对象（`ServerLevel`、`ServerPlayer`、物品栏）只有从驱动它们 tick 的线程改动才是安全的。
 
 ```kotlin
-OMLScheduler.schedule(OMLSide.SERVER) {
+OMLScheduler.server.schedule {
     OMLGame.server?.broadcastMessage("从数据包线程同步过来")
 }
 ```
 
 ## 接口
 
-| 调用                                                  | 运行时机                     |
-|-------------------------------------------------------|------------------------------|
-| `schedule(side, delayTicks = 0, task)`                | 在 `delayTicks` 之后运行一次 |
-| `repeat(side, intervalTicks, initialDelay = 0, task)` | 每 `intervalTicks` 运行一次  |
-| `OMLTask.cancel()` / `OMLTask.canceled`               | 取消，可重复调用             |
+通过两侧的 receiver 排队：
+
+| 调用                                          | 运行时机                     |
+|-----------------------------------------------|------------------------------|
+| `OMLScheduler.server` / `OMLScheduler.client` | 某一侧的队列，作为 receiver  |
+| `.schedule(delayTicks = 0, task)`             | 在 `delayTicks` 之后运行一次 |
+| `.every(intervalTicks, initialDelay = 0, task)` | 每 `intervalTicks` 运行一次 |
+| `OMLTask.cancel()` / `OMLTask.canceled`       | 取消，可重复调用             |
 
 - `delayTicks = 0` 表示「下一个 tick」。任务绝不会早于入队后的那个 tick 运行，而入队本身在任意线程
   都安全。
-- `repeat` 要求 `intervalTicks >= 1`——周期为 0 会无限重入同一个 tick。
+- `every` 要求 `intervalTicks >= 1`——周期为 0 会无限重入同一个 tick。
 - `cancel()` 在任意线程都安全，且在该任务下一个到期 tick 生效，因此重复任务不会再多跑一次。
 - 抛异常的任务会被记录并丢弃，同一 tick 里其余任务照常运行。
+- side 要到运行期才知道时，带 side 参数的 `schedule(side, …)` / `every(side, …)` 做同样的事。
 
 ## 两侧
 

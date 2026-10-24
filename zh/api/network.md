@@ -37,16 +37,13 @@ class MyMod : OMLModInitializer, OMLNetworkProvider {
 ```kotlin
 data class Sync(val count: Int, val label: String)
 
-object SyncCodec : OMLPayloadCodec<Sync> {
-    override fun write(buffer: OMLPacketBuffer, value: Sync) {
+val SYNC = OMLPayloadType(
+    "sync",
+    codec({ buffer, value ->
         buffer.writeInt(value.count)
         buffer.writeString(value.label)
-    }
-
-    override fun read(buffer: OMLPacketBuffer): Sync = Sync(buffer.readInt(), buffer.readString())
-}
-
-val SYNC = OMLPayloadType("sync", SyncCodec)
+    }, { buffer -> Sync(buffer.readInt(), buffer.readString()) }),
+)
 ```
 
 通道名必须匹配 `<namespace>:<path>`：命名空间允许小写字母、数字、`.`、`-`、`_`，路径额外允许 `/`。

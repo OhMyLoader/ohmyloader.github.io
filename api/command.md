@@ -21,10 +21,10 @@ class MyMod : OMLModInitializer, OMLCommandProvider {
             executes { source ->
                 source.reply("hello from my_mod, executed by ${source.name}")
             }
-            argument("count", OMLArgumentType.INTEGER) {
-                executes { source -> source.reply("count=${source.getInt("count")}") }
+            argument("count", OMLArgumentType.INTEGER) { count ->
+                executes { source -> source.reply("count=${source[count]}") }
                 subcommand("loud") {
-                    executes { source -> source.reply("COUNT=${source.getInt("count")}") }
+                    executes { source -> source.reply("COUNT=${source[count]}") }
                 }
             }
         }
@@ -34,15 +34,16 @@ class MyMod : OMLModInitializer, OMLCommandProvider {
 
 `register` declares the root literal (`/mycmd`). `subcommand` adds a literal child, `argument` a
 typed one; `executes` may sit on any node, including one that has children — `/mycmd`, `/mycmd 5`
-and `/mycmd 5 loud` above are three separate handlers. Argument values are read inside the handler
-by the name given to `argument`, and only when that argument is on the executed path.
+and `/mycmd 5 loud` above are three separate handlers. `argument` also passes its handle
+(`OMLArgument<T>`) to the configure callback — capture it and read the value with `source[handle]`,
+typed at compile time.
 
 ## Declaration members
 
 | Member                     | Meaning                                                                                                                                           |
 |----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
 | `subcommand(name) { }`     | a literal child: `/root <name> …`                                                                                                                 |
-| `argument(name, type) { }` | a typed child: `/root <name> <value> …`                                                                                                           |
+| `argument(name, type) { arg -> }` | a typed child: `/root <name> <value> …`                                                                                                           |
 | `executes { source -> }`   | runs when this node terminates the command; the handler answers by calling `source.reply` / `source.replyError` — a value it returns goes nowhere |
 | `permissionLevel`          | minimum level for this node **and everything below it**                                                                                           |
 | `permissionNode`           | a fine-grained node id the invoker's set must answer (`mymod:build`)                                                                              |
@@ -58,32 +59,32 @@ undispatchable; granting it to one player puts it back for that player alone.
 
 ## Argument types
 
-| `OMLArgumentType` | Game parser           | Value type | Read with    |
-|-------------------|-----------------------|------------|--------------|
-| `WORD`            | single unquoted word  | `String`   | `getString`  |
-| `STRING`          | quoted or single word | `String`   | `getString`  |
-| `GREEDY_STRING`   | the rest of the line  | `String`   | `getString`  |
-| `INTEGER`         | whole number          | `Int`      | `getInt`     |
-| `FLOAT`           | number with fraction  | `Double`   | `getDouble`  |
-| `BOOLEAN`         | `true` / `false`      | `Boolean`  | `getBoolean` |
+| `OMLArgumentType` | Game parser           | Values read back as |
+|-------------------|-----------------------|---------------------|
+| `WORD`            | single unquoted word  | `String`            |
+| `STRING`          | quoted or single word | `String`            |
+| `GREEDY_STRING`   | the rest of the line  | `String`            |
+| `INTEGER`         | whole number          | `Int`               |
+| `FLOAT`           | number with fraction  | `Double`            |
+| `BOOLEAN`         | `true` / `false`      | `Boolean`           |
 
-Each type has exactly one getter. The getters are unchecked casts, so reaching for the wrong one
-throws `ClassCastException` inside your handler — the command bridge catches it and answers the
-invoker with a red `[my_mod] command failed: …` while logging the stack trace. Reading a name that
-is not part of the executed path is the same story (`… is not part of the executed path`).
+The handle fixes both the argument's identity and its value type, so a misspelled or wrong-typed read
+is a compile error, not a runtime cast. Reading an argument that is not part of the executed path
+throws `… is not part of the executed path` inside the handler — the command bridge catches it and
+answers the invoker with a red `[my_mod] command failed: …` while logging the stack trace.
 
 ## The command source
 
 Handlers receive one `OMLCommandSource` per invocation:
 
-| Member                                  | Meaning                                                                  |
-|-----------------------------------------|--------------------------------------------------------------------------|
-| `name`                                  | the invoker's display name — `Server` for the console                    |
-| `hasPlayer`                             | true only when a player ran it (console, function, command block: false) |
-| `reply(message)`                        | success channel: chat for a player, plain stdout for the console         |
-| `replyError(message)`                   | failure channel: rendered red for a player                               |
-| `getString/getInt/getDouble/getBoolean` | argument values, by declared name                                        |
-| `platform`                              | the raw version source object (`CommandSourceStack` on 26.x)             |
+| Member                | Meaning                                                                  |
+|-----------------------|--------------------------------------------------------------------------|
+| `name`                | the invoker's display name — `Server` for the console                    |
+| `hasPlayer`           | true only when a player ran it (console, function, command block: false) |
+| `reply(message)`      | success channel: chat for a player, plain stdout for the console         |
+| `replyError(message)` | failure channel: rendered red for a player                               |
+| `source[arg]`         | the value of one declared argument, typed by its `OMLArgument<T>` handle |
+| `platform`            | the raw version source object (`CommandSourceStack` on 26.x)             |
 
 `platform` is the usual escape hatch: reach the player, the level or the permission state the game
 itself uses when the surface above is not enough.

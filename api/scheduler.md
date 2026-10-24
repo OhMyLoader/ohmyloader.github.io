@@ -5,25 +5,30 @@ non-game thread: a network inbound handler runs on a Netty thread, and the game 
 a `ServerLevel`, a `ServerPlayer`, an inventory — are only safe to mutate from the thread that ticks them.
 
 ```kotlin
-OMLScheduler.schedule(OMLSide.SERVER) {
+OMLScheduler.server.schedule {
     OMLGame.server?.broadcastMessage("synced from the packet thread")
 }
 ```
 
 ## API
 
-| Call                                                  | Runs                     |
-|-------------------------------------------------------|--------------------------|
-| `schedule(side, delayTicks = 0, task)`                | once, after `delayTicks` |
-| `repeat(side, intervalTicks, initialDelay = 0, task)` | every `intervalTicks`    |
-| `OMLTask.cancel()` / `OMLTask.canceled`               | stops it, idempotent     |
+Queue through the side receivers:
+
+| Call                                          | Runs                     |
+|-----------------------------------------------|--------------------------|
+| `OMLScheduler.server` / `OMLScheduler.client` | a side's queue, as a receiver |
+| `.schedule(delayTicks = 0, task)`             | once, after `delayTicks` |
+| `.every(intervalTicks, initialDelay = 0, task)` | every `intervalTicks`  |
+| `OMLTask.cancel()` / `OMLTask.canceled`       | stops it, idempotent     |
 
 - `delayTicks = 0` means "the next tick". A task never runs earlier than the tick after it was
   queued, and queueing is safe from any thread.
-- `repeat` requires `intervalTicks >= 1` — a zero period would re-enter the same tick forever.
+- `every` requires `intervalTicks >= 1` — a zero period would re-enter the same tick forever.
 - `cancel()` is safe from any thread and takes effect at the task's next due tick, so a repeating
   task does not run again after it.
 - A task that throws is logged and dropped; the rest of that tick's queue still runs.
+- When the side is only known at runtime, the side-parameterized forms
+  `schedule(side, …)` / `every(side, …)` do the same job.
 
 ## Sides
 
