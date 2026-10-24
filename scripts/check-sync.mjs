@@ -31,7 +31,12 @@ const CHECK_IDS = ['existence', 'headings', 'fences', 'containers', 'tables', 't
 // single-side files that have no zh counterpart by design
 const UNPAIRED = new Set(['README.md']);
 // directories never scanned
-const SKIP_DIRS = new Set(['node_modules', '.vitepress', '.git', 'dist', 'run']);
+const SKIP_DIRS = new Set([
+    'node_modules', '.vitepress', '.git', 'dist', 'run',
+    // CI checkouts of the sibling repositories (deploy.yml checks the loader out for check:api):
+    // their documentation is not site content and has no zh counterpart.
+    'OhMyLoader', 'OhMyLoaderGradle', 'OhMyLoaderTestMod',
+]);
 
 // line-comment markers per fenced-code language
 const LINE_COMMENTS = {
