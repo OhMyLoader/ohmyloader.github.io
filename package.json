@@ -8,7 +8,8 @@
     "check:sync": "node scripts/check-sync.mjs",
     "dev": "vitepress dev",
     "build": "vitepress build",
-    "preview": "vitepress preview"
+    "preview": "vitepress preview",
+    "check:api": "node scripts/check-api-refs.mjs"
   },
   "keywords": [],
   "author": "FuBangkun",

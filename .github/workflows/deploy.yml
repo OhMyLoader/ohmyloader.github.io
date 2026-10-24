@@ -21,6 +21,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+      # check:api reads the loader sources to index the API it verifies references against
+      - uses: actions/checkout@v7
+        with:
+          repository: OhMyLoader/OhMyLoader
+          ref: main
+          path: OhMyLoader
       - uses: pnpm/action-setup@v6
         # version comes from package.json's packageManager field
       - uses: actions/setup-node@v7
@@ -30,6 +36,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # en/zh pages must stay one-to-one; fail the build before the docs compile
       - run: pnpm run check:sync
+      # documented API references must resolve against the loader source (AC-8)
+      - run: pnpm run check:api
       # vitepress build fails on dead links, so this doubles as a docs-link check
       - run: pnpm build
       # the artifact is only consumed by deploy on main; on PRs it is just a build check
