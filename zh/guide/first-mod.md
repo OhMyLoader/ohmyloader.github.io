@@ -42,7 +42,7 @@ rootProject.name = "my-mod"
 
 ```kotlin
 plugins {
-    kotlin("jvm") version "2.5.0-Beta1"
+    kotlin("jvm") version "2.5.0-Beta2"
     id("org.ohmyloader.gradle") version "0.1.0-SNAPSHOT"
 }
 
@@ -55,7 +55,7 @@ oml {
 }
 ```
 
-Kotlin 版本必须能产出 Java 27 字节码，`2.5.0-Beta1` 正是 loader 自用的版本。
+Kotlin 版本必须能产出 Java 27 字节码，`2.5.0-Beta2` 正是 loader 自用的版本。
 
 `oml-gradle` 插件会自动完成其余一切。编译类路径上它会放好 `oml-api`、版本面向的 `oml-api-<version>`
 （26.3 即 `oml-api-26_3`，坐标由 `minecraftVersion` 推导；追快照时需要自己命名，见下文「追快照」）、

@@ -43,7 +43,7 @@ rootProject.name = "my-mod"
 
 ```kotlin
 plugins {
-    kotlin("jvm") version "2.5.0-Beta1"
+    kotlin("jvm") version "2.5.0-Beta2"
     id("org.ohmyloader.gradle") version "0.1.0-SNAPSHOT"
 }
 
@@ -56,7 +56,7 @@ oml {
 }
 ```
 
-The Kotlin version has to be one that can target Java 27 class files; `2.5.0-Beta1` is what the
+The Kotlin version has to be one that can target Java 27 class files; `2.5.0-Beta2` is what the
 loader itself is built with.
 
 The `oml-gradle` plugin does everything else. On the compile classpath it puts `oml-api`, the
