@@ -87,12 +87,39 @@ registry.declareBlock("press") {
 - `tick` 在区块加载期间每个游戏 tick 运行一次， **仅服务端**（客户端收不到该事件——机器 tick 是
   模拟概念）。
 - `event.data` 是 `OMLBlockData`：基础类型键值对（`int` / `long` / `float` / `double` / `boolean` /
-  `string`），随世界持久化；写入会标记方块实体等待下次自动保存。`getString` 对缺失的键答 null，而
+  `string` / 物品栈），随世界持久化；写入会标记方块实体等待下次自动保存。`getString` 对缺失的键答 null，而
   `hasKey` / `remove` / `keys` 是默认值给不了的三个回答——存着 0 和根本没这个键是两回事，会清除设置的机器
   必须能把这层意思说出来；`keys()` 保持写入顺序，且交出的是副本。
 - 同一个存储也能从 ticker 之外按维度与坐标取到，走 [`blockDataAt`](/zh/api/native#世界)——命令、网络包处理器
   或另一个方块不必绕道该方块的 tick 处理器就能读到一台机器的状态。
 - 行为钩子与方块实体可以自由组合在同一个方块上。
+
+#### 机器槽位
+
+`slots(rows, title)` 给机器一个真正的容器：`rows` × 9 个物品槽，右键方块时以游戏自己的
+箱子界面打开：
+
+```kotlin
+registry.declareBlock("press") {
+    blockEntity {
+        slots(rows = 1, title = "Press")   // 右键即开箱子界面
+        tick { event ->
+            val slots = event.slots ?: return@tick
+            val input = slots.stackAt(0) ?: return@tick
+            // ……在 event.data 里计进度，然后：
+            slots.putStack(0, null)                                    // 消耗输入
+            slots.putStack(1, OMLDataItemStack("techmod:copper_plate", 1))
+        }
+    }
+}
+```
+
+"真正的容器"意味着什么——全部是 vanilla 自己的行为：界面就是带快捷转移的箱子屏，
+漏斗认得这台机器，栈随世界持久化（组件在内——附魔物品放进去再取出还是附魔的），
+破坏方块时**货物掉落在原地**。`OMLBlockData` 存储刻意**不**掉落：那是机器的内部状态
+（进度、计数），不是货物。`stackAt` / `putStack` 收发 `OMLDataItemStack`（注册表 id +
+数量）——它就是界面渲染的那份栈的 mod 侧视图。ticker 之外，版本面向模块的
+`machineSlotsAt` 按坐标寻址同一个存储。
 
 ### 世界生成：矿石
 

@@ -94,7 +94,7 @@ registry.declareBlock("press") {
 - `tick` runs once per game tick while the chunk is loaded, **server side only** (the client never
   sees the event — a machine tick is a simulation concept).
 - `event.data` is an `OMLBlockData`: primitive-typed key-value pairs (`int` / `long` / `float` /
-  `double` / `boolean` / `string`) that persist with the world; writes mark the block entity for
+  `double` / `boolean` / `string` / item stacks) that persist with the world; writes mark the block entity for
   the next autosave. `getString` answers null for an absent key, and `hasKey` / `remove` / `keys` are the
   three answers a default cannot give — a stored zero and a missing key are different facts, and a machine
   that clears a setting has to be able to say so. `keys()` keeps write order and is a copy.
@@ -102,6 +102,34 @@ registry.declareBlock("press") {
   [`blockDataAt`](/api/native#levels) — what lets a command, a packet handler or another block
   read a machine without going through its tick handler.
 - A block may combine behavior hooks and a block entity freely.
+
+#### Machine slots
+
+`slots(rows, title)` gives the machine a real container: `rows` × 9 item slots rendered as the
+game's own chest interface when the block is right-clicked:
+
+```kotlin
+registry.declareBlock("press") {
+    blockEntity {
+        slots(rows = 1, title = "Press")   // the chest interface opens on right-click
+        tick { event ->
+            val slots = event.slots ?: return@tick
+            val input = slots.stackAt(0) ?: return@tick
+            // ... count progress in event.data, then:
+            slots.putStack(0, null)                                    // consume the input
+            slots.putStack(1, OMLDataItemStack("techmod:copper_plate", 1))
+        }
+    }
+}
+```
+
+What "real container" means, all of it vanilla's own behavior: the interface is the chest screen
+with quick-move, hoppers see the machine, the stacks persist with the world (components included
+— an enchanted item comes back out enchanted), and breaking the block **drops the cargo** where it
+stood. The `OMLBlockData` store is deliberately not dropped: it is the machine's internal state
+(progress, counters), not cargo. `stackAt` / `putStack` take and return `OMLDataItemStack`
+(registry id + count) — the mod-facing view over the very stacks the interface renders. Outside
+the ticker, `machineSlotsAt` (in the version-facing module) addresses the same store by position.
 
 ### World generation: ores
 
