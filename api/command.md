@@ -115,10 +115,35 @@ worth knowing:
   the one declared first wins and the other loses with that log line — pick namespaced roots (`my_mod_cool` rather than
   `cool`) if you expect collisions.
 
+## Suggestions and aliases
+
+Tab completion beyond the game's own literal completion rides
+`OMLArgumentType.WithSuggestions`: a `WORD` argument whose completion offers what the command
+accepts. The provider sees the invoker, so a dynamic list (the online players, say) is the same
+shape as a fixed one:
+
+```kotlin
+argument("type", OMLArgumentType.WithSuggestions { _ ->
+    listOf("minecraft:cow", "minecraft:pig")
+}) { type -> … }
+```
+
+The client offers the strings as the player types and filters them itself — a suggestion list
+never widens what the parser accepts.
+
+A root can carry `aliases`: full command trees of their own — same arguments, same handler, same
+gates — registered beside the primary. The game's own completion offers them like any literal:
+
+```kotlin
+commands.register("kit") {
+    aliases = listOf("playground")   // /playground is /kit
+    …
+}
+```
+
 ## Not covered yet
 
-No argument suggestions or tab completion beyond the game's own literal completion, no command
-aliases, no client-side-only commands. The loader itself registers
+No client-side-only commands. The loader itself registers
 `/oml mods` (loaded mods with versions, failed inits in red) and `/oml version` through this same
 API, as a working reference beyond the sample mod's `/techmod_ping`.
 

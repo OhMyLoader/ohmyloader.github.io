@@ -107,11 +107,35 @@ dispatcher 只会被注册进去一次。由此有两条必须知道的推论：
   根字面量时，先声明的那个赢，另一个就是上面那行日志——预计会撞名就用带命名空间风格的根名字
   （`my_mod_cool` 而不是 `cool`）。
 
+## 建议与别名
+
+游戏字面量补全之外的 Tab 补全走 `OMLArgumentType.WithSuggestions`：一个带建议的 `WORD`
+参数，补全时提供这条命令接受的值。提供器看得到调用者，所以动态列表（比如在线玩家）与
+固定列表是同一个形状：
+
+```kotlin
+argument("type", OMLArgumentType.WithSuggestions { _ ->
+    listOf("minecraft:cow", "minecraft:pig")
+}) { type -> … }
+```
+
+客户端在玩家输入时给出这些字符串并自行过滤——建议列表不会放宽解析器接受的取值。
+
+根节点可以带 `aliases`：各自是完整的命令树——同样的参数、同样的处理器、同样的权限闸
+——注册在主名旁边。游戏自己的补全会像任何字面量一样提供它们：
+
+```kotlin
+commands.register("kit") {
+    aliases = listOf("playground")   // /playground 就是 /kit
+    …
+}
+```
+
 ## 暂未覆盖
 
-除了游戏自带的字面量补全之外没有参数建议 / Tab 补全，没有命令别名，也没有纯客户端命令。
-loader 自己就是通过同一套 API 注册了 `/oml mods`（列出已加载 mod 及版本，初始化失败的用红色标出）和
-`/oml version`；除示例模组的 `/techmod_ping` 之外，这两条就是能跑的真实参考。
+没有纯客户端命令。loader 自己就是通过同一套 API 注册了 `/oml mods`（列出已加载 mod 及版本，
+初始化失败的用红色标出）和 `/oml version`；除示例模组的 `/techmod_ping` 之外，这两条就是能跑的
+真实参考。
 
 ::: warning 仍在沉淀
 命令 DSL 属于 **已提供、仍在沉淀**层：0.x 阶段允许调整形态，调整会记进发布说明。
