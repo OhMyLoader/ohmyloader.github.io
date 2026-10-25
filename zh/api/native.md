@@ -87,6 +87,7 @@ val client: Minecraft? = OMLGame.client         // 专用服务端上为 null
 | `spawnParticles(id, x, y, z, count, offsetX, offsetY, offsetZ, speed)` | 把简单粒子发给范围内所有客户端                                                      |
 | `spawnItemParticles` / `spawnBlockParticles` / `spawnDustParticles`    | 需要自带参数的粒子走这三个具名调用                                                  |
 | `setWeather(raining, thundering, durationTicks)`                       | 向服务端那一条天气记录请求该状态                                                    |
+| `explode(power, x, y, z)`                                              | 游戏自己的 TNT 爆炸——破坏、掉落与伤害全是 vanilla 的（苦力怕约 3，TNT 是 4）        |
 
 | `ClientLevel` 上的调用   | 含义                                                     |
 |--------------------------|----------------------------------------------------------|
@@ -165,8 +166,23 @@ tick 数，`amplifier` 从 0 起算，所以 0 就是一级。
 | `xpLevel` / `xpProgress`                | 当前等级，与该等级内的进度（0.0 到不足 1.0）                                                                                                                                                          |
 | `foodLevel` / `saturation`              | 游戏自己的 0–20 饥饿刻度，与让饥饿条不流失的饱和度                                                                                                                                                    |
 | `setFoodLevel(n)` / `feed(food, saturation)` | 写饥饿条（游戏的饥饿伤害调度从下一 tick 起作用），或一次喂饱两条                                                                                                                                  |
+| `allowFlight` / `isFlying` / `invulnerable` | 游戏自己的能力位，写入即同步到客户端；关掉飞行会顺势让玩家落地                                                                                                                                      |
+| `grantRecipes(ids)` / `revokeRecipes(ids)`  | 在玩家的配方书里解锁/锁定完整配方 id；返回实际移动了多少条。revoke 在 `ServerPlayer` 上                                                                                                             |
 | `teleport(x, y, z, dimensionId = null)` | 服务端权威；维度 id 未知、游戏拒绝该目的地，或这个句柄已被游戏换掉时返回 false——死亡或重生会让游戏拿出一个新实例，旧的那个读作 removed，所以长期持有玩家的模组要按 uuid 去寻服务端当前持有的那个实例 |
 | `playSound(id, volume, pitch)`          | 让**这位**玩家听见，正是游戏自己的分侧行为                                                                                                                                                           |
+
+### Boss 血条
+
+`OMLBossBar(title)` 是游戏自己的 Boss 条（`ServerBossEvent`）背后的 mod 侧形状——渲染、
+定位与按玩家同步都是 vanilla 的：
+
+```kotlin
+val bar = OMLBossBar("远古工具箱")
+bar.addPlayer(player)      // 该客户端上出现
+bar.progress = 0.5f        // 0.0 – 1.0，战斗中可写
+bar.title = "远古工具箱（狂暴）"
+bar.removePlayer(player)   // 或战斗结束时 removeAllPlayers()
+```
 
 ### 穿戴中的物品
 

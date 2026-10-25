@@ -91,6 +91,7 @@ where the game keeps authority — a client's level holds a prediction the serve
 | `spawnParticles(id, x, y, z, count, offsetX, offsetY, offsetZ, speed)` | sends a simple particle to every client in range                                                                                 |
 | `spawnItemParticles` / `spawnBlockParticles` / `spawnDustParticles`    | the same for a particle that carries arguments                                                                                   |
 | `setWeather(raining, thundering, durationTicks)`                       | asks the server's one weather record for that state                                                                              |
+| `explode(power, x, y, z)`                                              | the game's own TNT explosion — block breaks, drops and damage all vanilla's (creeper ~3, TNT 4)                                  |
 
 | Call on `ClientLevel`    | Meaning                                                                 |
 |--------------------------|-------------------------------------------------------------------------|
@@ -173,8 +174,23 @@ rules the event enforces.
 | `xpLevel` / `xpProgress`                | the current level, and how far into it (0.0 to just under 1.0)                                                                                                                                                                                                                                             |
 | `foodLevel` / `saturation`              | hunger on the game's own 0–20 scale, and the saturation that keeps it from draining                                                                                                                                                                                                                        |
 | `setFoodLevel(n)` / `feed(food, saturation)` | writes the hunger bar (the game applies its starvation schedule from the next tick) or feeds both bars in one go                                                                                                                                                                                       |
+| `allowFlight` / `isFlying` / `invulnerable` | the game's own ability flags, synced to the client on write; turning flight off lands the player                                                                                                                                                                                               |
+| `grantRecipes(ids)` / `revokeRecipes(ids)`  | unlocks or locks full recipe ids in the player's recipe book; answers how many actually moved. `ServerPlayer` for revoke                                                                                                                                                                               |
 | `teleport(x, y, z, dimensionId = null)` | server-authoritative; false when the dimension id is unknown, the game refused the destination, or the handle is one the game has replaced — a death or a respawn hands out a new instance and the old one reads removed, so a mod that keeps a player addresses the server's live counterpart by its uuid |
 | `playSound(id, volume, pitch)`          | plays so **this** player hears it, which is the game's own per-listener split                                                                                                                                                                                                                              |
+
+### Boss bars
+
+`OMLBossBar(title)` is the game's own boss bar (`ServerBossEvent`) behind a mod-facing shape —
+the rendering, positioning and per-player sync are vanilla's:
+
+```kotlin
+val bar = OMLBossBar("The Ancient Kit")
+bar.addPlayer(player)      // appears on that client
+bar.progress = 0.5f        // 0.0 – 1.0, writable mid-fight
+bar.title = "The Ancient Kit (enraged)"
+bar.removePlayer(player)   // or removeAllPlayers() at the fight's end
+```
 
 ### Worn items
 
