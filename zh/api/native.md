@@ -68,6 +68,8 @@ val client: Minecraft? = OMLGame.client         // 专用服务端上为 null
 | `blockStateAt(pos)`                                 | 该位置的 `BlockState`，区块未加载时为 null                           |
 | `setBlockAt(pos, blockId)`                          | 放置该方块的默认状态；id 未知返回 false                              |
 | `setBlockAt(pos, state)`                            | 放置一个状态（含邻块更新与客户端同步），并回报该位置现在是否就是它   |
+| `destroyBlock(pos)`                                 | 连掉落物、破坏特效与方块实体清理一起破坏方块——游戏自己的玩家破坏路径 |
+| `dropItem(stack, x, y, z)`                          | 把一个真实的物品实体掉进世界；拾取、堆叠与消失都是 vanilla 的        |
 | `isLoaded(pos)`                                     | 游戏自己的成员：该位置所在区块是否已加载                             |
 | `containerAt(pos)`                                  | 方块实体的 `Container`；该方块没有槽位时为 null                      |
 | `blockEntityAt(pos)`                                | 方块自己的 `BlockEntity`；位置未加载或该方块没有块实体时为 null      |
@@ -158,6 +160,11 @@ tick 数，`amplifier` 从 0 起算，所以 0 就是一级。
 | `permissionLevel`                       | vanilla 自己的等级：0 玩家、1 管理员、2 游戏主管、3 操作员、4 服主                                                                                                                                   |
 | `sendSystemMessage(text)`               | 只向这位玩家显示 `text`——经它的服务端连接，所以多人客户端的本地玩家是空操作                                                                                                                          |
 | `giveItem(itemId, count)`               | 装不下时返回 false（装下的那部分仍然留下，与原版拾取一致）                                                                                                                                           |
+| `raycast(distance)`                     | 准星落在什么上：游戏自己的方块裁剪（眼位 + 视线向量）——`OMLRayHit`（方块 id + 坐标）；射线到距离还没碰到东西时为 null                                                                               |
+| `giveXp(points)`                        | 走游戏自己的经验点路径（含升级）；负数扣除，到零为止                                                                                                                                                  |
+| `xpLevel` / `xpProgress`                | 当前等级，与该等级内的进度（0.0 到不足 1.0）                                                                                                                                                          |
+| `foodLevel` / `saturation`              | 游戏自己的 0–20 饥饿刻度，与让饥饿条不流失的饱和度                                                                                                                                                    |
+| `setFoodLevel(n)` / `feed(food, saturation)` | 写饥饿条（游戏的饥饿伤害调度从下一 tick 起作用），或一次喂饱两条                                                                                                                                  |
 | `teleport(x, y, z, dimensionId = null)` | 服务端权威；维度 id 未知、游戏拒绝该目的地，或这个句柄已被游戏换掉时返回 false——死亡或重生会让游戏拿出一个新实例，旧的那个读作 removed，所以长期持有玩家的模组要按 uuid 去寻服务端当前持有的那个实例 |
 | `playSound(id, volume, pitch)`          | 让**这位**玩家听见，正是游戏自己的分侧行为                                                                                                                                                           |
 
