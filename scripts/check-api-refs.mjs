@@ -13,15 +13,31 @@
 //        - OML-shaped: spans starting with `OML` or `Events.` — every dotted segment must resolve.
 //   3. anything not found is a failure, unless it is a Kotlin keyword or listed in EXEMPT with a reason.
 //
-// Loader sources resolve via OML_SOURCES (default `../OhMyLoader` — the workspace layout and the CI
-// checkout path agree). Zero runtime dependencies; run with `node scripts/check-api-refs.mjs`.
+// Loader sources resolve via OML_SOURCES, or by probing the two layouts a checkout can produce:
+// the workspace layout (loader is a sibling of the site repo) and the CI layout (actions/checkout
+// puts a `path:` checkout INSIDE the workspace root, so the loader is a subdirectory of the site
+// checkout — not beside it). Zero runtime dependencies; run with `node scripts/check-api-refs.mjs`.
 
-import {readdirSync, readFileSync} from 'node:fs';
+import {existsSync, readdirSync, readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const SITE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const LOADER_ROOT = process.env.OML_SOURCES ?? join(SITE_ROOT, '..', 'OhMyLoader');
+
+function resolveLoaderRoot() {
+    if (process.env.OML_SOURCES) return process.env.OML_SOURCES;
+    const candidates = [
+        {path: join(SITE_ROOT, '..', 'OhMyLoader'), why: 'workspace sibling layout'},
+        {path: join(SITE_ROOT, 'OhMyLoader'), why: 'CI checkout layout'},
+    ];
+    for (const candidate of candidates) {
+        if (existsSync(join(candidate.path, 'oml-api', 'src', 'main', 'kotlin'))) return candidate.path;
+    }
+    // Neither probe hit: report the first candidate as the expected place, the message stays honest.
+    return candidates[0].path;
+}
+
+const LOADER_ROOT = resolveLoaderRoot();
 
 const SOURCE_DIRS = [
     join(LOADER_ROOT, 'oml-api/src/main/kotlin'),
