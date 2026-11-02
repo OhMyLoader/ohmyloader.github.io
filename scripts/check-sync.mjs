@@ -29,7 +29,8 @@ const EXEMPTIONS = [
 const CHECK_IDS = ['existence', 'headings', 'fences', 'containers', 'tables', 'tokens'];
 
 // single-side files that have no zh counterpart by design
-const UNPAIRED = new Set(['README.md']);
+// AGENTS.md and CONTRIBUTING.md are repository/developer docs, not site content.
+const UNPAIRED = new Set(['README.md', 'AGENTS.md', 'CONTRIBUTING.md']);
 // directories never scanned
 const SKIP_DIRS = new Set([
     'node_modules', '.vitepress', '.git', 'dist', 'run',
