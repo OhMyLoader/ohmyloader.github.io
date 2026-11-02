@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: OhMyLoader
-  text: A modern Minecraft mod loader
-  tagline: Self-developed bytecode injection engine · unified Mod API · declarative content registration · client & dedicated server
+  text: A Minecraft mod loader for Java Edition 26.x
+  tagline: Custom bytecode injection engine · unified mod API · declarative content · client and dedicated server
   actions:
     - theme: brand
       text: Download the Installer
@@ -18,17 +18,17 @@ hero:
 
 features:
   - icon: ⚙️
-    title: Self-developed injection engine
-    details: A self-developed declarative injection DSL with Mixin class merging.
+    title: Injection engine
+    details: A declarative injection DSL with Mixin class merging. Every rule is checked at startup.
   - icon: 🧩
-    title: Unified Mod API
-    details: Program against high-level game semantics — functional event registration, lifecycle entry points, a content declaration DSL. Event payloads and extensions are the game's own `net.minecraft.*` types, no wrapper layer in between; a few handles keep a `platform` escape hatch.
+    title: Unified mod API
+    details: Lambda-based event registration, lifecycle entry points, and a content declaration DSL. Event payloads and extensions are the game's own `net.minecraft.*` types, with no wrapper layer; a few handles keep a `platform` escape hatch.
   - icon: 📝
     title: Declarative content
-    details: Declare blocks, items and recipes with a few lines of Kotlin or a TOML content pack (an `.oml` archive). They are materialized into native content at the registry freeze point and flow through vanilla's own validation and datapack paths.
+    details: Declare blocks, items, and recipes in Kotlin or a TOML content pack (an `.oml` archive). They are materialized into native content at the registry freeze point and use the game's own validation and data pack paths.
   - icon: 🖥️
     title: Both sides
-    details: The client and the dedicated server have separate hooks and init paths, selected with a single oml.side flag. One mod source base runs on both, unchanged.
+    details: The client and dedicated server have separate hooks and init paths, selected with `oml.side`. One mod source base runs on both unchanged.
   - icon: 🚀
     title: Java 27
-    details: The whole stack runs on the latest Java runtime with a modern JIT and GC.
+    details: The full stack runs on Java 27.

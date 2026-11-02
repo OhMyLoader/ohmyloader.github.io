@@ -1,16 +1,17 @@
-# OhMyLoader 官网
+# OhMyLoader Website
 
-OhMyLoader 的官方网站，基于 [VitePress](https://vitepress.dev)。
+The official OhMyLoader website, built with [VitePress](https://vitepress.dev).
 
-## 开发
+## Development
 
 ```bash
 pnpm install
-pnpm dev      # 本地预览
-pnpm build    # 构建
+pnpm dev      # local preview
+pnpm build    # production build
 ```
 
-## 内容维护
+## Content maintenance
 
-- 所有语言必须同步修改，一侧更新另一侧跟着改；
-- 文档描述的 API 签名以 [OhMyLoader](https://github.com/OhMyLoader/OhMyLoader) 源码为准。
+- English is the source of truth at the site root; the Chinese translation lives under `zh/`. Update both
+  sides together.
+- API signatures in the documentation follow the [OhMyLoader](https://github.com/OhMyLoader/OhMyLoader) source.

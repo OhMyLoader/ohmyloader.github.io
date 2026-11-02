@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   title: 'OhMyLoader',
-  description: 'A modern Minecraft mod loader',
+  description: 'A Minecraft mod loader for Java Edition 26.x',
   cleanUrls: true,
   lastUpdated: true,
   locales: {
