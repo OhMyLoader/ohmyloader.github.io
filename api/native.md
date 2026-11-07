@@ -161,6 +161,15 @@ still address the game's data, so the extensions take an id where the game takes
 handler sees it, can cancel it and can rewrite the number — it is a gameplay action, not a way around the
 rules the event enforces.
 
+| On `Mob`                  | Meaning                                                                          |
+|---------------------------|----------------------------------------------------------------------------------|
+| `addGoal(priority, goal)` | gives the mob a mod-declared behavior (an `OMLGoal`); lower priorities run first |
+
+An `OMLGoal` is the classic goal layer of mob AI: `canUse` asks to start, the game runs
+`start` → `tick` → `stop` while `canContinueToUse` holds, and `flags` claims the game's control flags
+(`MOVE` / `LOOK` / `JUMP` / `TARGET`) so mutually exclusive behaviors take turns. Brain-driven mobs
+(villagers, piglins) are not reachable through this layer — use the native-type escape hatch.
+
 | On `Player` / `ServerPlayer`            | Meaning                                                                                                                                                                                                                                                                                                    |
 |-----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `openedMenuId`                          | the menu the game has them using (`minecraft:generic_9x3`), null at rest                                                                                                                                                                                                                                   |
