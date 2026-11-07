@@ -19,8 +19,8 @@ layers:
 - **Injection DSL**: anchors such as `atHead`, `atReturn`, and `beforeCall`, with payloads such as `call`,
   `modifyArg`, and `redirectCall`. The semantics match Mixin, but the rules are declarative and checked at
   startup.
-- **Mixin class merging**: `@Shadow`, `@Overwrite`, `@Unique`, `@Accessor`, and `@Invoker` are supported.
-- **Annotation front end**: mods that use Mixin can keep writing `@Mixin` and `@Inject`; the loader compiles
+- **Member merging**: `@Borrowed`, `@Replace`, `@Extra`, `@FieldAccess`, and `@MethodAccess` are supported, via the explicit `@Merged` carrier.
+- **Annotation front end**: hook carriers (`@Hooked` / `@Merged`) declare `@Inject` and friends; the loader compiles
   the annotations into injection rules and runs them through the same pipeline.
 
 Every rule is verified at startup: handler existence, staticness, signature consistency, and match counts. A

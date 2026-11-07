@@ -78,16 +78,19 @@ classTarget("net/minecraft/client/Minecraft") {
 }
 ```
 
-`merge` 的源类里用 `@Shadow`（声明"目标类已有此成员"）、`@Unique`（新增成员）、`@Overwrite`（替换方法体）、
-`@Accessor` / `@Invoker`（合成字段访问器 / 私有方法调用器）标记成员——语义与 Mixin 一致，但发生在
+`merge` 的源类里用 `@Borrowed`（声明"目标类已有此成员"）、`@Extra`（新增成员）、`@Replace`（替换方法体）、
+`@FieldAccess` / `@MethodAccess`（合成字段访问器 / 私有方法调用器）标记成员——语义与 Mixin 一致，但发生在
 字节码层，由引擎合成。
 
-## Mixin 注解
+## Hook 注解
 
-习惯 Mixin 的开发者可以直接写注解，`@Mixin` / `@Inject` / `@Redirect` / `@ModifyArg` / `@ModifyArgs` /
-`@ModifyConstant` / `@ModifyVariable` / `@ModifyReturnValue` / `@ModifyExpressionValue` 都支持，
-配合 `@At` 与 `@Slice`。注解在启动期被前端翻译成上面同一套注入规则，走同一条管线、享受同一套自检。
-不支持的 Mixin 特性（`Shift.BY`、动态 `targets`、`@Pseudo`、refmap）会启动期报错，不会静默失效。
+注解前端是 OML 自己的——不是 Fabric Mixin 的直接替代，但映射关系很近。`@Hooked(target = "…")`
+标注的类是**纯规则载体**（所有 handler 都经引擎的桥分发；handler 可以把目标实例声明为类型化的
+第一个参数）；`@Merged(target = "…")` 显式加入成员合并（handler 与合并成员里的 `this` 就是目标
+实例）。方法注解——`@Inject` / `@Redirect` / `@ModifyArg` / `@ModifyArgs` / `@ModifyConstant` /
+`@ModifyVariable` / `@ModifyReturnValue` / `@ModifyExpressionValue`，配合 `@At` 与 `@Slice`——
+被前端翻译成与 DSL 相同的注入规则：同一条管线、同一套自检。不支持的 Fabric Mixin 形态
+（`Shift.BY`、动态 `targets`、`@Pseudo`、refmap、隐式模型切换）会启动期报错，不会静默失效。
 
 ## 自检
 

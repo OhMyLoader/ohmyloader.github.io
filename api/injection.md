@@ -1,4 +1,4 @@
-# Injection DSL & Mixin
+# Injection DSL & Hooks
 
 When you need to change Minecraft's unexposed internals, use OML's injection DSL instead of Mixin.
 Rules are purely declarative and verified one by one at startup (handler existence, signatures,
@@ -82,18 +82,23 @@ classTarget("net/minecraft/client/Minecraft") {
 }
 ```
 
-Inside a `merge` source, mark members with `@Shadow` ("the target class already has this member"),
-`@Unique` (new member), `@Overwrite` (replace a method body) and `@Accessor` / `@Invoker`
+Inside a `merge` source, mark members with `@Borrowed` ("the target class already has this member"),
+`@Extra` (new member), `@Replace` (replace a method body) and `@FieldAccess` / `@MethodAccess`
 (synthesized field accessors / private-method callers) — Mixin semantics, synthesized at the
 bytecode level by the engine.
 
-## Mixin annotations
+## Hook annotations
 
-Used to Mixin? Keep writing them. `@Mixin` / `@Inject` / `@Redirect` / `@ModifyArg` / `@ModifyArgs` /
-`@ModifyConstant` / `@ModifyVariable` / `@ModifyReturnValue` / `@ModifyExpressionValue` are
-supported, with `@At` and `@Slice`. The front-end compiles the annotations into the same injection
-rules — same pipeline, same startup checks. Unsupported Mixin features (`Shift.BY`, dynamic
-`targets`, `@Pseudo`, refmaps) fail the startup with an explanation instead of failing silently.
+The annotation front-end is OML's own — not a Fabric Mixin drop-in, but a close mapping. A class
+annotated `@Hooked(target = "…")` is a pure rule carrier (every handler dispatched through the
+engine's bridge; a handler may declare the target instance as a typed first parameter), and
+`@Merged(target = "…")` opts into member merge (`this` = the target instance inside handlers and
+merged members). The method annotations — `@Inject` / `@Redirect` / `@ModifyArg` / `@ModifyArgs` /
+`@ModifyConstant` / `@ModifyVariable` / `@ModifyReturnValue` / `@ModifyExpressionValue`, with `@At`
+and `@Slice` — compile into the same injection rules as the DSL: same pipeline, same startup
+checks. Fabric-Mixin shapes that are not supported (`Shift.BY`, dynamic `targets`, `@Pseudo`,
+refmaps, implicit merge-model switching) fail the startup with an explanation instead of failing
+silently.
 
 ## Startup checks
 

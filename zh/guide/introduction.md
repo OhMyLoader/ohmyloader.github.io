@@ -16,8 +16,8 @@ adapter 在语义层之下吸收，不向上泄漏。
 
 - **注入 DSL**：`atHead` / `atReturn` / `beforeCall` 等锚点，配合 `call` / `modifyArg` /
   `redirectCall` 等载荷。语义与 Mixin 一致，但规则是声明式的，并在启动期校验。
-- **Mixin 类合并**：支持 `@Shadow` / `@Overwrite` / `@Unique` / `@Accessor` / `@Invoker`。
-- **注解前端**：使用 Mixin 的 mod 仍可编写 `@Mixin` / `@Inject`；加载器把注解编译成注入规则，走同一条管线。
+- **成员合并**：支持 `@Borrowed` / `@Replace` / `@Extra` / `@FieldAccess` / `@MethodAccess`，通过显式的 `@Merged` 载体声明。
+- **注解前端**：钩子载体（`@Hooked` / `@Merged`）声明 `@Inject` 等注解；加载器把注解编译成注入规则，走同一条管线。
 
 每条规则在启动期校验处理器存在性、静态性、签名一致性与命中数。写错的规则会使启动失败，而不是在游戏里
 静默少做一件事。
