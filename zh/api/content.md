@@ -143,6 +143,33 @@ registry.declareBlock("ruby_ore") {
 矿脉替换石器家族（`minecraft:stone_ore_replaceables`）；`biomes` 留空在下界/末地同样安全——
 下界岩与末地石不匹配替换标签。
 
+### 世界生成：树与植物
+
+`generateAsTree` 把方块声明为自然生成树木的**树干**——游戏自己的直干橡树形状：树冠是一团
+`leaves` 方块，树根埋进泥土。`leaves` 必填，指向同一 mod 声明的树叶方块；`generateAsPlant`
+声明像原版花那样的地表植物。两者都合并进目标生物群系的植被步——和矿石一样，
+**只影响新生成的区块**：
+
+```kotlin
+registry.declareBlock("ruby_log") {
+    generateAsTree {
+        leaves = "techmod:ruby_leaves"   // 必填——树冠的方块
+        trunkHeight = 4                  // 树冠以下的树干高度
+        heightVariation = 2              // 每棵树额外浮动的高度
+        foliageRadius = 2                // 树冠半径
+        foliageHeight = 3                // 树冠在树干顶端以下的深度
+        perChunk = 1                     // 每区块尝试生成的树数
+        biomes += listOf("minecraft:forest")
+    }
+}
+registry.declareBlock("ruby_leaves")
+registry.declareBlock("ruby_bloom") {
+    generateAsPlant { perChunk = 16 }    // 每区块尝试次数；biomes 留空 = 所有生物群系
+}
+```
+
+一个方块只能带一种生成形态——矿石、树或植物；声明第二种会抛错。
+
 ## 物品
 
 ```kotlin

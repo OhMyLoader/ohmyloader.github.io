@@ -154,6 +154,34 @@ registry.declareBlock("ruby_ore") {
 The vein replaces the stone family (`minecraft:stone_ore_replaceables`); an empty `biomes` list is
 safe outside the overworld for the same reason — netherrack and end stone do not match.
 
+### World generation: trees and plants
+
+`generateAsTree` declares the block as the **trunk** of a naturally generated tree — the game's own
+straight-trunk oak shape with a blob crown, trunk base planted on soil. `leaves` names the leaves
+block (declared by the same mod) and is required; `generateAsPlant` declares ground cover like
+vanilla's flowers. Both merge into the target biomes' vegetation step, so like ores they affect
+**only newly generated chunks**:
+
+```kotlin
+registry.declareBlock("ruby_log") {
+    generateAsTree {
+        leaves = "techmod:ruby_leaves"   // required — the crown's block
+        trunkHeight = 4                  // trunk below the crown
+        heightVariation = 2              // extra height rolled per tree
+        foliageRadius = 2                // crown radius
+        foliageHeight = 3                // crown depth below the trunk top
+        perChunk = 1                     // trees attempted per chunk
+        biomes += listOf("minecraft:forest")
+    }
+}
+registry.declareBlock("ruby_leaves")
+registry.declareBlock("ruby_bloom") {
+    generateAsPlant { perChunk = 16 }    // placement attempts per chunk; empty biomes = everywhere
+}
+```
+
+A block carries at most one generation form — ore, tree or plant; declaring a second one throws.
+
 ## Items
 
 ```kotlin
