@@ -42,6 +42,7 @@ Events.CLIENT_TICK.register { /* every logical tick */ }
 | `CHUNK_UNLOADED`        | a chunk is leaving a server level, while still readable | –           | `level: ServerLevel`, `chunk: LevelChunk`                                |
 | `SERVER_STARTED`        | once per server start, on its first tick                | –           | `server: MinecraftServer`                                                |
 | `SERVER_STOPPING`       | once per shutdown, before the worlds are saved          | –           | `server: MinecraftServer`                                                |
+| `DATAPACKS_RELOADED`    | a server datapack reload was applied                    | –           | `server: MinecraftServer`                                                |
 | `PLAYER_JOINED`         | a player finished entering the world                    | –           | `player: ServerPlayer`                                                   |
 | `PLAYER_LEFT`           | a player is leaving                                     | –           | `player: ServerPlayer`                                                   |
 | `PLAYER_RESPAWNED`      | a player finished respawning                            | –           | `player: ServerPlayer` (the instance made for this life)                 |

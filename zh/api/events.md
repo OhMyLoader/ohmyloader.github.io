@@ -38,6 +38,7 @@ Events.CLIENT_TICK.register { /* 每逻辑 tick */ }
 | `CHUNK_UNLOADED`        | 一个区块正离开某服务端世界，此刻仍可读             | –      | `level: ServerLevel`、`chunk: LevelChunk`                                                  |
 | `SERVER_STARTED`        | 每次服务端启动，在其首个 tick                      | –      | `server: MinecraftServer`                                                                  |
 | `SERVER_STOPPING`       | 每次关闭，在存档保存与循环退出之前                 | –      | `server: MinecraftServer`                                                                  |
+| `DATAPACKS_RELOADED`    | 服务端数据包重载已应用                             | –      | `server: MinecraftServer`                                                                  |
 | `PLAYER_JOINED`         | 玩家完成进入世界                                   | –      | `player: ServerPlayer`                                                                     |
 | `PLAYER_LEFT`           | 玩家正在离开                                       | –      | `player: ServerPlayer`                                                                     |
 | `PLAYER_RESPAWNED`      | 玩家完成重生                                       | –      | `player: ServerPlayer`（本次生命新建的那个实例）                                           |
