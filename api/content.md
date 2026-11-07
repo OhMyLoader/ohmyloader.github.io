@@ -559,10 +559,6 @@ pack's namespace like a mod domain. A misspelled field is called out by name in 
 silently ignored. What the data track does **not** cover: behavior hooks and block entities are mod code and
 have no TOML form.
 
-A loose `.toml` file dropped into `mods/` is **not** a pack form and is refused with an explicit
-message: it cannot carry the pack's own textures, so its blocks would render with missing textures.
-Ship the pack as an `.oml` archive.
-
 ## Distribution form: `.oml` archives
 
 A content pack ships as a **`.oml` archive** (a plain zip renamed): the per-entity files under
