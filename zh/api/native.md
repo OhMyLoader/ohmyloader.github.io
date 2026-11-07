@@ -157,7 +157,7 @@ tick 数，`amplifier` 从 0 起算，所以 0 就是一级。
 |---------------------------|--------------------------------------------------------------------------------------------------|
 | `addGoal(priority, goal)` | 给怪物挂一个 mod 自己声明的行为（`OMLGoal`）；priority 越小越先运行                              |
 
-`OMLGoal` 是怪物 AI 的经典 goal 层：`canUse` 表示"现在要跑"，游戏在其返回 true 期间运行
+`OMLGoal` 是怪物 AI 的经典 goal 层：`canUse` 表示"现在要跑"，游戏在 `canContinueToUse` 成立期间运行
 `start` → `tick` → `stop`，`flags` 申领游戏的控制旗标（`MOVE` / `LOOK` / `JUMP` / `TARGET`）让互斥的
 行为互相让路。走 Brain 的生物（村民、猪灵）不在这层上——那些用原生类型逃生舱口。
 
