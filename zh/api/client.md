@@ -46,6 +46,27 @@ Events.HUD_RENDER.register { event ->
 界面、F1）位于这次 HUD 流程内部、钩子之后。
 :::
 
+## 界面
+
+客户端 mod 用游戏自己的界面机制展示自己的 UI：声明一个 `Screen` 子类（游戏自己的类——控件、
+布局与渲染都是 vanilla 的），然后打开它：
+
+```kotlin
+Events.CLIENT_TICK.register { // 在 mod 自己的触发点上调用一次
+    OMLGame.client?.openScreen(MyConfigScreen())
+}
+```
+
+| `Minecraft`（客户端）上 | 含义                                                                                |
+|------------------------|-------------------------------------------------------------------------------------|
+| `openScreen(screen)`   | 显示 mod 的界面——走游戏自己的打开路径，因此 `GUI_OPEN` 能观察到它、也可以取消它     |
+| `closeScreen()`        | 关闭当前界面，世界重新接管屏幕                                                      |
+| `currentScreen`        | 当前显示的界面；世界在屏幕上时为 null                                               |
+
+打开是客户端自治的：服务器无权决定客户端给自己显示什么。**服务器驱动**的 UI——机器的操作界面、
+箱子——走菜单而非界面：服务端的 `MENU_OPEN` / `MENU_CLOSED`，以及声明式容器自己的界面。给 mod
+不拥有的界面加控件（改 vanilla 的界面）没有 API 面——那类需求用注入规则。
+
 ## 创造模式标签页
 
 mod 物质化的每个物品都会自动进入共享的 `oml` 创造标签页（`itemGroup.oml.main`），在创造模式

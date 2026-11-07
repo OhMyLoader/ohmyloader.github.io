@@ -48,6 +48,28 @@ The event means "the HUD pass begins", not "pixels will follow": the pass's inte
 sit inside it.
 :::
 
+## Screens
+
+A client mod shows its own UI with the game's own screen machinery: declare a `Screen` subclass (the
+game's own class — widgets, layout and rendering are vanilla's) and open it:
+
+```kotlin
+Events.CLIENT_TICK.register { // once, on whatever trigger your mod uses
+    OMLGame.client?.openScreen(MyConfigScreen())
+}
+```
+
+| On `Minecraft` (client)      | Meaning                                                                                                        |
+|------------------------------|----------------------------------------------------------------------------------------------------------------|
+| `openScreen(screen)`         | shows the mod's screen — through the game's own open path, so `GUI_OPEN` observes and may cancel it            |
+| `closeScreen()`              | closes the current screen; the world takes over                                                                |
+| `currentScreen`              | the screen currently shown, null when the world is on screen                                                   |
+
+Opening is client-authoritative: the server has no say in what a client shows itself. A **server-driven**
+UI — a machine's interface, a chest — goes through a menu instead: `MENU_OPEN` / `MENU_CLOSED` on the
+server side, and a declared container's own screen. Extending screens a mod does not own (adding widgets
+to vanilla's screens) has no API surface — use the injection rules for that.
+
 ## Creative tab
 
 Every item a mod materializes is added automatically to the shared `oml` creative tab (`itemGroup.oml.main`), visible in
