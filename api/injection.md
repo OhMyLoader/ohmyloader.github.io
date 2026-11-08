@@ -126,6 +126,36 @@ primitive-specialized `LocalIntRef`/`LocalLongRef`/`LocalFloatRef`/`LocalDoubleR
 boxing. `@Share` hands the same `LocalRef` to every handler of one target-method invocation, so an
 earlier handler can leave a value for a later one.
 
+## Expressions
+
+`@Expression("…")` targets a Java-like expression reconstructed from the target method's bytecode
+instead of a single instruction. The injector uses `@At("EXPRESSION")`, and every identifier in the
+pattern is declared with `@Definition`:
+
+```java
+@Definition(id = "max", method = "Ljava/lang/Math;max(II)I")
+@Expression("max(?, 3) > 0")
+@ModifyExpressionValue(method = "tick", at = @At("EXPRESSION"))
+private static boolean onTick(boolean original) {
+    return !original;
+}
+```
+
+- `?` is a wildcard; `@(…)` marks the captured part explicitly (without it the whole expression is
+  captured); `ordinal` selects the Nth captured instruction in method order.
+- `@Definition` declares identifiers: `method` and `field` take the same strings as `@At(target = …)`,
+  `type` takes classes used by `instanceof`, casts and instantiations.
+- A captured comparison is materialized as a boolean value, so the example above sees the
+  **source-level** result (is max(…, 3) > 0 true?) and the branch follows the rewritten value.
+  `@WrapBranch` on an expression instead receives the jump's compared values and decides the branch
+  itself. `long`/`float`/`double` comparisons (lcmp/fcmp/dcmp feeding a jump) work the same way.
+- The whole string concatenation is a matchable expression; method references, casts, `instanceof`,
+  arithmetic, array load/store and array creation are part of the grammar.
+- The DSL form is `atExpression("…")`, with the same definitions passed as its `definitions` argument.
+- Not every part of a compound instruction is independently targetable yet, and identifiers cannot
+  stand for local variables; expression ids and expression-backed `@Slice` bounds are not
+  implemented yet.
+
 Fabric-Mixin shapes that are not supported (`Shift.BY`, dynamic `targets`, `@Pseudo`, refmaps,
 implicit merge-model switching) fail the startup with an explanation instead of failing silently.
 

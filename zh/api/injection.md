@@ -115,6 +115,33 @@ classTarget("net/minecraft/client/Minecraft") {
 `@Share` 让同一次目标方法调用中的每个 handler 拿到同一个 `LocalRef`，先执行的 handler 可以
 把值留给后面的 handler。
 
+## 表达式
+
+`@Expression("…")` 匹配的是从目标方法字节码重建出来的、类 Java 的表达式，而不是单条指令。
+注入器使用 `@At("EXPRESSION")`，模式里用到的每个标识符都要用 `@Definition` 声明：
+
+```java
+@Definition(id = "max", method = "Ljava/lang/Math;max(II)I")
+@Expression("max(?, 3) > 0")
+@ModifyExpressionValue(method = "tick", at = @At("EXPRESSION"))
+private static boolean onTick(boolean original) {
+    return !original;
+}
+```
+
+- `?` 是通配符；`@(…)` 显式标出捕获部分（不写则捕获整个表达式）；`ordinal` 按方法顺序选中第 N 个
+  捕获到的指令。
+- `@Definition` 声明标识符：`method` 与 `field` 接受和 `@At(target = …)` 相同的字符串，`type`
+  接受 `instanceof`、强转与实例化中用到的类。
+- 捕获到的比较会物化为布尔值：上面的例子看到的是**源码层**的结果（max(…, 3) > 0 是否成立），
+  分支会跟随改写后的值。表达式上的 `@WrapBranch` 则直接收到跳转比较的操作数，由 handler 决定
+  分支走向。`long`/`float`/`double` 比较（lcmp/fcmp/dcmp 接跳转）同样支持。
+- 整段字符串拼接可以作为表达式匹配；方法引用、强转、`instanceof`、算术、数组读写与数组创建都在
+  语法范围内。
+- DSL 写法是 `atExpression("…")`，定义通过它的 `definitions` 参数传入。
+- 复合指令的各个部分目前还不能独立作为注入目标，标识符也还不能代表局部变量；表达式 id 与以表达式
+  为边界的 `@Slice` 暂未实现。
+
 不支持的 Fabric Mixin 形态（`Shift.BY`、动态 `targets`、`@Pseudo`、refmap、隐式模型切换）会启动期
 报错，不会静默失效。
 
