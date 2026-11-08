@@ -45,6 +45,7 @@ object MyRules : RuleSetProvider {
 | `point(Anchor.typeCheck(…))`       | before a `CHECKCAST` / `INSTANCEOF`                                      | `CHECKCAST` / `INSTANCEOF` |
 | `point(Anchor.arrayAccess(…))`     | before an array load / store                                             | `ARRAY_LOAD` / `ARRAY_STORE` |
 | `point(Anchor.arrayCreate(…))`     | before `NEWARRAY` / `ANEWARRAY` / `MULTIANEWARRAY`                       | `NEW_ARRAY`                |
+| `atJump(opcode)`                   | before a conditional branch (`IFEQ`…`IF_ACMPNE`, `IFNULL`/`IFNONNULL`)   | `JUMP`                     |
 | `within(from, to)`                 | restricts the search window between two anchors (nestable, intersection) | `@Slice`                   |
 
 Anchors accept owner / desc / ordinal filters (`atReturn(0)` hits only the first return).
@@ -63,6 +64,7 @@ Each anchor block declares what to inject:
 | `modifyVariable(...)`                | rewrites a local variable                                                 | `@ModifyVariable`            |
 | `modifyReceiver(...)`                | rewrites the receiver of an instance call / field write                   | `@ModifyReceiver`            |
 | `wrapWithCondition(...)`             | gates a void call or field write on a boolean handler                     | `@WrapWithCondition`         |
+| `wrapBranch(...)`                    | decides a conditional branch: true = take the jump, false = fall through  | `@WrapBranch` (OML-specific) |
 | `wrapOperation(...)`                 | wraps a call / field / `NEW` / type check / array instruction with `Operation<R>` | `@WrapOperation`     |
 | `wrapMethod(...)`                    | replaces a whole method body behind an `Operation`                        | `@WrapMethod`                |
 | `handlerCall(...)` / `mergedCall(...)` | calls a handler merged into the target class (`this` = target)          | –                            |
@@ -105,9 +107,16 @@ engine's bridge; a handler may declare the target instance as a typed first para
 `@Merged(target = "…")` opts into member merge (`this` = the target instance inside handlers and
 merged members). The method annotations — `@Inject` / `@Redirect` / `@ModifyArg` / `@ModifyArgs` /
 `@ModifyConstant` / `@ModifyVariable` / `@ModifyReturnValue` / `@ModifyExpressionValue` /
-`@ModifyReceiver` / `@WrapWithCondition` / `@WrapOperation` / `@WrapMethod`, with `@At`, `@Constant`
-and `@Slice` — compile into the same injection rules as the DSL: same pipeline, same startup
-checks.
+`@ModifyReceiver` / `@WrapWithCondition` / `@WrapBranch` / `@WrapOperation` / `@WrapMethod`, with
+`@At`, `@Constant` and `@Slice` — compile into the same injection rules as the DSL: same pipeline,
+same startup checks.
+
+`@WrapBranch` is OML's own landing point: the handler receives the values a conditional jump
+compares and returns whether the branch is taken. The operands follow the jump's stack form —
+`(I)Z` for `IFEQ`-family, `(II)Z` for `IF_ICMP*`, `(Object, Object)Z` for `IF_ACMP*`,
+`(Object)Z` for `IFNULL`/`IFNONNULL` — and the branch is the **bytecode** test, not the
+source-level condition: `if (x > 10)` compiles to "jump when `x <= 10`", so changing the threshold
+means returning that inverted test.
 
 `@Local` and `@Share` bind a handler parameter to a local variable. On `@Inject` the sugar
 parameters sit **before** the trailing `HookContext`/`HookValue`; on every other injector they are

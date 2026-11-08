@@ -41,6 +41,7 @@ object MyRules : RuleSetProvider {
 | `point(Anchor.typeCheck(…))`       | `CHECKCAST` / `INSTANCEOF` 指令前                   | `CHECKCAST` / `INSTANCEOF`   |
 | `point(Anchor.arrayAccess(…))`     | 数组读 / 写指令前                                   | `ARRAY_LOAD` / `ARRAY_STORE` |
 | `point(Anchor.arrayCreate(…))`     | `NEWARRAY` / `ANEWARRAY` / `MULTIANEWARRAY` 指令前  | `NEW_ARRAY`                  |
+| `atJump(opcode)`                   | 条件跳转前（`IFEQ`…`IF_ACMPNE`、`IFNULL`/`IFNONNULL`） | `JUMP`                     |
 | `within(from, to)`                 | 把搜索窗口限定在两个锚点之间（可嵌套，取交集）      | `@Slice`                     |
 
 锚点支持按 owner / desc / ordinal 过滤（如 `atReturn(0)` 只命中第一条返回）。
@@ -59,6 +60,7 @@ object MyRules : RuleSetProvider {
 | `modifyVariable(...)`                  | 改写局部变量                                                     | `@ModifyVariable`            |
 | `modifyReceiver(...)`                  | 改写实例调用 / 字段写入的接收者                                  | `@ModifyReceiver`            |
 | `wrapWithCondition(...)`               | 用布尔处理器决定 void 调用或字段写入是否执行                     | `@WrapWithCondition`         |
+| `wrapBranch(...)`                      | 决定条件跳转：true = 跳转，false = 顺序执行下一句                | `@WrapBranch`（OML 自有）    |
 | `wrapOperation(...)`                   | 用 `Operation<R>` 包装调用 / 字段 / `NEW` / 类型检查 / 数组指令  | `@WrapOperation`             |
 | `wrapMethod(...)`                      | 用 `Operation` 接管整个方法体                                    | `@WrapMethod`                |
 | `handlerCall(...)` / `mergedCall(...)` | 调用合并进目标类的处理器（`this` = 目标实例）                    | –                            |
@@ -98,8 +100,13 @@ classTarget("net/minecraft/client/Minecraft") {
 第一个参数）；`@Merged(target = "…")` 显式加入成员合并（handler 与合并成员里的 `this` 就是目标
 实例）。方法注解——`@Inject` / `@Redirect` / `@ModifyArg` / `@ModifyArgs` / `@ModifyConstant` /
 `@ModifyVariable` / `@ModifyReturnValue` / `@ModifyExpressionValue` / `@ModifyReceiver` /
-`@WrapWithCondition` / `@WrapOperation` / `@WrapMethod`，配合 `@At`、`@Constant` 与 `@Slice`——
-被前端翻译成与 DSL 相同的注入规则：同一条管线、同一套自检。
+`@WrapWithCondition` / `@WrapBranch` / `@WrapOperation` / `@WrapMethod`，配合 `@At`、`@Constant`
+与 `@Slice`——被前端翻译成与 DSL 相同的注入规则：同一条管线、同一套自检。
+
+`@WrapBranch` 是 OML 自己的落点：处理器拿到条件跳转所比较的值，返回是否执行这条跳转。
+操作数按跳转的栈形态排列——`IFEQ` 族是 `(I)Z`，`IF_ICMP*` 是 `(II)Z`，`IF_ACMP*` 是
+`(Object, Object)Z`，`IFNULL`/`IFNONNULL` 是 `(Object)Z`；处理的是**字节码层**的分支而不是
+源码层的条件：`if (x > 10)` 编译成“`x <= 10` 时跳转”，要调整阈值就得返回这个取反后的判断。
 
 `@Local` 与 `@Share` 把 handler 参数绑定到局部变量。在 `@Inject` 上，糖参数位于尾部
 `HookContext`/`HookValue` **之前**；在其他注入器上，它们是普通参数之后的**尾部后缀**。
