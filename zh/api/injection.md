@@ -136,12 +136,17 @@ private static boolean onTick(boolean original) {
   活跃局部变量，可限定只查参数槽）。
 - 捕获到的比较会物化为布尔值：上面的例子看到的是**源码层**的结果（max(…, 3) > 0 是否成立），
   分支会跟随改写后的值。表达式上的 `@WrapBranch` 则直接收到跳转比较的操作数，由 handler 决定
-  分支走向。`long`/`float`/`double` 比较（lcmp/fcmp/dcmp 接跳转）同样支持。
+  分支走向。`long`/`float`/`double` 比较（lcmp/fcmp/dcmp 接跳转）同样支持。比较上的
+  `@WrapOperation` 会把比较值和一个 `Operation<Boolean>` 交给 handler，后者可用任意值重新求值
+  源码层比较。
 - 整段字符串拼接可以作为表达式匹配；方法引用、强转、`instanceof`、算术、数组读写与数组创建都在
   语法范围内。
 - DSL 写法是 `atExpression("…")`，定义通过它的 `definitions` 参数传入。
 - 复合指令按需展开：字符串拼接或 iinc 内部的捕获会精确落到对应部分。捕获的 `new` 在其构造器调用之后
-  改写，数组字面量在最后一次写入之后改写。表达式 id 与以表达式为边界的 `@Slice` 暂未实现。
+  改写，数组字面量在最后一次写入之后改写。
+- 多个 `@Expression` 可以用 `id` 区分，`@At(id = "…")` 选择其中一个，也可用作 `@Slice` 边界
+  （`@Slice(from = @At(value = "EXPRESSION", id = "start"), …)`）。用 `@WrapOperation` 包装
+  `long`/`float`/`double` 比较暂不支持。
 
 不支持的 Fabric Mixin 形态（`Shift.BY`、动态 `targets`、`@Pseudo`、refmap、隐式模型切换）会启动期
 报错，不会静默失效。

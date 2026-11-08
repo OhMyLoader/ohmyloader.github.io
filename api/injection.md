@@ -150,13 +150,17 @@ private static boolean onTick(boolean original) {
   **source-level** result (is max(…, 3) > 0 true?) and the branch follows the rewritten value.
   `@WrapBranch` on an expression instead receives the jump's compared values and decides the branch
   itself. `long`/`float`/`double` comparisons (lcmp/fcmp/dcmp feeding a jump) work the same way.
+  `@WrapOperation` on a comparison hands the handler the compared values plus an `Operation<Boolean>`
+  that re-evaluates the source-level comparison with whatever values the handler supplies.
 - The whole string concatenation is a matchable expression; method references, casts, `instanceof`,
   arithmetic, array load/store and array creation are part of the grammar.
 - The DSL form is `atExpression("…")`, with the same definitions passed as its `definitions` argument.
 - Compound instructions are expanded on demand: a capture inside a string concatenation or an iinc
   targets that exact part. A captured `new` is rewritten after its constructor call, and an array
-  literal after its last store. Expression ids and expression-backed `@Slice` bounds are not
-  implemented yet.
+  literal after its last store.
+- Repeated `@Expression`s can be told apart by `id`; `@At(id = "…")` picks one, including as a
+  `@Slice` boundary (`@Slice(from = @At(value = "EXPRESSION", id = "start"), …)`). Wrapping a
+  long/float/double comparison with `@WrapOperation` is not supported yet.
 
 Fabric-Mixin shapes that are not supported (`Shift.BY`, dynamic `targets`, `@Pseudo`, refmaps,
 implicit merge-model switching) fail the startup with an explanation instead of failing silently.
