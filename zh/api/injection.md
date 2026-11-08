@@ -27,18 +27,21 @@ object MyRules : RuleSetProvider {
 
 ## 锚点
 
-| 锚点                               | 语义                                           | 对应 Mixin                 |
-|------------------------------------|------------------------------------------------|----------------------------|
-| `atHead`                           | 方法头                                         | `HEAD`                     |
-| `atConstructorHead`                | 构造器 `super()` 之后（此刻 `this` 才可用）    | –                          |
-| `atReturn(ordinal)`                | 每条返回指令前；`atReturn()` 全部              | `RETURN`                   |
-| `atTail`                           | 最后一条返回前                                 | `TAIL`                     |
-| `beforeCall` / `afterCall`         | 方法调用指令前 / 后                            | `INVOKE` / `INVOKE_ASSIGN` |
-| `beforeField` / `afterField`       | 字段读写指令前 / 后                            | –                          |
-| `beforeNew`                        | `new` 指令前                                   | –                          |
-| `beforeConstant` / `afterConstant` | 常量加载前 / 后                                | `CONSTANT`                 |
-| `afterStore` / `beforeLoad`        | 局部变量写入后 / 读取前                        | `Store` / `Load`           |
-| `within(from, to)`                 | 把搜索窗口限定在两个锚点之间（可嵌套，取交集） | `@Slice`                   |
+| 锚点                               | 语义                                                | 对应 Mixin                   |
+|------------------------------------|-----------------------------------------------------|------------------------------|
+| `atHead`                           | 方法头                                              | `HEAD`                       |
+| `atConstructorHead`                | 构造器 `super()` 之后（此刻 `this` 才可用）         | –                            |
+| `atReturn(ordinal)`                | 每条返回指令前；`atReturn()` 全部                   | `RETURN`                     |
+| `atTail`                           | 最后一条返回前                                      | `TAIL`                       |
+| `beforeCall` / `afterCall`         | 方法调用指令前 / 后                                 | `INVOKE` / `INVOKE_ASSIGN`   |
+| `beforeField` / `afterField`       | 字段读写指令前 / 后                                 | `FIELD`                      |
+| `beforeNew`                        | `new` 指令前                                        | `NEW`                        |
+| `beforeConstant` / `afterConstant` | 常量加载前 / 后                                     | `CONSTANT`                   |
+| `afterStore` / `beforeLoad`        | 局部变量写入后 / 读取前                             | `Store` / `Load`             |
+| `point(Anchor.typeCheck(…))`       | `CHECKCAST` / `INSTANCEOF` 指令前                   | `CHECKCAST` / `INSTANCEOF`   |
+| `point(Anchor.arrayAccess(…))`     | 数组读 / 写指令前                                   | `ARRAY_LOAD` / `ARRAY_STORE` |
+| `point(Anchor.arrayCreate(…))`     | `NEWARRAY` / `ANEWARRAY` / `MULTIANEWARRAY` 指令前  | `NEW_ARRAY`                  |
+| `within(from, to)`                 | 把搜索窗口限定在两个锚点之间（可嵌套，取交集）      | `@Slice`                     |
 
 锚点支持按 owner / desc / ordinal 过滤（如 `atReturn(0)` 只命中第一条返回）。
 
@@ -46,14 +49,19 @@ object MyRules : RuleSetProvider {
 
 每个锚点块内声明注入什么：
 
-| 载荷                                 | 语义                                             | 对应 Mixin                   |
-|--------------------------------------|--------------------------------------------------|------------------------------|
-| `call(owner, method, desc)`          | 在锚点处调用一个静态方法（参数可注入局部变量等） | `@Inject`                    |
-| `redirectCall(...)`                  | 重定向一处方法调用                               | `@Redirect`                  |
-| `modifyArg(...)` / `modifyArgs(...)` | 改写调用参数                                     | `@ModifyArg` / `@ModifyArgs` |
-| `modifyConstant(...)`                | 改写常量                                         | `@ModifyConstant`            |
-| `modifyExpressionValue(...)`         | 改写表达式求值结果                               | `@ModifyExpressionValue`     |
-| `modifyVariable(...)`                | 改写局部变量                                     | `@ModifyVariable`            |
+| 载荷                                   | 语义                                                             | 对应 Mixin                   |
+|----------------------------------------|------------------------------------------------------------------|------------------------------|
+| `call(owner, method, desc)`            | 在锚点处调用一个静态方法（参数可注入局部变量等）                 | `@Inject`                    |
+| `redirectCall(...)`                    | 重定向一处方法调用                                               | `@Redirect`                  |
+| `modifyArg(...)` / `modifyArgs(...)`   | 改写调用参数                                                     | `@ModifyArg` / `@ModifyArgs` |
+| `modifyConstant(...)`                  | 改写常量                                                         | `@ModifyConstant`            |
+| `modifyExpressionValue(...)`           | 改写表达式求值结果                                               | `@ModifyExpressionValue`     |
+| `modifyVariable(...)`                  | 改写局部变量                                                     | `@ModifyVariable`            |
+| `modifyReceiver(...)`                  | 改写实例调用 / 字段写入的接收者                                  | `@ModifyReceiver`            |
+| `wrapWithCondition(...)`               | 用布尔处理器决定 void 调用或字段写入是否执行                     | `@WrapWithCondition`         |
+| `wrapOperation(...)`                   | 用 `Operation<R>` 包装调用 / 字段 / `NEW` / 类型检查 / 数组指令  | `@WrapOperation`             |
+| `wrapMethod(...)`                      | 用 `Operation` 接管整个方法体                                    | `@WrapMethod`                |
+| `handlerCall(...)` / `mergedCall(...)` | 调用合并进目标类的处理器（`this` = 目标实例）                    | –                            |
 
 ## 命中数策略
 
@@ -89,9 +97,19 @@ classTarget("net/minecraft/client/Minecraft") {
 标注的类是**纯规则载体**（所有 handler 都经引擎的桥分发；handler 可以把目标实例声明为类型化的
 第一个参数）；`@Merged(target = "…")` 显式加入成员合并（handler 与合并成员里的 `this` 就是目标
 实例）。方法注解——`@Inject` / `@Redirect` / `@ModifyArg` / `@ModifyArgs` / `@ModifyConstant` /
-`@ModifyVariable` / `@ModifyReturnValue` / `@ModifyExpressionValue`，配合 `@At` 与 `@Slice`——
-被前端翻译成与 DSL 相同的注入规则：同一条管线、同一套自检。不支持的 Fabric Mixin 形态
-（`Shift.BY`、动态 `targets`、`@Pseudo`、refmap、隐式模型切换）会启动期报错，不会静默失效。
+`@ModifyVariable` / `@ModifyReturnValue` / `@ModifyExpressionValue` / `@ModifyReceiver` /
+`@WrapWithCondition` / `@WrapOperation` / `@WrapMethod`，配合 `@At`、`@Constant` 与 `@Slice`——
+被前端翻译成与 DSL 相同的注入规则：同一条管线、同一套自检。
+
+`@Local` 与 `@Share` 把 handler 参数绑定到局部变量。在 `@Inject` 上，糖参数位于尾部
+`HookContext`/`HookValue` **之前**；在其他注入器上，它们是普通参数之后的**尾部后缀**。
+`LocalRef<T>` 参数可写（handler 返回后引擎把它的最终值写回槽位），
+`LocalIntRef`/`LocalLongRef`/`LocalFloatRef`/`LocalDoubleRef` 等原始类型专用变体避免装箱。
+`@Share` 让同一次目标方法调用中的每个 handler 拿到同一个 `LocalRef`，先执行的 handler 可以
+把值留给后面的 handler。
+
+不支持的 Fabric Mixin 形态（`Shift.BY`、动态 `targets`、`@Pseudo`、refmap、隐式模型切换）会启动期
+报错，不会静默失效。
 
 ## 自检
 

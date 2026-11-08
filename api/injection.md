@@ -38,10 +38,13 @@ object MyRules : RuleSetProvider {
 | `atReturn(ordinal)`                | before every return; `atReturn()` = all                                  | `RETURN`                   |
 | `atTail`                           | before the last return                                                   | `TAIL`                     |
 | `beforeCall` / `afterCall`         | before / after a method call                                             | `INVOKE` / `INVOKE_ASSIGN` |
-| `beforeField` / `afterField`       | before / after a field access                                            | –                          |
-| `beforeNew`                        | before a `new` instruction                                               | –                          |
+| `beforeField` / `afterField`       | before / after a field access                                            | `FIELD`                    |
+| `beforeNew`                        | before a `new` instruction                                               | `NEW`                      |
 | `beforeConstant` / `afterConstant` | before / after a constant load                                           | `CONSTANT`                 |
 | `afterStore` / `beforeLoad`        | after a local-variable store / before a load                             | `Store` / `Load`           |
+| `point(Anchor.typeCheck(…))`       | before a `CHECKCAST` / `INSTANCEOF`                                      | `CHECKCAST` / `INSTANCEOF` |
+| `point(Anchor.arrayAccess(…))`     | before an array load / store                                             | `ARRAY_LOAD` / `ARRAY_STORE` |
+| `point(Anchor.arrayCreate(…))`     | before `NEWARRAY` / `ANEWARRAY` / `MULTIANEWARRAY`                       | `NEW_ARRAY`                |
 | `within(from, to)`                 | restricts the search window between two anchors (nestable, intersection) | `@Slice`                   |
 
 Anchors accept owner / desc / ordinal filters (`atReturn(0)` hits only the first return).
@@ -58,6 +61,11 @@ Each anchor block declares what to inject:
 | `modifyConstant(...)`                | rewrites a constant                                                       | `@ModifyConstant`            |
 | `modifyExpressionValue(...)`         | rewrites an expression's value                                            | `@ModifyExpressionValue`     |
 | `modifyVariable(...)`                | rewrites a local variable                                                 | `@ModifyVariable`            |
+| `modifyReceiver(...)`                | rewrites the receiver of an instance call / field write                   | `@ModifyReceiver`            |
+| `wrapWithCondition(...)`             | gates a void call or field write on a boolean handler                     | `@WrapWithCondition`         |
+| `wrapOperation(...)`                 | wraps a call / field / `NEW` / type check / array instruction with `Operation<R>` | `@WrapOperation`     |
+| `wrapMethod(...)`                    | replaces a whole method body behind an `Operation`                        | `@WrapMethod`                |
+| `handlerCall(...)` / `mergedCall(...)` | calls a handler merged into the target class (`this` = target)          | –                            |
 
 ## Match-count policies
 
@@ -96,11 +104,21 @@ annotated `@Hooked(target = "…")` is a pure rule carrier (every handler dispat
 engine's bridge; a handler may declare the target instance as a typed first parameter), and
 `@Merged(target = "…")` opts into member merge (`this` = the target instance inside handlers and
 merged members). The method annotations — `@Inject` / `@Redirect` / `@ModifyArg` / `@ModifyArgs` /
-`@ModifyConstant` / `@ModifyVariable` / `@ModifyReturnValue` / `@ModifyExpressionValue`, with `@At`
+`@ModifyConstant` / `@ModifyVariable` / `@ModifyReturnValue` / `@ModifyExpressionValue` /
+`@ModifyReceiver` / `@WrapWithCondition` / `@WrapOperation` / `@WrapMethod`, with `@At`, `@Constant`
 and `@Slice` — compile into the same injection rules as the DSL: same pipeline, same startup
-checks. Fabric-Mixin shapes that are not supported (`Shift.BY`, dynamic `targets`, `@Pseudo`,
-refmaps, implicit merge-model switching) fail the startup with an explanation instead of failing
-silently.
+checks.
+
+`@Local` and `@Share` bind a handler parameter to a local variable. On `@Inject` the sugar
+parameters sit **before** the trailing `HookContext`/`HookValue`; on every other injector they are
+a **trailing suffix** after the handler's ordinary parameters. A `LocalRef<T>` parameter is
+writable (the engine writes its final value back to the slot after the handler returns), and the
+primitive-specialized `LocalIntRef`/`LocalLongRef`/`LocalFloatRef`/`LocalDoubleRef` variants avoid
+boxing. `@Share` hands the same `LocalRef` to every handler of one target-method invocation, so an
+earlier handler can leave a value for a later one.
+
+Fabric-Mixin shapes that are not supported (`Shift.BY`, dynamic `targets`, `@Pseudo`, refmaps,
+implicit merge-model switching) fail the startup with an explanation instead of failing silently.
 
 ## Startup checks
 
