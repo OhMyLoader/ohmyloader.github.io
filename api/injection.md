@@ -165,10 +165,30 @@ private static boolean onTick(boolean original) {
 Fabric-Mixin shapes that are not supported (`Shift.BY`, dynamic `targets`, `@Pseudo`, refmaps,
 implicit merge-model switching) fail the startup with an explanation instead of failing silently.
 
+## Lambda methods
+
+A lambda's generated name (`lambda$tick$0`) is compiler output and drifts with any edit. Instead of
+naming it, name the method that **contains** the lambda and its functional interface:
+
+```java
+@Lambda(interfaceType = Supplier.class, ordinal = 0)
+@Inject(method = "tick", at = @At("HEAD"))
+private static void onLambda(HookContext context) { … }
+```
+
+`ordinal` picks the Nth matching lambda when the enclosing method has several. The engine follows the
+`LambdaMetafactory` `invokedynamic`'s implementation handle, so only lambdas whose body is compiled
+into the same class are resolvable; a method reference to another class is not. The DSL form is
+`lambdaMethod("tick", interfaceInternal = "java/util/function/Supplier") { … }`. A miss lists the
+lambdas the enclosing method actually contains.
+
 ## Startup checks
 
 Every rule is re-verified before control is handed to the game's main thread: handler existence,
-staticness, signature consistency and match counts. The default mode `fail` prints each problem and
+staticness, signature consistency and match counts. Two rules whose payloads **replace** what they
+anchor on (`@Redirect`, `@WrapOperation`, `@WrapBranch`, whole-method wraps) resolving to the same
+site fail with both named — the loser would otherwise silently miss; stacking payloads
+(notifications, value modifiers, conditions) are unaffected. The default mode `fail` prints each problem and
 aborts; `-Doml.injection.verify=warn` only warns; `off` disables. For timing and scale statistics,
 add `-Doml.diagnostics=1` — that switch is boolean (any non-blank value other than `false` turns it
 on; the value carries no meaning).

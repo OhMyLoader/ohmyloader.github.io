@@ -151,9 +151,27 @@ private static boolean onTick(boolean original) {
 不支持的 Fabric Mixin 形态（`Shift.BY`、动态 `targets`、`@Pseudo`、refmap、隐式模型切换）会启动期
 报错，不会静默失效。
 
+## Lambda 方法
+
+Lambda 的生成名（`lambda$tick$0`）是编译器产物，任何改动都可能让它漂移。可以改为点名**包含**
+lambda 的方法及它的函数式接口：
+
+```java
+@Lambda(interfaceType = Supplier.class, ordinal = 0)
+@Inject(method = "tick", at = @At("HEAD"))
+private static void onLambda(HookContext context) { … }
+```
+
+外层方法里有多个同接口 lambda 时，`ordinal` 选择第 N 个。引擎顺着 `LambdaMetafactory`
+`invokedynamic` 的实现句柄找到合成方法，因此只支持实现体编译在**同一个类**里的 lambda；指向其他类的
+方法引用不算。DSL 写法是 `lambdaMethod("tick", interfaceInternal = "java/util/function/Supplier") { … }`。
+未命中时会列出外层方法里实际存在的 lambda。
+
 ## 自检
 
-所有规则在控制权交给游戏主线程之前重新验证：处理器存在性、静态性、签名一致性、命中数。默认模式
+所有规则在控制权交给游戏主线程之前重新验证：处理器存在性、静态性、签名一致性、命中数。两条会让锚点
+指令**被替换**的规则（`@Redirect`、`@WrapOperation`、`@WrapBranch`、整方法包装）解析到同一处时，会在
+类加载期报出双方身份——否则后者只会静默未命中；可叠加的载荷（通知、值改写、条件）不受影响。默认模式
 `fail` 逐条打印问题并中止启动；`-Doml.injection.verify=warn` 只告警；`off` 关闭。要拿到改写耗时与
 规模统计，加上 `-Doml.diagnostics=1`——这个开关是布尔的（任何非空且非 `false` 的值即启用，取值本身
 没有含义）。
