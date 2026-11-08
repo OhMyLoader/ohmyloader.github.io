@@ -132,15 +132,16 @@ private static boolean onTick(boolean original) {
 - `?` 是通配符；`@(…)` 显式标出捕获部分（不写则捕获整个表达式）；`ordinal` 按方法顺序选中第 N 个
   捕获到的指令。
 - `@Definition` 声明标识符：`method` 与 `field` 接受和 `@At(target = …)` 相同的字符串，`type`
-  接受 `instanceof`、强转与实例化中用到的类。
+  接受 `instanceof`、强转与实例化中用到的类，`local` 用来命名局部变量（指定槽位，或第 N 个该类型的
+  活跃局部变量，可限定只查参数槽）。
 - 捕获到的比较会物化为布尔值：上面的例子看到的是**源码层**的结果（max(…, 3) > 0 是否成立），
   分支会跟随改写后的值。表达式上的 `@WrapBranch` 则直接收到跳转比较的操作数，由 handler 决定
   分支走向。`long`/`float`/`double` 比较（lcmp/fcmp/dcmp 接跳转）同样支持。
 - 整段字符串拼接可以作为表达式匹配；方法引用、强转、`instanceof`、算术、数组读写与数组创建都在
   语法范围内。
 - DSL 写法是 `atExpression("…")`，定义通过它的 `definitions` 参数传入。
-- 复合指令的各个部分目前还不能独立作为注入目标，标识符也还不能代表局部变量；表达式 id 与以表达式
-  为边界的 `@Slice` 暂未实现。
+- 复合指令按需展开：字符串拼接或 iinc 内部的捕获会精确落到对应部分。`NEW` 或数组字面量所产生值的
+  改写、表达式 id 与以表达式为边界的 `@Slice` 暂未实现。
 
 不支持的 Fabric Mixin 形态（`Shift.BY`、动态 `targets`、`@Pseudo`、refmap、隐式模型切换）会启动期
 报错，不会静默失效。

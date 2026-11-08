@@ -144,7 +144,8 @@ private static boolean onTick(boolean original) {
 - `?` is a wildcard; `@(…)` marks the captured part explicitly (without it the whole expression is
   captured); `ordinal` selects the Nth captured instruction in method order.
 - `@Definition` declares identifiers: `method` and `field` take the same strings as `@At(target = …)`,
-  `type` takes classes used by `instanceof`, casts and instantiations.
+  `type` takes classes used by `instanceof`, casts and instantiations, and `local` names a local
+  variable (a slot, or the Nth live local of a type, optionally restricted to arguments).
 - A captured comparison is materialized as a boolean value, so the example above sees the
   **source-level** result (is max(…, 3) > 0 true?) and the branch follows the rewritten value.
   `@WrapBranch` on an expression instead receives the jump's compared values and decides the branch
@@ -152,9 +153,9 @@ private static boolean onTick(boolean original) {
 - The whole string concatenation is a matchable expression; method references, casts, `instanceof`,
   arithmetic, array load/store and array creation are part of the grammar.
 - The DSL form is `atExpression("…")`, with the same definitions passed as its `definitions` argument.
-- Not every part of a compound instruction is independently targetable yet, and identifiers cannot
-  stand for local variables; expression ids and expression-backed `@Slice` bounds are not
-  implemented yet.
+- Compound instructions are expanded on demand: a capture inside a string concatenation or an iinc
+  targets that exact part. Rewriting the value produced by `NEW` or an array literal, expression ids
+  and expression-backed `@Slice` bounds are not implemented yet.
 
 Fabric-Mixin shapes that are not supported (`Shift.BY`, dynamic `targets`, `@Pseudo`, refmaps,
 implicit merge-model switching) fail the startup with an explanation instead of failing silently.
