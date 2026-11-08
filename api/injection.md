@@ -154,8 +154,9 @@ private static boolean onTick(boolean original) {
   arithmetic, array load/store and array creation are part of the grammar.
 - The DSL form is `atExpression("…")`, with the same definitions passed as its `definitions` argument.
 - Compound instructions are expanded on demand: a capture inside a string concatenation or an iinc
-  targets that exact part. Rewriting the value produced by `NEW` or an array literal, expression ids
-  and expression-backed `@Slice` bounds are not implemented yet.
+  targets that exact part. A captured `new` is rewritten after its constructor call, and an array
+  literal after its last store. Expression ids and expression-backed `@Slice` bounds are not
+  implemented yet.
 
 Fabric-Mixin shapes that are not supported (`Shift.BY`, dynamic `targets`, `@Pseudo`, refmaps,
 implicit merge-model switching) fail the startup with an explanation instead of failing silently.

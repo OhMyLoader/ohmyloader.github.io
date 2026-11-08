@@ -140,8 +140,8 @@ private static boolean onTick(boolean original) {
 - 整段字符串拼接可以作为表达式匹配；方法引用、强转、`instanceof`、算术、数组读写与数组创建都在
   语法范围内。
 - DSL 写法是 `atExpression("…")`，定义通过它的 `definitions` 参数传入。
-- 复合指令按需展开：字符串拼接或 iinc 内部的捕获会精确落到对应部分。`NEW` 或数组字面量所产生值的
-  改写、表达式 id 与以表达式为边界的 `@Slice` 暂未实现。
+- 复合指令按需展开：字符串拼接或 iinc 内部的捕获会精确落到对应部分。捕获的 `new` 在其构造器调用之后
+  改写，数组字面量在最后一次写入之后改写。表达式 id 与以表达式为边界的 `@Slice` 暂未实现。
 
 不支持的 Fabric Mixin 形态（`Shift.BY`、动态 `targets`、`@Pseudo`、refmap、隐式模型切换）会启动期
 报错，不会静默失效。
