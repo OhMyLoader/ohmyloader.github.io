@@ -17,14 +17,16 @@ The loader implements its own injection engine and replaces the SpongePowered Mi
 layers:
 
 - **Injection DSL**: anchors such as `atHead`, `atReturn`, and `beforeCall`, with payloads such as `call`,
-  `modifyArg`, and `redirectCall`. The semantics match Mixin, but the rules are declarative and checked at
-  startup.
+  `modifyArg`, and `redirectCall`. The semantics match Mixin, but the rules are declarative and self-checked
+  at startup.
 - **Member merging**: `@Borrowed`, `@Replace`, `@Extra`, `@FieldAccess`, and `@MethodAccess` are supported, via the explicit `@Merged` carrier.
 - **Annotation front end**: hook carriers (`@Hooked` / `@Merged`) declare `@Inject` and friends; the loader compiles
   the annotations into injection rules and runs them through the same pipeline.
 
-Every rule is verified at startup: handler existence, staticness, signature consistency, and match counts. A
-wrong rule fails the launch instead of silently doing less in game.
+Every rule is self-checked at startup for handler existence, staticness, signature consistency, and
+anchor/access-rule sanity. Target existence and match counts are enforced when the target class loads, and
+the bundled adapters' anchors are checked against the real game jar at build time. A wrong rule fails fast
+instead of silently doing less in game.
 
 ### Thin adapters
 

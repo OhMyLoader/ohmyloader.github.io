@@ -1,8 +1,10 @@
 # Injection DSL & Hooks
 
 When you need to change Minecraft's unexposed internals, use OML's injection DSL instead of Mixin.
-Rules are purely declarative and verified one by one at startup (handler existence, signatures,
-match counts) — a wrong rule fails the launch instead of silently doing nothing in game.
+Rules are purely declarative. Handler existence, signatures, and rule sanity are self-checked at startup;
+target existence and match counts are enforced when the target class loads (the bundled adapters' anchors
+are checked against the real game jar at build time) — a wrong rule fails fast instead of silently doing
+nothing in game.
 
 ## Rule set skeleton
 

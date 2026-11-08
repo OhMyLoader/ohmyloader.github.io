@@ -19,7 +19,7 @@ hero:
 features:
   - icon: ⚙️
     title: 注入引擎
-    details: 声明式注入 DSL 与 Mixin 类合并；每条规则在启动期校验。
+    details: 声明式注入 DSL 与 Mixin 类合并；规则在启动期自检，目标锚点与命中数在目标类加载时强制校验。
   - icon: 🧩
     title: 统一 mod API
     details: 函数式事件注册、生命周期入口与内容声明 DSL。事件载荷与扩展直接使用游戏自己的 `net.minecraft.*` 类型，没有包装层；个别句柄保留 `platform` 逃生舱。

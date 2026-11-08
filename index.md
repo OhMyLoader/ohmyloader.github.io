@@ -19,7 +19,7 @@ hero:
 features:
   - icon: ⚙️
     title: Injection engine
-    details: A declarative injection DSL with Mixin class merging. Every rule is checked at startup.
+    details: A declarative injection DSL with Mixin class merging. Rules are self-checked at startup; target anchors and hit counts are enforced when the target class loads.
   - icon: 🧩
     title: Unified mod API
     details: Lambda-based event registration, lifecycle entry points, and a content declaration DSL. Event payloads and extensions are the game's own `net.minecraft.*` types, with no wrapper layer; a few handles keep a `platform` escape hatch.
