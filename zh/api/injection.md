@@ -53,7 +53,7 @@ object MyRules : RuleSetProvider {
 | 载荷                                   | 语义                                                             | 对应 Mixin                   |
 |----------------------------------------|------------------------------------------------------------------|------------------------------|
 | `call(owner, method, desc)`            | 在锚点处调用一个静态方法（参数可注入局部变量等）                 | `@Inject`                    |
-| `redirectCall(...)`                    | 重定向一处方法调用                                               | `@Redirect`                  |
+| `redirectCall(...)`                    | 重定向一处方法调用，或用静态工厂替换 `new`                        | `@Redirect`                  |
 | `modifyArg(...)` / `modifyArgs(...)`   | 改写调用参数                                                     | `@ModifyArg` / `@ModifyArgs` |
 | `modifyConstant(...)`                  | 改写常量                                                         | `@ModifyConstant`            |
 | `modifyExpressionValue(...)`           | 改写表达式求值结果                                               | `@ModifyExpressionValue`     |

@@ -57,7 +57,7 @@ Each anchor block declares what to inject:
 | Payload                              | Semantics                                                                 | Mixin equivalent             |
 |--------------------------------------|---------------------------------------------------------------------------|------------------------------|
 | `call(owner, method, desc)`          | calls a static method at the anchor (locals can be injected as arguments) | `@Inject`                    |
-| `redirectCall(...)`                  | redirects one method call                                                 | `@Redirect`                  |
+| `redirectCall(...)`                  | redirects one method call, or replaces `new` with a static factory        | `@Redirect`                  |
 | `modifyArg(...)` / `modifyArgs(...)` | rewrites call arguments                                                   | `@ModifyArg` / `@ModifyArgs` |
 | `modifyConstant(...)`                | rewrites a constant                                                       | `@ModifyConstant`            |
 | `modifyExpressionValue(...)`         | rewrites an expression's value                                            | `@ModifyExpressionValue`     |
