@@ -188,8 +188,8 @@ private static boolean onTick(boolean original) {
   `@ModifyReturnValue` replaces the captured value after it is produced (the handler's parameter
   and return type must equal that value's type). `@Coerce` on a `@ModifyExpressionValue`,
   `@ModifyReturnValue`, `@ModifyArg` (single-argument mode), `@ModifyConstant`,
-  `@ModifyVariable`, `@Redirect` or `@WrapOperation` (by parameter position; standard and `NEW`
-  anchors) handler parameter
+  `@ModifyVariable`, `@ModifyReceiver`, `@Redirect` or `@WrapOperation` (by parameter position;
+  standard and `NEW` anchors) handler parameter
   accepts a reference supertype of the produced value, and on the handler method it lets the return
   be a reference supertype (the engine casts it back). On `@ModifyExpressionValue` the value is
   boxed for a reference parameter and unboxed from a reference return, so `(Object)Object` also
