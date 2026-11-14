@@ -134,8 +134,9 @@ earlier handler can leave a value for a later one.
 `@Cancellable` marks the final parameter of a `@WrapOperation` handler as `HookContext` (void
 target) or `HookValue<T>` (non-void target). Calling `cancel()` returns from the target method as
 soon as the handler returns, and `HookValue.setReturnValue(v)` also supplies the value; without a
-cancel call the wrapped operation's result flows on unchanged. It currently covers call, field,
-type-check and array anchors, not comparison or `NEW` wrap anchors.
+cancel call the wrapped operation's result flows on unchanged. Every anchor kind is covered: a
+cancelled comparison skips its branch, and a cancelled `NEW` drops the constructed object before the
+rest of the expression sees it.
 
 ## Expressions
 

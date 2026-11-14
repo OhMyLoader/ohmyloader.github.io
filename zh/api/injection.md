@@ -122,7 +122,7 @@ classTarget("net/minecraft/client/Minecraft") {
 `@Cancellable` 标记 `@WrapOperation` handler 的最后一个参数：目标返回 void 时是 `HookContext`，
 否则是 `HookValue<T>`。调用 `cancel()` 后，handler 一返回目标方法就立即返回；
 `HookValue.setReturnValue(v)` 还会同时给出返回值。没有取消时，被包装操作的结果照常往下传递。
-目前覆盖调用、字段、类型检查与数组锚点，尚不包括比较与 `NEW` 包装锚点。
+所有锚点类型都覆盖：取消比较会跳过对应分支，取消 `NEW` 会在表达式其余部分看到结果之前丢弃已构造的对象。
 
 ## 表达式
 
