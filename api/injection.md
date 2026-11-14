@@ -152,11 +152,13 @@ private static boolean onTick(boolean original) {
   captured); `ordinal` selects the Nth captured instruction in method order.
 - `@Definition` declares identifiers: `method` and `field` take the same strings as `@At(target = …)`,
   `type` takes classes used by `instanceof`, casts and instantiations, and `local` names a local
-  variable (a slot, or the Nth live local of a type, optionally restricted to arguments). The
-  declarations are checked at startup: every identifier and type a pattern uses must be declared (or
-  be one of the defaults `length` and the primitive type names), so a typo fails the launch with the
-  pattern text. When nothing matches, the weaving log names the closest partial match — the
-  sub-pattern and the instruction it was tried against — or reports an out-of-range `ordinal`.
+  variable (a slot, or the Nth live local of a type, optionally restricted to arguments). A
+  `@DefinitionLocal` with `print = true` logs the resolved slot and the local table at the matching
+  load, and a declared local that never resolves is named in the miss hint. The declarations are
+  checked at startup: every identifier and type a pattern uses must be declared (or be one of the
+  defaults `length` and the primitive type names), so a typo fails the launch with the pattern text.
+  When nothing matches, the weaving log names the closest partial match — the sub-pattern and the
+  instruction it was tried against — or reports an out-of-range `ordinal`.
 - A captured comparison is materialized as a boolean value, so the example above sees the
   **source-level** result (is max(…, 3) > 0 true?) and the branch follows the rewritten value.
   `@WrapBranch` on an expression instead receives the jump's compared values and decides the branch
