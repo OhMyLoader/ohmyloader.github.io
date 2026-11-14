@@ -143,9 +143,9 @@ private static boolean onTick(boolean original) {
   织入日志会给出最接近的部分匹配——尝试匹配的子模式及其指令——或者报告 `ordinal` 越界。
 - 捕获到的比较会物化为布尔值：上面的例子看到的是**源码层**的结果（max(…, 3) > 0 是否成立），
   分支会跟随改写后的值。表达式上的 `@WrapBranch` 则直接收到跳转比较的操作数，由 handler 决定
-  分支走向。`long`/`float`/`double` 比较（lcmp/fcmp/dcmp 接跳转）同样支持。比较上的
-  `@WrapOperation` 会把比较值和一个 `Operation<Boolean>` 交给 handler，后者可用任意值重新求值
-  源码层比较。
+  分支走向；`long`/`float`/`double` 比较（lcmp/fcmp/dcmp 接跳转）会收到两个源操作数，由 handler
+  决定原始分支。比较上的 `@WrapOperation` 会把比较值（复杂比较则是源操作数）和一个
+  `Operation<Boolean>` 交给 handler，后者可用任意值重新求值源码层比较。
 - 整段字符串拼接可以作为表达式匹配；方法引用、强转、`instanceof`、算术、数组读写与数组创建都在
   语法范围内。用 `@WrapOperation` 包装整段拼接时作用在它的 `invokedynamic` 上：handler 收到拼接的
   操作数，以及一个会重新执行同一调用点的 `Operation<String>`。
@@ -159,8 +159,7 @@ private static boolean onTick(boolean original) {
   （实例调用要到织入期才能判定）；工厂重定向会被拒绝，而 `@ModifyArg(s)` 捕获 `new` 时会改写
   构造器参数。
 - 多个 `@Expression` 可以用 `id` 区分，`@At(id = "…")` 选择其中一个，也可用作 `@Slice` 边界
-  （`@Slice(from = @At(value = "EXPRESSION", id = "start"), …)`）。用 `@WrapOperation` 包装
-  `long`/`float`/`double` 比较暂不支持。
+  （`@Slice(from = @At(value = "EXPRESSION", id = "start"), …)`）。
 
 不支持的 Fabric Mixin 形态（`Shift.BY`、动态 `targets`、`@Pseudo`、refmap、隐式模型切换）会启动期
 报错，不会静默失效。

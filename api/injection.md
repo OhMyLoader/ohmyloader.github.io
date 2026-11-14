@@ -159,9 +159,10 @@ private static boolean onTick(boolean original) {
 - A captured comparison is materialized as a boolean value, so the example above sees the
   **source-level** result (is max(…, 3) > 0 true?) and the branch follows the rewritten value.
   `@WrapBranch` on an expression instead receives the jump's compared values and decides the branch
-  itself. `long`/`float`/`double` comparisons (lcmp/fcmp/dcmp feeding a jump) work the same way.
-  `@WrapOperation` on a comparison hands the handler the compared values plus an `Operation<Boolean>`
-  that re-evaluates the source-level comparison with whatever values the handler supplies.
+  itself; for `long`/`float`/`double` comparisons (lcmp/fcmp/dcmp feeding a jump) it receives the two
+  source operands and decides the raw branch. `@WrapOperation` on a comparison hands the handler the
+  compared values (the source operands for a complex comparison) plus an `Operation<Boolean>` that
+  re-evaluates the source-level comparison with whatever values the handler supplies.
 - The whole string concatenation is a matchable expression; method references, casts, `instanceof`,
   arithmetic, array load/store and array creation are part of the grammar. Wrapping a whole
   concatenation with `@WrapOperation` acts on its `invokedynamic`: the handler receives the
@@ -179,8 +180,7 @@ private static boolean onTick(boolean original) {
   redirects are rejected, while `@ModifyArg(s)` on a captured `new` rewrites the constructor's
   arguments.
 - Repeated `@Expression`s can be told apart by `id`; `@At(id = "…")` picks one, including as a
-  `@Slice` boundary (`@Slice(from = @At(value = "EXPRESSION", id = "start"), …)`). Wrapping a
-  long/float/double comparison with `@WrapOperation` is not supported yet.
+  `@Slice` boundary (`@Slice(from = @At(value = "EXPRESSION", id = "start"), …)`).
 
 Fabric-Mixin shapes that are not supported (`Shift.BY`, dynamic `targets`, `@Pseudo`, refmaps,
 implicit merge-model switching) fail the startup with an explanation instead of failing silently.
