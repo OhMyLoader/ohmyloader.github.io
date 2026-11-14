@@ -112,7 +112,9 @@ merged members). The method annotations — `@Inject` / `@Redirect` / `@ModifyAr
 same startup checks. `@Constant` matches only explicitly written discriminators — `nullValue`, the
 numeric and string fields, or `classValue` for a class literal. `@Implements(ExtraIface::class, …)`
 on a `@Merged` or interface carrier adds the declared interfaces to the target, so their default
-methods become available and casts to the interface succeed (no name prefixing).
+methods become available and casts to the interface succeed (no name prefixing). A `@Mutable`
+`@Borrowed` field clears `final` on the target field, so merged methods outside the constructor can
+write it.
 
 `@WrapBranch` is OML's own landing point: the handler receives the values a conditional jump
 compares and returns whether the branch is taken. The operands follow the jump's stack form —

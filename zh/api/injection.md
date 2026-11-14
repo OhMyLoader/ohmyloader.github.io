@@ -104,7 +104,8 @@ classTarget("net/minecraft/client/Minecraft") {
 与 `@Slice`——被前端翻译成与 DSL 相同的注入规则：同一条管线、同一套自检。`@Constant` 只匹配
 显式写出的判别字段——`nullValue`、数值与字符串字段，或用于类字面量的 `classValue`。在 `@Merged`
 或接口载具上写 `@Implements(ExtraIface::class, …)` 会把声明的接口加到目标类：接口默认方法随即可用，
-也能把目标实例转换为该接口（不做名称前缀）。
+也能把目标实例转换为该接口（不做名称前缀）。`@Borrowed` 字段上的 `@Mutable` 会清除目标字段的
+`final`，使合并进来的、位于构造器之外的方法也能写它。
 
 `@WrapBranch` 是 OML 自己的落点：处理器拿到条件跳转所比较的值，返回是否执行这条跳转。
 操作数按跳转的栈形态排列——`IFEQ` 族是 `(I)Z`，`IF_ICMP*` 是 `(II)Z`，`IF_ACMP*` 是
