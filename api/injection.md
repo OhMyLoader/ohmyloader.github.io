@@ -131,6 +131,12 @@ primitive-specialized `LocalIntRef`/`LocalLongRef`/`LocalFloatRef`/`LocalDoubleR
 boxing. `@Share` hands the same `LocalRef` to every handler of one target-method invocation, so an
 earlier handler can leave a value for a later one.
 
+`@Inject(cancelable = true)` short-circuits at method-entry anchors (`HEAD` / `CTOR_HEAD`) — a void
+target with `HookContext`, a non-void one with `HookValue<T>`. A void target can also cancel right
+after a **void** call (`INVOKE_ASSIGN`, or `shift = AFTER` with the call's descriptor written); the
+continuation frame comes from dataflow. Other positions, and every anchor of a merged instance
+handler, degrade to a notification.
+
 `@Cancellable` marks the final parameter of a `@WrapOperation` handler as `HookContext` (void
 target) or `HookValue<T>` (non-void target). Calling `cancel()` returns from the target method as
 soon as the handler returns, and `HookValue.setReturnValue(v)` also supplies the value; without a
