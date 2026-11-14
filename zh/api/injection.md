@@ -131,6 +131,14 @@ classTarget("net/minecraft/client/Minecraft") {
 （`INVOKE_ASSIGN`，或在写出调用描述符的前提下 `shift = AFTER`），延续帧由数据流推导。其他位置
 以及合并实例 handler 的每个锚点都会降级为通知。
 
+来自多个 mixin 的 handler 可以落在同一个注入点。每个注入器都有 `priority`（默认 `1000`；DSL 里是
+method 规则中的 `priority(n)`）：数值越大越先应用，并且引擎保证**执行顺序与应用顺序一致**——在
+前置与后置锚点上，优先级更高的通知先执行；在值链（`@ModifyReturnValue`、`@ModifyVariable`、
+`@ModifyArg`、`@ModifyExpressionValue` 等）中，优先级最高的 handler 看到原始值，之后的 handler 依次
+看到前一个的结果。会替换锚点的载荷（`@Redirect`、`@WrapOperation`、`@WrapBranch`、整方法包装）仍然
+不能共享同一条指令——优先级不会把冲突变成覆盖——整方法包装也始终最后执行，以便其方法体搬移看到所有
+普通注入。
+
 `@Cancellable` 标记 `@WrapOperation` handler 的最后一个参数：目标返回 void 时是 `HookContext`，
 否则是 `HookValue<T>`。调用 `cancel()` 后，handler 一返回目标方法就立即返回；
 `HookValue.setReturnValue(v)` 还会同时给出返回值。没有取消时，被包装操作的结果照常往下传递。

@@ -145,6 +145,16 @@ after a **void** call (`INVOKE_ASSIGN`, or `shift = AFTER` with the call's descr
 continuation frame comes from dataflow. Other positions, and every anchor of a merged instance
 handler, degrade to a notification.
 
+Handlers from several mixins can share one site. Every injector takes `priority` (default `1000`;
+the DSL form is `priority(n)` in the method rule): a higher value is applied first, and the engine
+keeps the **run order equal to that application order** at both before- and after-anchors — the
+higher-priority notification runs first, and in a value chain (`@ModifyReturnValue`,
+`@ModifyVariable`, `@ModifyArg`, `@ModifyExpressionValue`, …) the higher-priority handler sees the
+original value while each later handler sees the previous result. Payloads that replace their site
+(`@Redirect`, `@WrapOperation`, `@WrapBranch`, whole-method wraps) still cannot share one
+instruction — priority never turns that conflict into an override — and whole-method wraps always
+run last so their body move sees the ordinary injections.
+
 `@Cancellable` marks the final parameter of a `@WrapOperation` handler as `HookContext` (void
 target) or `HookValue<T>` (non-void target). Calling `cancel()` returns from the target method as
 soon as the handler returns, and `HookValue.setReturnValue(v)` also supplies the value; without a
