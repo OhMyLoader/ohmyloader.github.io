@@ -190,7 +190,9 @@ private static boolean onTick(boolean original) {
   `@ModifyReturnValue`, `@ModifyArg` (single-argument mode), `@ModifyConstant` or
   `@ModifyVariable` handler parameter
   accepts a reference supertype of the produced value, and on the handler method it lets the return
-  be a reference supertype (the engine casts it back); primitive coercion is not implemented yet. A
+  be a reference supertype (the engine casts it back). On `@ModifyExpressionValue` the value is
+  boxed for a reference parameter and unboxed from a reference return, so `(Object)Object` also
+  works for primitive expressions; the other injectors still require reference types. A
   `@Redirect` handler must start with the captured
   call's receiver plus arguments (an instance call is only classified at weaving time); factory
   redirects are rejected, while `@ModifyArg(s)` on a captured `new` rewrites the constructor's
