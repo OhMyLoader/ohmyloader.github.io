@@ -115,6 +115,11 @@ classTarget("net/minecraft/client/Minecraft") {
 `@Share` 让同一次目标方法调用中的每个 handler 拿到同一个 `LocalRef`，先执行的 handler 可以
 把值留给后面的 handler。
 
+`@Cancellable` 标记 `@WrapOperation` handler 的最后一个参数：目标返回 void 时是 `HookContext`，
+否则是 `HookValue<T>`。调用 `cancel()` 后，handler 一返回目标方法就立即返回；
+`HookValue.setReturnValue(v)` 还会同时给出返回值。没有取消时，被包装操作的结果照常往下传递。
+目前覆盖调用、字段、类型检查与数组锚点，尚不包括比较与 `NEW` 包装锚点。
+
 ## 表达式
 
 `@Expression("…")` 匹配的是从目标方法字节码重建出来的、类 Java 的表达式，而不是单条指令。

@@ -126,6 +126,12 @@ primitive-specialized `LocalIntRef`/`LocalLongRef`/`LocalFloatRef`/`LocalDoubleR
 boxing. `@Share` hands the same `LocalRef` to every handler of one target-method invocation, so an
 earlier handler can leave a value for a later one.
 
+`@Cancellable` marks the final parameter of a `@WrapOperation` handler as `HookContext` (void
+target) or `HookValue<T>` (non-void target). Calling `cancel()` returns from the target method as
+soon as the handler returns, and `HookValue.setReturnValue(v)` also supplies the value; without a
+cancel call the wrapped operation's result flows on unchanged. It currently covers call, field,
+type-check and array anchors, not comparison or `NEW` wrap anchors.
+
 ## Expressions
 
 `@Expression("…")` targets a Java-like expression reconstructed from the target method's bytecode
