@@ -195,8 +195,9 @@ private static void onLambda(HookContext context) { … }
 ```
 
 外层方法里有多个同接口 lambda 时，`ordinal` 选择第 N 个。引擎顺着 `LambdaMetafactory`
-`invokedynamic` 的实现句柄找到合成方法，因此只支持实现体编译在**同一个类**里的 lambda；指向其他类的
-方法引用不算。DSL 写法是 `lambdaMethod("tick", interfaceInternal = "java/util/function/Supplier") { … }`。
+`invokedynamic` 的实现句柄定位实现：编译在外层类里的实现体直接注入该类；指向**其他类**的方法引用则
+解析到被引用的方法，规则在扫描模组时、任何类加载之前就登记到那个类上——注入会对该方法的**所有**
+调用方生效。DSL 写法是 `lambdaMethod("tick", interfaceInternal = "java/util/function/Supplier") { … }`。
 未命中时会列出外层方法里实际存在的 lambda。
 
 ## 性能

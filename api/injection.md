@@ -223,8 +223,10 @@ private static void onLambda(HookContext context) { … }
 ```
 
 `ordinal` picks the Nth matching lambda when the enclosing method has several. The engine follows the
-`LambdaMetafactory` `invokedynamic`'s implementation handle, so only lambdas whose body is compiled
-into the same class are resolvable; a method reference to another class is not. The DSL form is
+`LambdaMetafactory` `invokedynamic`'s implementation handle: a body compiled into the enclosing class
+is targeted there, while a method reference into **another class** resolves to that method and the
+rule is registered against the referenced class while the mod is scanned, before any class loads —
+the injection then runs for every caller of that method. The DSL form is
 `lambdaMethod("tick", interfaceInternal = "java/util/function/Supplier") { … }`. A miss lists the
 lambdas the enclosing method actually contains.
 
