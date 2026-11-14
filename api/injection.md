@@ -242,7 +242,9 @@ Every rule is re-verified before control is handed to the game's main thread: ha
 staticness, signature consistency and match counts. Two rules whose payloads **replace** what they
 anchor on (`@Redirect`, `@WrapOperation`, `@WrapBranch`, whole-method wraps) resolving to the same
 site fail with both named — the loser would otherwise silently miss; stacking payloads
-(notifications, value modifiers, conditions) are unaffected. The default mode `fail` prints each problem and
+(notifications, value modifiers, conditions) are unaffected. The ownership check also runs across
+independent transformers on the untouched class before any of them mutates it, so an adapter hook
+and a mod rule cannot race for the same instruction. The default mode `fail` prints each problem and
 aborts; `-Doml.injection.verify=warn` only warns; `off` disables. For timing and scale statistics,
 add `-Doml.diagnostics=1` — that switch is boolean (any non-blank value other than `false` turns it
 on; the value carries no meaning).

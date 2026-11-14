@@ -210,7 +210,8 @@ private static void onLambda(HookContext context) { … }
 
 所有规则在控制权交给游戏主线程之前重新验证：处理器存在性、静态性、签名一致性、命中数。两条会让锚点
 指令**被替换**的规则（`@Redirect`、`@WrapOperation`、`@WrapBranch`、整方法包装）解析到同一处时，会在
-类加载期报出双方身份——否则后者只会静默未命中；可叠加的载荷（通知、值改写、条件）不受影响。默认模式
-`fail` 逐条打印问题并中止启动；`-Doml.injection.verify=warn` 只告警；`off` 关闭。要拿到改写耗时与
-规模统计，加上 `-Doml.diagnostics=1`——这个开关是布尔的（任何非空且非 `false` 的值即启用，取值本身
-没有含义）。
+类加载期报出双方身份——否则后者只会静默未命中；可叠加的载荷（通知、值改写、条件）不受影响。同一个
+归属检查也会在任何 transformer 改写类之前，对未被修改的类跨 transformer 执行，因此适配器钩子与模组
+规则不会为同一条指令相互竞争。默认模式 `fail` 逐条打印问题并中止启动；`-Doml.injection.verify=warn`
+只告警；`off` 关闭。要拿到改写耗时与规模统计，加上 `-Doml.diagnostics=1`——这个开关是布尔的（任何
+非空且非 `false` 的值即启用，取值本身没有含义）。
