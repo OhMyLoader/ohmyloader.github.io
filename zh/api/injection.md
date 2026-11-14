@@ -145,7 +145,8 @@ private static boolean onTick(boolean original) {
   `@WrapOperation` 会把比较值和一个 `Operation<Boolean>` 交给 handler，后者可用任意值重新求值
   源码层比较。
 - 整段字符串拼接可以作为表达式匹配；方法引用、强转、`instanceof`、算术、数组读写与数组创建都在
-  语法范围内。
+  语法范围内。用 `@WrapOperation` 包装整段拼接时作用在它的 `invokedynamic` 上：handler 收到拼接的
+  操作数，以及一个会重新执行同一调用点的 `Operation<String>`。
 - DSL 写法是 `atExpression("…")`，定义通过它的 `definitions` 参数传入。
 - 复合指令按需展开：字符串拼接或 iinc 内部的捕获会精确落到对应部分。捕获的 `new` 在其构造器调用之后
   改写，数组字面量在最后一次写入之后改写。复合指令与拼接的捕获只对 `@ModifyExpressionValue` 和
