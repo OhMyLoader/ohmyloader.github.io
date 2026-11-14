@@ -50,6 +50,14 @@ object MyRules : RuleSetProvider {
 
 Anchors accept owner / desc / ordinal filters (`atReturn(0)` hits only the first return).
 
+Several anchors on one handler: every injector annotation takes one `at` plus optional `ats`
+(Java `ats = {@At("RETURN")}`, Kotlin `ats = [At(At.RETURN)]`). They share one handler, one payload
+and one match-count policy — `require` / `expect` / `allow` count the total hits — while each anchor
+is parsed separately (its own ordinal, target and slice). A set whose anchors would need different
+injection forms (for example a cancelable `@Inject` mixing `HEAD` with a non-entry anchor) is refused
+at startup instead of applying the wrong form at one of them. The DSL has always accepted several
+`point(…)` calls in one method rule.
+
 ## Payloads
 
 Each anchor block declares what to inject:
