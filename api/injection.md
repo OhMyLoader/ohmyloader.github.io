@@ -110,7 +110,9 @@ merged members). The method annotations — `@Inject` / `@Redirect` / `@ModifyAr
 `@ModifyReceiver` / `@WrapWithCondition` / `@WrapBranch` / `@WrapOperation` / `@WrapMethod`, with
 `@At`, `@Constant` and `@Slice` — compile into the same injection rules as the DSL: same pipeline,
 same startup checks. `@Constant` matches only explicitly written discriminators — `nullValue`, the
-numeric and string fields, or `classValue` for a class literal.
+numeric and string fields, or `classValue` for a class literal. `@Implements(ExtraIface::class, …)`
+on a `@Merged` or interface carrier adds the declared interfaces to the target, so their default
+methods become available and casts to the interface succeed (no name prefixing).
 
 `@WrapBranch` is OML's own landing point: the handler receives the values a conditional jump
 compares and returns whether the branch is taken. The operands follow the jump's stack form —
