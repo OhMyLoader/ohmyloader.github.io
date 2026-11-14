@@ -191,9 +191,10 @@ private static boolean onTick(boolean original) {
   `@ModifyVariable`, `@ModifyReceiver`, `@Redirect` or `@WrapOperation` (by parameter position;
   standard and `NEW` anchors) handler parameter
   accepts a reference supertype of the produced value, and on the handler method it lets the return
-  be a reference supertype (the engine casts it back). On `@ModifyExpressionValue` the value is
-  boxed for a reference parameter and unboxed from a reference return, so `(Object)Object` also
-  works for primitive expressions; the other injectors still require reference types. Comparison
+  be a reference supertype (the engine casts it back). On `@ModifyExpressionValue`,
+  `@ModifyReturnValue`, `@ModifyArg` (single-argument mode) and `@ModifyConstant` the value is boxed
+  for a reference parameter and unboxed from a reference return, so `(Object)Object` also works for
+  primitive values; the other injectors still require reference types. Comparison
   wraps and merged handlers are not covered yet. A
   `@Redirect` handler must start with the captured
   call's receiver plus arguments (an instance call is only classified at weaving time); factory

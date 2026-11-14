@@ -168,10 +168,11 @@ private static boolean onTick(boolean original) {
   `@ModifyArg`（单参数模式）、`@ModifyConstant`、`@ModifyVariable`、`@ModifyReceiver`、`@Redirect`
   或 `@WrapOperation`（按参数位置；标准与 `NEW` 锚点）的 handler 参数上可接受捕获值的引用父类型；
   标注在 handler 方法上则允许返回引用父类型，由引擎加 `CHECKCAST` 转回。在
-  `@ModifyExpressionValue` 上，原始类型值会为引用参数装箱、并从引用返回值拆箱，因此
-  `(Object)Object` 也能用于原始类型表达式；其他注入器仍要求引用类型。比较包装与合并 handler
-  暂未覆盖。此时 `@Redirect` 的 handler 必须从被捕获调用的接收者与参数开始（实例调用要到
-  织入期才能判定）；工厂重定向会被拒绝，而 `@ModifyArg(s)` 捕获 `new` 时会改写构造器参数。
+  `@ModifyExpressionValue`、`@ModifyReturnValue`、`@ModifyArg`（单参数模式）与 `@ModifyConstant`
+  上，原始类型值会为引用参数装箱、并从引用返回值拆箱，因此 `(Object)Object` 也能用于原始类型值；
+  其他注入器仍要求引用类型。比较包装与合并 handler 暂未覆盖。此时 `@Redirect` 的 handler 必须从
+  被捕获调用的接收者与参数开始（实例调用要到织入期才能判定）；工厂重定向会被拒绝，而
+  `@ModifyArg(s)` 捕获 `new` 时会改写构造器参数。
 - 多个 `@Expression` 可以用 `id` 区分，`@At(id = "…")` 选择其中一个，也可用作 `@Slice` 边界
   （`@Slice(from = @At(value = "EXPRESSION", id = "start"), …)`）。
 
