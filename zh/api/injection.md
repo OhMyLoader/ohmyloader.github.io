@@ -59,7 +59,7 @@ object MyRules : RuleSetProvider {
 | `modifyExpressionValue(...)`           | 改写表达式求值结果                                               | `@ModifyExpressionValue`     |
 | `modifyVariable(...)`                  | 改写局部变量                                                     | `@ModifyVariable`            |
 | `modifyReceiver(...)`                  | 改写实例调用 / 字段写入的接收者                                  | `@ModifyReceiver`            |
-| `wrapWithCondition(...)`               | 用布尔处理器决定 void 调用、字段写入或数组创建是否执行；跳过创建时结果为 `null` | `@WrapWithCondition`         |
+| `wrapWithCondition(...)`               | 用布尔处理器决定 void 调用、字段写入、数组创建或 `NEW` 是否执行；跳过创建时结果为 `null` | `@WrapWithCondition`         |
 | `wrapBranch(...)`                      | 决定条件跳转：true = 跳转，false = 顺序执行下一句                | `@WrapBranch`（OML 自有）    |
 | `wrapOperation(...)`                   | 用 `Operation<R>` 包装调用 / 字段 / `NEW` / 类型检查 / 数组 / 算术 / 数值强转指令 | `@WrapOperation`             |
 | `wrapMethod(...)`                      | 用 `Operation` 接管整个方法体                                    | `@WrapMethod`                |

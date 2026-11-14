@@ -63,7 +63,7 @@ Each anchor block declares what to inject:
 | `modifyExpressionValue(...)`         | rewrites an expression's value                                            | `@ModifyExpressionValue`     |
 | `modifyVariable(...)`                | rewrites a local variable                                                 | `@ModifyVariable`            |
 | `modifyReceiver(...)`                | rewrites the receiver of an instance call / field write                   | `@ModifyReceiver`            |
-| `wrapWithCondition(...)`             | gates a void call, field write or array creation; a skipped creation yields `null` | `@WrapWithCondition`         |
+| `wrapWithCondition(...)`             | gates a void call, field write, array creation or `NEW`; a skipped creation yields `null` | `@WrapWithCondition`         |
 | `wrapBranch(...)`                    | decides a conditional branch: true = take the jump, false = fall through  | `@WrapBranch` (OML-specific) |
 | `wrapOperation(...)`                 | wraps a call / field / `NEW` / type check / array / arithmetic / numeric-cast instruction with `Operation<R>` | `@WrapOperation`     |
 | `wrapMethod(...)`                    | replaces a whole method body behind an `Operation`                        | `@WrapMethod`                |
