@@ -188,11 +188,13 @@ private static boolean onTick(boolean original) {
   `@ModifyReturnValue` replaces the captured value after it is produced (the handler's parameter
   and return type must equal that value's type). `@Coerce` on a `@ModifyExpressionValue`,
   `@ModifyReturnValue`, `@ModifyArg` (single-argument mode), `@ModifyConstant`,
-  `@ModifyVariable` or `@Redirect` (by parameter position) handler parameter
+  `@ModifyVariable`, `@Redirect` or `@WrapOperation` (by parameter position; standard and `NEW`
+  anchors) handler parameter
   accepts a reference supertype of the produced value, and on the handler method it lets the return
   be a reference supertype (the engine casts it back). On `@ModifyExpressionValue` the value is
   boxed for a reference parameter and unboxed from a reference return, so `(Object)Object` also
-  works for primitive expressions; the other injectors still require reference types. A
+  works for primitive expressions; the other injectors still require reference types. Comparison
+  wraps and merged handlers are not covered yet. A
   `@Redirect` handler must start with the captured
   call's receiver plus arguments (an instance call is only classified at weaving time); factory
   redirects are rejected, while `@ModifyArg(s)` on a captured `new` rewrites the constructor's
