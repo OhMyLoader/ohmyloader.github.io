@@ -164,15 +164,14 @@ private static boolean onTick(boolean original) {
   `@WrapOperation` 开放，其他注入器会报错。
 - `@Redirect`、`@ModifyArg`、`@ModifyArgs`、`@ModifyReturnValue` 也接受 `@At("EXPRESSION")`：
   前三者作用于模式捕获到的调用，`@ModifyReturnValue` 则在捕获值产生之后替换它（handler 的参数与
-  返回类型必须等于该值的类型）。`@Coerce` 用在 `@ModifyExpressionValue`、`@ModifyReturnValue`、
-  `@ModifyArg`（单参数模式）、`@ModifyConstant`、`@ModifyVariable`、`@ModifyReceiver`、`@Redirect`
-  或 `@WrapOperation`（按参数位置；标准与 `NEW` 锚点）的 handler 参数上可接受捕获值的引用父类型；
-  标注在 handler 方法上则允许返回引用父类型，由引擎加 `CHECKCAST` 转回。在
-  `@ModifyExpressionValue`、`@ModifyReturnValue`、`@ModifyArg`（单参数模式）、`@ModifyConstant`
-  与 `@ModifyVariable` 上，原始类型值会为引用参数装箱、并从引用返回值拆箱，因此
-  `(Object)Object` 也能用于原始类型值；其他注入器仍要求引用类型。比较包装与合并 handler 暂未
-  覆盖。此时 `@Redirect` 的 handler 必须从被捕获调用的接收者与参数开始（实例调用要到织入期
-  才能判定）；工厂重定向会被拒绝，而 `@ModifyArg(s)` 捕获 `new` 时会改写构造器参数。
+  返回类型必须等于该值的类型）。`@Coerce` 覆盖所有值/操作注入器（静态与合并）：`@ModifyExpressionValue`、
+  `@ModifyReturnValue`、`@ModifyArg`（单参数模式）、`@ModifyConstant`、`@ModifyVariable`、
+  `@ModifyReceiver`、`@Redirect`、`@WrapOperation`（标准、`NEW` 与比较锚点）、`@WrapWithCondition`、
+  `@WrapBranch` 与 `@WrapMethod`。handler 参数可接受实际值的引用父类型（原始类型会自动装箱），
+  handler 方法也可返回引用类型，由引擎加 `CHECKCAST` 或拆箱转回。`@Inject` 捕获与 `@ModifyArgs`
+  仍要求精确类型：前者是副本，后者是弱类型的 `Args` 句柄。此时 `@Redirect` 的 handler 必须从
+  被捕获调用的接收者与参数开始（实例调用要到织入期才能判定）；工厂重定向会被拒绝，而
+  `@ModifyArg(s)` 捕获 `new` 时会改写构造器参数。
 - 多个 `@Expression` 可以用 `id` 区分，`@At(id = "…")` 选择其中一个，也可用作 `@Slice` 边界
   （`@Slice(from = @At(value = "EXPRESSION", id = "start"), …)`）。
 

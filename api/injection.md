@@ -186,17 +186,14 @@ private static boolean onTick(boolean original) {
 - `@Redirect`, `@ModifyArg`, `@ModifyArgs` and `@ModifyReturnValue` also accept
   `@At("EXPRESSION")`: the first three act on the call the pattern captured, while
   `@ModifyReturnValue` replaces the captured value after it is produced (the handler's parameter
-  and return type must equal that value's type). `@Coerce` on a `@ModifyExpressionValue`,
-  `@ModifyReturnValue`, `@ModifyArg` (single-argument mode), `@ModifyConstant`,
-  `@ModifyVariable`, `@ModifyReceiver`, `@Redirect` or `@WrapOperation` (by parameter position;
-  standard and `NEW` anchors) handler parameter
-  accepts a reference supertype of the produced value, and on the handler method it lets the return
-  be a reference supertype (the engine casts it back). On `@ModifyExpressionValue`,
-  `@ModifyReturnValue`, `@ModifyArg` (single-argument mode), `@ModifyConstant` and `@ModifyVariable`
-  the value is boxed for a reference parameter and unboxed from a reference return, so
-  `(Object)Object` also works for primitive values; the other injectors still require reference
-  types. Comparison
-  wraps and merged handlers are not covered yet. A
+  and return type must equal that value's type). `@Coerce` applies to every value/operation
+  injector, static and merged: `@ModifyExpressionValue`, `@ModifyReturnValue`, `@ModifyArg`
+  (single-argument mode), `@ModifyConstant`, `@ModifyVariable`, `@ModifyReceiver`, `@Redirect`,
+  `@WrapOperation` (standard, `NEW` and comparison anchors), `@WrapWithCondition`, `@WrapBranch`
+  and `@WrapMethod`. A handler parameter may accept a reference supertype of the actual value
+  (primitive values are boxed), and the handler method may return a reference type that the engine
+  casts or unboxes back. `@Inject` captures and `@ModifyArgs` stay exact: captures are copies and
+  the argument list is an untyped `Args` handle. A
   `@Redirect` handler must start with the captured
   call's receiver plus arguments (an instance call is only classified at weaving time); factory
   redirects are rejected, while `@ModifyArg(s)` on a captured `new` rewrites the constructor's
