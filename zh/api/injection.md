@@ -167,6 +167,18 @@ private static void onLambda(HookContext context) { … }
 方法引用不算。DSL 写法是 `lambdaMethod("tick", interfaceInternal = "java/util/function/Supplier") { … }`。
 未命中时会列出外层方法里实际存在的 lambda。
 
+## 性能
+
+- `@Hooked` 载具上的处理器经生成的桥方法分发：每条桥是一个 invokedynamic 调用点，首次执行时绑定
+  指向处理器的直接 MethodHandle，因此通知、值改写与重定向的稳定路径没有反射、没有捕获数组、也不装箱。
+  可取消与可返回处理器使用按精确描述符生成的 stub（需要读回每次调用的上下文或句柄）；反射只作为失败回退。
+- 最热的钩子优先用 `@Merged`：处理器就在目标类里，是普通直接调用。
+- 热路径避免 `@ModifyArgs` 和可写 `LocalRef` 参数：两者每次调用都会分配对象（`@ModifyArg` 与只读
+  `@Local` 不装箱）。`@WrapMethod` 的 Operation 捕获 `this`，每次调用分配；`@WrapOperation` 的
+  Operation 是被缓存的无捕获 lambda。
+- 结构性工作——dataflow 分析、表达式匹配与冲突检查——都发生在类加载期而不是每帧；解析后的表达式模式
+  会跨多次解析缓存。
+
 ## 自检
 
 所有规则在控制权交给游戏主线程之前重新验证：处理器存在性、静态性、签名一致性、命中数。两条会让锚点

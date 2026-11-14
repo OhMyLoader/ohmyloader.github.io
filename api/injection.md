@@ -182,6 +182,21 @@ into the same class are resolvable; a method reference to another class is not. 
 `lambdaMethod("tick", interfaceInternal = "java/util/function/Supplier") { … }`. A miss lists the
 lambdas the enclosing method actually contains.
 
+## Performance
+
+- Handlers on `@Hooked` carriers are dispatched through generated bridge methods: each is an
+  invokedynamic call site that binds a direct MethodHandle to the handler on its first execution, so
+  the steady state has no reflection, no capture array and no boxing for notifications, value
+  rewrites and redirects. Cancelable and returnable handlers use a generated exact-descriptor stub
+  (they read a per-call context or handle back); reflection remains only as the failure fallback.
+- Prefer `@Merged` for the hottest hooks: the handlers live in the target class and are plain direct
+  calls.
+- Avoid `@ModifyArgs` and writable `LocalRef` parameters on hot paths: both allocate per call
+  (`@ModifyArg` and read-only `@Local` do not box). A `@WrapMethod` operation captures `this` and
+  allocates per invocation, while a `@WrapOperation` operation is a cached non-capturing lambda.
+- Structural work — dataflow analysis, expression matching and conflict checks — happens when the
+  class loads, not per frame; parsed expression patterns are cached across resolutions.
+
 ## Startup checks
 
 Every rule is re-verified before control is handed to the game's main thread: handler existence,
