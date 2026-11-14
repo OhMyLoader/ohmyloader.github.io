@@ -65,7 +65,7 @@ Each anchor block declares what to inject:
 | `modifyReceiver(...)`                | rewrites the receiver of an instance call / field write                   | `@ModifyReceiver`            |
 | `wrapWithCondition(...)`             | gates a void call or field write on a boolean handler                     | `@WrapWithCondition`         |
 | `wrapBranch(...)`                    | decides a conditional branch: true = take the jump, false = fall through  | `@WrapBranch` (OML-specific) |
-| `wrapOperation(...)`                 | wraps a call / field / `NEW` / type check / array instruction with `Operation<R>` | `@WrapOperation`     |
+| `wrapOperation(...)`                 | wraps a call / field / `NEW` / type check / array / arithmetic / numeric-cast instruction with `Operation<R>` | `@WrapOperation`     |
 | `wrapMethod(...)`                    | replaces a whole method body behind an `Operation`                        | `@WrapMethod`                |
 | `handlerCall(...)` / `mergedCall(...)` | calls a handler merged into the target class (`this` = target)          | –                            |
 
@@ -171,7 +171,9 @@ private static boolean onTick(boolean original) {
   concatenation with `@WrapOperation` acts on its `invokedynamic`: the handler receives the
   concatenation's operands and an `Operation<String>` that re-runs the same call site. An array's
   `length` is matchable as `?.length` and wrappable too: the handler receives the array and an
-  `Operation<Integer>`.
+  `Operation<Integer>`. Arithmetic, shifts, bitwise operations, unary negations and stack-changing
+  numeric casts (`i2l`, `d2i`, …) captured by an expression can be wrapped the same way: the
+  handler receives the source operands and an `Operation<R>` that re-runs the instruction.
 - The DSL form is `atExpression("…")`, with the same definitions passed as its `definitions` argument.
 - Compound instructions are expanded on demand: a capture inside a string concatenation or an iinc
   targets that exact part. A captured `new` is rewritten after its constructor call, and an array

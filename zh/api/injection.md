@@ -61,7 +61,7 @@ object MyRules : RuleSetProvider {
 | `modifyReceiver(...)`                  | 改写实例调用 / 字段写入的接收者                                  | `@ModifyReceiver`            |
 | `wrapWithCondition(...)`               | 用布尔处理器决定 void 调用或字段写入是否执行                     | `@WrapWithCondition`         |
 | `wrapBranch(...)`                      | 决定条件跳转：true = 跳转，false = 顺序执行下一句                | `@WrapBranch`（OML 自有）    |
-| `wrapOperation(...)`                   | 用 `Operation<R>` 包装调用 / 字段 / `NEW` / 类型检查 / 数组指令  | `@WrapOperation`             |
+| `wrapOperation(...)`                   | 用 `Operation<R>` 包装调用 / 字段 / `NEW` / 类型检查 / 数组 / 算术 / 数值强转指令 | `@WrapOperation`             |
 | `wrapMethod(...)`                      | 用 `Operation` 接管整个方法体                                    | `@WrapMethod`                |
 | `handlerCall(...)` / `mergedCall(...)` | 调用合并进目标类的处理器（`this` = 目标实例）                    | –                            |
 
@@ -152,7 +152,9 @@ private static boolean onTick(boolean original) {
 - 整段字符串拼接可以作为表达式匹配；方法引用、强转、`instanceof`、算术、数组读写与数组创建都在
   语法范围内。用 `@WrapOperation` 包装整段拼接时作用在它的 `invokedynamic` 上：handler 收到拼接的
   操作数，以及一个会重新执行同一调用点的 `Operation<String>`。数组的 `length` 可以写成 `?.length`
-  匹配并包装：handler 收到数组与一个 `Operation<Integer>`。
+  匹配并包装：handler 收到数组与一个 `Operation<Integer>`。算术、移位、位运算、一元取负以及改变栈
+  类型的数值强转（`i2l`、`d2i` 等）被表达式捕获后同样可以包装：handler 收到源操作数与一个会重新
+  执行该指令的 `Operation<R>`。
 - DSL 写法是 `atExpression("…")`，定义通过它的 `definitions` 参数传入。
 - 复合指令按需展开：字符串拼接或 iinc 内部的捕获会精确落到对应部分。捕获的 `new` 在其构造器调用之后
   改写，数组字面量在最后一次写入之后改写。复合指令与拼接的捕获只对 `@ModifyExpressionValue` 和
