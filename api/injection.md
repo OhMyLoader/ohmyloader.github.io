@@ -239,9 +239,12 @@ lambdas the enclosing method actually contains.
   (they read a per-call context or handle back); reflection remains only as the failure fallback.
 - Prefer `@Merged` for the hottest hooks: the handlers live in the target class and are plain direct
   calls.
-- Avoid `@ModifyArgs` and writable `LocalRef` parameters on hot paths: both allocate per call
-  (`@ModifyArg` and read-only `@Local` do not box). A `@WrapMethod` operation captures `this` and
-  allocates per invocation, while a `@WrapOperation` operation is a cached non-capturing lambda.
+- `@ModifyArgs` and writable `LocalRef` parameters create temporary objects per call (`@ModifyArg`
+  and read-only `@Local` do not box); a `@WrapMethod` operation captures `this`, while a
+  `@WrapOperation` operation is a cached non-capturing lambda. In a warmed, inlined hot loop
+  HotSpot's escape analysis scalar-replaces those temporaries (the repository benchmark measures
+  zero bytes per call), but a handler that does not inline keeps the allocation — so the guidance
+  stands for megamorphic sites and cold handlers.
 - Structural work — dataflow analysis, expression matching and conflict checks — happens when the
   class loads, not per frame; parsed expression patterns are cached across resolutions.
 

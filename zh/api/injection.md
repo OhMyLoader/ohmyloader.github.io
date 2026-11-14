@@ -206,9 +206,11 @@ private static void onLambda(HookContext context) { … }
   指向处理器的直接 MethodHandle，因此通知、值改写与重定向的稳定路径没有反射、没有捕获数组、也不装箱。
   可取消与可返回处理器使用按精确描述符生成的 stub（需要读回每次调用的上下文或句柄）；反射只作为失败回退。
 - 最热的钩子优先用 `@Merged`：处理器就在目标类里，是普通直接调用。
-- 热路径避免 `@ModifyArgs` 和可写 `LocalRef` 参数：两者每次调用都会分配对象（`@ModifyArg` 与只读
-  `@Local` 不装箱）。`@WrapMethod` 的 Operation 捕获 `this`，每次调用分配；`@WrapOperation` 的
-  Operation 是被缓存的无捕获 lambda。
+- `@ModifyArgs` 与可写 `LocalRef` 参数每次调用都会创建临时对象（`@ModifyArg` 与只读 `@Local`
+  不装箱）；`@WrapMethod` 的 Operation 捕获 `this`，`@WrapOperation` 的 Operation 是被缓存的
+  无捕获 lambda。在充分预热、内联的热循环里，HotSpot 的逃逸分析会把这些临时对象标量替换掉
+  （仓库基准测得每次调用 0 字节），但处理器未被内联时分配仍然存在——因此对巨态调用点与冷处理器，
+  上述建议依然成立。
 - 结构性工作——dataflow 分析、表达式匹配与冲突检查——都发生在类加载期而不是每帧；解析后的表达式模式
   会跨多次解析缓存。
 
