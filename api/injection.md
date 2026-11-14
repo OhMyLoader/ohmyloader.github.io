@@ -163,7 +163,12 @@ private static boolean onTick(boolean original) {
 - The DSL form is `atExpression("…")`, with the same definitions passed as its `definitions` argument.
 - Compound instructions are expanded on demand: a capture inside a string concatenation or an iinc
   targets that exact part. A captured `new` is rewritten after its constructor call, and an array
-  literal after its last store.
+  literal after its last store. Compound and concatenation captures are available to
+  `@ModifyExpressionValue` and `@WrapOperation`; the other injectors reject them.
+- `@Redirect`, `@ModifyArg` and `@ModifyArgs` also accept `@At("EXPRESSION")` and act on the call
+  the pattern captured. A `@Redirect` handler must then start with the captured call's receiver
+  plus arguments (an instance call is only classified at weaving time); factory redirects are
+  rejected, while `@ModifyArg(s)` on a captured `new` rewrites the constructor's arguments.
 - Repeated `@Expression`s can be told apart by `id`; `@At(id = "…")` picks one, including as a
   `@Slice` boundary (`@Slice(from = @At(value = "EXPRESSION", id = "start"), …)`). Wrapping a
   long/float/double comparison with `@WrapOperation` is not supported yet.

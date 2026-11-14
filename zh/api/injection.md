@@ -148,7 +148,11 @@ private static boolean onTick(boolean original) {
   语法范围内。
 - DSL 写法是 `atExpression("…")`，定义通过它的 `definitions` 参数传入。
 - 复合指令按需展开：字符串拼接或 iinc 内部的捕获会精确落到对应部分。捕获的 `new` 在其构造器调用之后
-  改写，数组字面量在最后一次写入之后改写。
+  改写，数组字面量在最后一次写入之后改写。复合指令与拼接的捕获只对 `@ModifyExpressionValue` 和
+  `@WrapOperation` 开放，其他注入器会报错。
+- `@Redirect`、`@ModifyArg`、`@ModifyArgs` 也接受 `@At("EXPRESSION")`，作用于模式捕获到的调用。
+  此时 `@Redirect` 的 handler 必须从被捕获调用的接收者与参数开始（实例调用要到织入期才能判定）；
+  工厂重定向会被拒绝，而 `@ModifyArg(s)` 捕获 `new` 时会改写构造器参数。
 - 多个 `@Expression` 可以用 `id` 区分，`@At(id = "…")` 选择其中一个，也可用作 `@Slice` 边界
   （`@Slice(from = @At(value = "EXPRESSION", id = "start"), …)`）。用 `@WrapOperation` 包装
   `long`/`float`/`double` 比较暂不支持。
