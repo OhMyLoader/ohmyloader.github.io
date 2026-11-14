@@ -171,10 +171,13 @@ private static boolean onTick(boolean original) {
   targets that exact part. A captured `new` is rewritten after its constructor call, and an array
   literal after its last store. Compound and concatenation captures are available to
   `@ModifyExpressionValue` and `@WrapOperation`; the other injectors reject them.
-- `@Redirect`, `@ModifyArg` and `@ModifyArgs` also accept `@At("EXPRESSION")` and act on the call
-  the pattern captured. A `@Redirect` handler must then start with the captured call's receiver
-  plus arguments (an instance call is only classified at weaving time); factory redirects are
-  rejected, while `@ModifyArg(s)` on a captured `new` rewrites the constructor's arguments.
+- `@Redirect`, `@ModifyArg`, `@ModifyArgs` and `@ModifyReturnValue` also accept
+  `@At("EXPRESSION")`: the first three act on the call the pattern captured, while
+  `@ModifyReturnValue` replaces the captured value after it is produced (the handler's parameter
+  and return type must equal that value's type). A `@Redirect` handler must start with the captured
+  call's receiver plus arguments (an instance call is only classified at weaving time); factory
+  redirects are rejected, while `@ModifyArg(s)` on a captured `new` rewrites the constructor's
+  arguments.
 - Repeated `@Expression`s can be told apart by `id`; `@At(id = "…")` picks one, including as a
   `@Slice` boundary (`@Slice(from = @At(value = "EXPRESSION", id = "start"), …)`). Wrapping a
   long/float/double comparison with `@WrapOperation` is not supported yet.
