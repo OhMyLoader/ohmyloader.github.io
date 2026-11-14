@@ -50,13 +50,13 @@ object MyRules : RuleSetProvider {
 
 Anchors accept owner / desc / ordinal filters (`atReturn(0)` hits only the first return).
 
-Several anchors on one handler: every injector annotation takes one `at` plus optional `ats`
-(Java `ats = {@At("RETURN")}`, Kotlin `ats = [At(At.RETURN)]`). They share one handler, one payload
-and one match-count policy — `require` / `expect` / `allow` count the total hits — while each anchor
-is parsed separately (its own ordinal, target and slice). A set whose anchors would need different
-injection forms (for example a cancelable `@Inject` mixing `HEAD` with a non-entry anchor) is refused
-at startup instead of applying the wrong form at one of them. The DSL has always accepted several
-`point(…)` calls in one method rule.
+Several anchors on one handler: every injector's `at` is an **array** (Java
+`at = {@At("HEAD"), @At("RETURN")}`, Kotlin `at = [At(At.HEAD), At(At.RETURN)]`). All anchors share
+one handler, one payload and one match-count policy — `require` / `expect` / `allow` count the total
+hits — while each anchor is parsed separately (its own ordinal, target and slice). A set whose anchors
+would need different injection forms (for example a cancelable `@Inject` mixing `HEAD` with a
+non-entry anchor) is refused at startup instead of applying the wrong form at one of them. The DSL
+has always accepted several `point(…)` calls in one method rule.
 
 ## Payloads
 
@@ -171,7 +171,7 @@ pattern is declared with `@Definition`:
 ```java
 @Definition(id = "max", method = "Ljava/lang/Math;max(II)I")
 @Expression("max(?, 3) > 0")
-@ModifyExpressionValue(method = "tick", at = @At("EXPRESSION"))
+@ModifyExpressionValue(method = "tick", at = {@At("EXPRESSION")})
 private static boolean onTick(boolean original) {
     return !original;
 }
@@ -236,7 +236,7 @@ naming it, name the method that **contains** the lambda and its functional inter
 
 ```java
 @Lambda(interfaceType = Supplier.class, ordinal = 0)
-@Inject(method = "tick", at = @At("HEAD"))
+@Inject(method = "tick", at = {@At("HEAD")})
 private static void onLambda(HookContext context) { … }
 ```
 

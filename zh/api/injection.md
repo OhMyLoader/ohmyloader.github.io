@@ -46,10 +46,10 @@ object MyRules : RuleSetProvider {
 
 锚点支持按 owner / desc / ordinal 过滤（如 `atReturn(0)` 只命中第一条返回）。
 
-同一个 handler 可以有多个锚点：每个注入注解都有一个 `at`，另可写可选的 `ats`
-（Java `ats = {@At("RETURN")}`，Kotlin `ats = [At(At.RETURN)]`）。它们共享同一个 handler、
-同一个载荷和同一份命中数策略——`require` / `expect` / `allow` 统计所有锚点的总命中——而每个锚点
-单独解析（各自的 ordinal、target 与 slice）。如果一组锚点需要不同的注入形态（例如可取消的
+同一个 handler 可以有多个锚点：每个注入器的 `at` 是**数组**（Java
+`at = {@At("HEAD"), @At("RETURN")}`，Kotlin `at = [At(At.HEAD), At(At.RETURN)]`）。它们共享同一个
+handler、同一个载荷和同一份命中数策略——`require` / `expect` / `allow` 统计所有锚点的总命中——而每个
+锚点单独解析（各自的 ordinal、target 与 slice）。如果一组锚点需要不同的注入形态（例如可取消的
 `@Inject` 混用 `HEAD` 与非入口锚点），启动期会直接报错，而不是在其中一个锚点上套用错误的形态。
 DSL 中的一条 method 规则本来就可以写多个 `point(…)`。
 
@@ -152,7 +152,7 @@ method 规则中的 `priority(n)`）：数值越大越先应用，并且引擎�
 ```java
 @Definition(id = "max", method = "Ljava/lang/Math;max(II)I")
 @Expression("max(?, 3) > 0")
-@ModifyExpressionValue(method = "tick", at = @At("EXPRESSION"))
+@ModifyExpressionValue(method = "tick", at = {@At("EXPRESSION")})
 private static boolean onTick(boolean original) {
     return !original;
 }
@@ -205,7 +205,7 @@ lambda 的方法及它的函数式接口：
 
 ```java
 @Lambda(interfaceType = Supplier.class, ordinal = 0)
-@Inject(method = "tick", at = @At("HEAD"))
+@Inject(method = "tick", at = {@At("HEAD")})
 private static void onLambda(HookContext context) { … }
 ```
 
