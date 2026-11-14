@@ -166,7 +166,9 @@ private static boolean onTick(boolean original) {
 - The whole string concatenation is a matchable expression; method references, casts, `instanceof`,
   arithmetic, array load/store and array creation are part of the grammar. Wrapping a whole
   concatenation with `@WrapOperation` acts on its `invokedynamic`: the handler receives the
-  concatenation's operands and an `Operation<String>` that re-runs the same call site.
+  concatenation's operands and an `Operation<String>` that re-runs the same call site. An array's
+  `length` is matchable as `?.length` and wrappable too: the handler receives the array and an
+  `Operation<Integer>`.
 - The DSL form is `atExpression("…")`, with the same definitions passed as its `definitions` argument.
 - Compound instructions are expanded on demand: a capture inside a string concatenation or an iinc
   targets that exact part. A captured `new` is rewritten after its constructor call, and an array
