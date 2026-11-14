@@ -101,7 +101,8 @@ classTarget("net/minecraft/client/Minecraft") {
 实例）。方法注解——`@Inject` / `@Redirect` / `@ModifyArg` / `@ModifyArgs` / `@ModifyConstant` /
 `@ModifyVariable` / `@ModifyReturnValue` / `@ModifyExpressionValue` / `@ModifyReceiver` /
 `@WrapWithCondition` / `@WrapBranch` / `@WrapOperation` / `@WrapMethod`，配合 `@At`、`@Constant`
-与 `@Slice`——被前端翻译成与 DSL 相同的注入规则：同一条管线、同一套自检。
+与 `@Slice`——被前端翻译成与 DSL 相同的注入规则：同一条管线、同一套自检。`@Constant` 只匹配
+显式写出的判别字段——`nullValue`、数值与字符串字段，或用于类字面量的 `classValue`。
 
 `@WrapBranch` 是 OML 自己的落点：处理器拿到条件跳转所比较的值，返回是否执行这条跳转。
 操作数按跳转的栈形态排列——`IFEQ` 族是 `(I)Z`，`IF_ICMP*` 是 `(II)Z`，`IF_ACMP*` 是
