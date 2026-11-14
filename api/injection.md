@@ -187,7 +187,8 @@ private static boolean onTick(boolean original) {
   `@At("EXPRESSION")`: the first three act on the call the pattern captured, while
   `@ModifyReturnValue` replaces the captured value after it is produced (the handler's parameter
   and return type must equal that value's type). `@Coerce` on a `@ModifyExpressionValue`,
-  `@ModifyReturnValue`, `@ModifyArg` (single-argument mode) or `@ModifyConstant` handler parameter
+  `@ModifyReturnValue`, `@ModifyArg` (single-argument mode), `@ModifyConstant` or
+  `@ModifyVariable` handler parameter
   accepts a reference supertype of the produced value, and on the handler method it lets the return
   be a reference supertype (the engine casts it back); primitive coercion is not implemented yet. A
   `@Redirect` handler must start with the captured
