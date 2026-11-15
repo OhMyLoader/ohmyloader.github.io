@@ -27,19 +27,17 @@ jobs:
           repository: OhMyLoader/OhMyLoader
           ref: main
           path: OhMyLoader
-      - uses: pnpm/action-setup@v6
-        # version comes from package.json's packageManager field
-      - uses: actions/setup-node@v7
+      # Bun runs the check scripts and vitepress directly; no separate Node setup needed
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 26
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
       # en/zh pages must stay one-to-one; fail the build before the docs compile
-      - run: pnpm run check:sync
+      - run: bun run check:sync
       # documented API references must resolve against the loader source (AC-8)
-      - run: pnpm run check:api
+      - run: bun run check:api
       # vitepress build fails on dead links, so this doubles as a docs-link check
-      - run: pnpm build
+      - run: bun run build
       # the artifact is only consumed by deploy on main; on PRs it is just a build check
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
@@ -60,12 +58,10 @@ jobs:
     steps:
       # verify the en/zh pairing once more against what is actually being deployed
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 26
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run check:sync
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
+      - run: bun run check:sync
       - id: deployment
         uses: actions/deploy-pages@v5

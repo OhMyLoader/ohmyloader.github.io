@@ -5,9 +5,9 @@ The official OhMyLoader website, built with [VitePress](https://vitepress.dev).
 ## Development
 
 ```bash
-pnpm install
-pnpm dev      # local preview
-pnpm build    # production build
+bun install --frozen-lockfile
+bun dev      # local preview
+bun run build  # production build
 ```
 
 ## Content maintenance

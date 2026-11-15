@@ -12,24 +12,23 @@ translations live under `zh/` and must stay paired. API reference content follow
 
 ## Prerequisites
 
-- Node.js 26. CI uses Node 26.
-- pnpm 12.16.1 from `package.json`'s `packageManager` field.
+- Bun 1.4. `bun.lock` is the lockfile; Node.js is not required.
 - A sibling `OhMyLoader` checkout for `check:api`. The script probes `../OhMyLoader` and `OhMyLoader`;
   set `OML_SOURCES` to an explicit loader root when neither layout fits.
 
 ## Build and check
 
 ```bash
-pnpm install --frozen-lockfile
-pnpm run check:sync
-pnpm run check:api
-pnpm build
-pnpm dev
+bun install --frozen-lockfile
+bun run check:sync
+bun run check:api
+bun run build
+bun dev
 ```
 
 `check:sync` compares every English page with its `zh/` counterpart for headings, fences, containers,
 tables, and inline code tokens. `check:api` indexes declarations in the loader's `oml-api` and
-`oml-api-26_3` and verifies the inline API references on the API pages. `pnpm build` also fails on dead
+`oml-api-26_3` and verifies the inline API references on the API pages. `bun run build` also fails on dead
 links. CI runs all three before deploying.
 
 ## Content rules
@@ -52,7 +51,7 @@ links. CI runs all three before deploying.
 - Branch from `main`; do not commit to the upstream `main` directly.
 - Use Conventional Commits, for example `docs(guide): ...` or `fix(api): ...`. One concern per commit.
   The body states the constraint and the evidence, not the investigation.
-- Run `pnpm run check:sync`, `pnpm run check:api`, and `pnpm build`; include the results in the pull
+- Run `bun run check:sync`, `bun run check:api`, and `bun run build`; include the results in the pull
   request.
 - Do not commit `node_modules/`, `.vitepress/dist/`, local paths, or generated caches.
 - Push your branch to your fork and open a pull request. Do not push to `main`; a push to upstream
