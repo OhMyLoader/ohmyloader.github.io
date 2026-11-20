@@ -1,0 +1,17 @@
+# The PR gate stub: machinery lives in the Foundation reusable workflow, pinned to @v1.
+# The site's deploy (with the en/zh pairing gate and the loader-sourced check:api) stays
+# repository-local — it needs the sibling loader checkout that the reusable workflow does not
+# model.
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ci:
+    uses: OhMyLoader/Foundation/.github/workflows/web-ci.yml@v1
+    with:
+      bun-version: 1.4.4
+      test-command: "bun run check:sync"
+      build-command: "bun run build"
