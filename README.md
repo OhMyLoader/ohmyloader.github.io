@@ -6,9 +6,14 @@ The official OhMyLoader website, built with [VitePress](https://vitepress.dev).
 
 ```bash
 bun install --frozen-lockfile
-bun dev      # local preview
-bun run build  # production build
+bun dev          # site preview
+bun run dev:editor  # editor preview (http://localhost:3000)
+bun run build    # production build (site + editor into one Pages artifact)
+bun run test     # editor tests
 ```
+
+The browser-based content pack editor lives in `editor/` (SolidJS + Vite, built with the same
+bun toolchain) and deploys with the site at /editor/.
 
 ## Content maintenance
 

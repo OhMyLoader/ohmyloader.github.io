@@ -1,13 +1,21 @@
 {
   "name": "ohmyloader.github.io",
   "version": "1.0.0",
-  "description": "OhMyLoader's official website.",
+  "description": "OhMyLoader's official website and the browser-based content pack editor.",
   "license": "AGPL-3.0",
   "type": "module",
+  "workspaces": [
+    "editor"
+  ],
   "scripts": {
     "dev": "vitepress dev",
-    "build": "vitepress build",
+    "dev:editor": "cd editor && bun run dev",
+    "build": "vitepress build && bun run build:editor && bun scripts/combine-dist.mjs",
+    "build:site": "vitepress build",
+    "build:editor": "cd editor && bun run build",
     "preview": "vitepress preview",
+    "test": "bun test",
+    "typecheck": "cd editor && bunx tsc --noEmit",
     "check:sync": "bun scripts/check-sync.mjs",
     "check:api": "bun scripts/check-api-refs.mjs"
   },

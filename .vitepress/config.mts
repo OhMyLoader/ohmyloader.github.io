@@ -5,7 +5,7 @@ export default defineConfig({
   description: 'A Minecraft mod loader for Java Edition 26.x',
   cleanUrls: true,
   // Repository/developer docs are not site pages.
-  srcExclude: ['AGENTS.md', 'CONTRIBUTING.md', 'OhMyLoader/**'],
+  srcExclude: ['AGENTS.md', 'CONTRIBUTING.md', 'OhMyLoader/**', 'editor/**'],
   lastUpdated: true,
   locales: {
     root: {

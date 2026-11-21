@@ -1,7 +1,6 @@
 # The PR gate stub: machinery lives in the Foundation reusable workflow, pinned to @v1.
-# The site's deploy (with the en/zh pairing gate and the loader-sourced check:api) stays
-# repository-local — it needs the sibling loader checkout that the reusable workflow does not
-# model.
+# The composed scripts run every gate: the site's en/zh pairing, the editor's typecheck and
+# tests, and both builds (the combined artifact shape the deploy ships).
 name: CI
 
 on:
@@ -13,5 +12,6 @@ jobs:
     uses: OhMyLoader/Foundation/.github/workflows/web-ci.yml@v1
     with:
       bun-version: 1.4.4
-      test-command: "bun run check:sync"
+      typecheck-command: "bun run typecheck"
+      test-command: "bun run check:sync && bun run test"
       build-command: "bun run build"

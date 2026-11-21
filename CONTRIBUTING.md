@@ -51,8 +51,8 @@ links. CI runs all three before deploying.
 - Branch from `main`; do not commit to the upstream `main` directly.
 - Use Conventional Commits, for example `docs(guide): ...` or `fix(api): ...`. One concern per commit.
   The body states the constraint and the evidence, not the investigation.
-- Run `bun run check:sync`, `bun run check:api`, and `bun run build`; include the results in the pull
-  request.
+- Run `bun run check:sync`, `bun run check:api`, `bun run typecheck`, `bun run test`, and
+  `bun run build`; include the results in the pull request.
 - Do not commit `node_modules/`, `.vitepress/dist/`, local paths, or generated caches.
 - Push your branch to your fork and open a pull request. Do not push to `main`; a push to upstream
   `main` deploys the site.
