@@ -57,18 +57,12 @@
   --warn-text: #fbbf24;
 }
 
-* {
+/* The editor page renders inside the VitePress shell (layout: page), so every element-level
+   rule is scoped to the mount — unscoped body/button resets would restyle the whole site. */
+
+.editor-mount {
   box-sizing: border-box;
-}
-
-html,
-body,
-#root {
-  height: 100%;
-}
-
-body {
-  margin: 0;
+  height: calc(100vh - var(--vp-nav-height));
   overflow-x: auto;
   background: var(--bg);
   color: var(--text);
@@ -79,65 +73,72 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-.app-shell {
-  min-width: 1080px;
+.editor-mount *,
+.editor-mount *::before,
+.editor-mount *::after {
+  box-sizing: border-box;
 }
 
-h1,
-h2,
-h3,
-p,
-ul,
-ol {
+.editor-mount .app-shell {
+  min-width: 1080px;
+  height: 100%;
+}
+
+.editor-mount h1,
+.editor-mount h2,
+.editor-mount h3,
+.editor-mount p,
+.editor-mount ul,
+.editor-mount ol {
   margin: 0;
   padding: 0;
 }
 
-ul,
-ol {
+.editor-mount ul,
+.editor-mount ol {
   list-style: none;
 }
 
-button,
-input,
-select,
-textarea {
+.editor-mount button,
+.editor-mount input,
+.editor-mount select,
+.editor-mount textarea {
   font: inherit;
   color: inherit;
 }
 
-button {
+.editor-mount button {
   border: 0;
   padding: 0;
   background: none;
   cursor: pointer;
 }
 
-.mono {
+.editor-mount .mono {
   font-family: var(--font-mono);
 }
 
-::selection {
+.editor-mount ::selection {
   background: rgb(99 102 241 / 0.22);
 }
 
-::-webkit-scrollbar {
+.editor-mount ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
-::-webkit-scrollbar-track {
+.editor-mount ::-webkit-scrollbar-track {
   background: transparent;
 }
 
-::-webkit-scrollbar-thumb {
+.editor-mount ::-webkit-scrollbar-thumb {
   background: var(--line-strong);
   border: 2px solid transparent;
   border-radius: 999px;
   background-clip: content-box;
 }
 
-::-webkit-scrollbar-thumb:hover {
+.editor-mount ::-webkit-scrollbar-thumb:hover {
   background: var(--faint);
   border: 2px solid transparent;
   background-clip: content-box;
@@ -236,24 +237,6 @@ button {
 .btn-danger:hover {
   border-color: var(--danger-line-hover);
   background: var(--danger-weak);
-}
-
-/* ---------- appearance toggle ---------- */
-
-.appearance-btn {
-  display: grid;
-  width: 1.875rem;
-  height: 1.75rem;
-  flex-shrink: 0;
-  place-items: center;
-  border-radius: 0.5rem;
-  color: var(--muted);
-  transition: background-color 0.15s, color 0.15s;
-}
-
-.appearance-btn:hover {
-  background: var(--line-faint);
-  color: var(--text);
 }
 
 /* ---------- language switch ---------- */

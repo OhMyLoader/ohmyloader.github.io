@@ -17,7 +17,7 @@ hero:
       link: /zh/guide/introduction
     - theme: alt
       text: 内容包编辑器
-      link: /editor/
+      link: /zh/editor/
 
 features:
   - icon: ⚙️

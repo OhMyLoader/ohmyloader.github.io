@@ -10,8 +10,6 @@ import {
   DownloadIcon,
   FileIcon,
   FolderIcon,
-  MoonIcon,
-  SunIcon,
   PlusIcon,
   TrashIcon,
   UploadIcon,
@@ -38,7 +36,6 @@ import {
 import { collectFiles, findFile, packTree } from './lib/files';
 import { downloadPack, importPack, namespaceError, packToToml } from './lib/pack';
 import { locale, setLocale, t, typeLabel } from './lib/i18n';
-import { isDark, toggleDark } from './lib/appearance';
 import { loadCollapsed, saveCollapsed } from './lib/persist';
 import { validatePack } from './lib/validate';
 
@@ -318,7 +315,6 @@ function PreviewPane() {
 
 function Header() {
   const err = () => namespaceError(pack().namespace);
-  const [dark, setDark] = createSignal(isDark());
   const onImport = async (file: File) => {
     try {
       const { pack: next } = await importPack(file);
@@ -371,16 +367,6 @@ function Header() {
           中文
         </button>
       </div>
-      <button
-        class="appearance-btn"
-        title={t('header.appearance')}
-        aria-label={t('header.appearance')}
-        onClick={() => setDark(toggleDark())}
-      >
-        <Show when={dark()} fallback={<MoonIcon class="h-3.5 w-3.5" />}>
-          <SunIcon class="h-3.5 w-3.5" />
-        </Show>
-      </button>
       <div class="flex-1" />
       <Show when={dirty()}>
         <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] text-amber-700">
@@ -449,7 +435,7 @@ function ProblemsBar() {
 export default function App() {
   const total = createMemo(() => entityCount(pack()));
   return (
-    <div class="app-shell flex h-screen flex-col">
+    <div class="app-shell flex h-full flex-col">
       <Header />
       <ProblemsBar />
       <main class="grid min-h-0 flex-1 grid-cols-[260px_minmax(0,1fr)_minmax(0,1fr)]">
