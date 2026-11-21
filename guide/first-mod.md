@@ -52,7 +52,7 @@ kotlin {
 }
 
 oml {
-    minecraftVersion.set("26.3")
+    minecraftVersion.set("26.4-snapshot-10")
 }
 ```
 

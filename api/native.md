@@ -1,8 +1,8 @@
-# Game Objects and the 26.3 Extensions
+# Game Objects & Extensions
 
 Game objects reach a mod as the game's own classes: a handler reads a `ServerPlayer`, a `BlockPos`, a
 `DamageSource`; the capabilities OML adds are extension functions and properties on those types, declared
-in the artifact `org.ohmyloader:oml-api-26_3` under the package `org.ohmyloader.api26_3`.
+in the artifact `org.ohmyloader:oml-api` under the package `org.ohmyloader.api`.
 
 ```kotlin
 import org.ohmyloader.api26_3.*          // the extensions and OMLGame / OMLRegistries
@@ -289,7 +289,7 @@ server.setGameRule("minecraft:keep_inventory", "3")        // false: the rule's 
 
 ## Clocks
 
-Time in 26.3 lives in **clocks**: each one is a tick counter with a rate, addressed by registry id and bound
+Time lives in **clocks**: each one is a tick counter with a rate, addressed by registry id and bound
 to a dimension by its dimension type — the Nether names no clock, so `level.clock` is null there and there is
 no time to read or write. The named moments `/time set` refers to (`minecraft:day`, `minecraft:noon`, …) are **markers**
 declared against a clock, and the unit that declares them is a **timeline**.
@@ -423,7 +423,7 @@ That is the declaration taking effect, not a failed write.
 
 ## Spawns and respawn anchors
 
-26.3 holds two anchors, and both are the game's own `LevelData.RespawnData`: a global position plus the yaw and
+The game holds two anchors, both its own `LevelData.RespawnData`: a global position plus the yaw and
 pitch a player is set to on arrival.
 
 | Call                                                                   | Meaning                                                                                                                          |
@@ -456,7 +456,7 @@ answered false.
 
 ## Permission nodes
 
-26.3 gates authority on **nodes**, not only on the 0..4 operator level: the game's own checks are
+The game gates authority on **nodes**, not only on the 0..4 operator level: its own checks are
 `Permission.Atom` ids (`minecraft:chat/send_messages`, `minecraft:commands/entity_selectors`) plus
 `Permission.HasCommandLevel(level)`, and a `PermissionSet` is nothing but `hasPermission(node)`. OML addresses
 the same objects by id and adds one thing the game does not offer: a per-player override.

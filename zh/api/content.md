@@ -258,14 +258,14 @@ registry.declareDamageType(
 `intentional_game_design`。两个可选项未设置时不会写进文件，好让游戏套用自己的默认值，而不是由 OML 猜。
 
 这与合成表走的是同一条数据包路径：OML 把 `data/my_mod/damage_type/melt.json` 写进注入的资源包，游戏的
-重载把它注册成条目——于是它在 `server.registry(Registries.DAMAGE_TYPE)` 里读得回来，26.3 的
+重载把它注册成条目——于是它在 `server.registry(Registries.DAMAGE_TYPE)` 里读得回来，
 [`hurt`](/zh/api/native) 扩展也能像用原版 id 一样用 `"my_mod:melt"`，而 handler 在 `LIVING_HURT`
 里读到的正是声明里写的 `messageId`。未知的枚举名在 **声明处**就被拒绝并给出警告：否则那个文件会在数据包
 重载时被 codec 悄悄丢弃，没人知道伤害类型为什么不见了。
 
 ### 时钟与它上面的时刻
 
-26.3 的时间按注册表 id 寻址的 **时钟**计，而 `/time set` 能把时钟移到的那些具名时刻，是时间线声明的 **标记（marker）**
+游戏的时间按注册表 id 寻址的 **时钟**计，而 `/time set` 能把时钟移到的那些具名时刻，是时间线声明的 **标记（marker）**
 。两者都是数据包条目，所以 mod 可以给自己开一片时间域：
 
 ```kotlin
@@ -294,7 +294,7 @@ OML 把 `data/my_mod/world_clock/tide.json` 与 `data/my_mod/timeline/surge.json
 
 ### 维度
 
-维度类型与维度同样是数据包条目，而 26.3 在服务端启动时会为 `dimension` 表里的 **每一条**建一个世界——
+维度类型与维度同样是数据包条目，而游戏在服务端启动时会为 `dimension` 表里的 **每一条**建一个世界——
 所以这是一整个维度，不是还需要 mod 自己驱动的一处注册：
 
 ```kotlin
@@ -533,7 +533,7 @@ values = ["melt", "#minecraft:is_projectile", { id = "minecraft:optional", requi
 必填，`furnace` 选 smelting / blasting / smoking，`experience` 与 `cooking_time` 可选）；loot 文件声明
 id 所指方块被破坏时掉落 `drop` 而不是它自己。damage-type 文件声明一种伤害类型（`message_id` 必填；
 `scaling`、`effects`、`exhaustion`、`death_message_type` 可选，取值与代码 API 相同）。clock 文件声明一个
-世界时钟且没有字段（26.3 的时钟只有 id）；timeline 文件声明一条时间线（`clock` 必填，`period_ticks`
+世界时钟且没有字段（时钟只有 id）；timeline 文件声明一条时间线（`clock` 必填，`period_ticks`
 可选，`markers` 是内联表，值要么是 tick 数，要么是 `{ ticks = …, in_commands = … }`——游戏自己的 codec
 就认这两种形态）。dimension-type 文件按 snake_case 使用游戏自己的字段名（`sky_light`、`ceiling`、
 `dragon_fight`、`coordinate_scale`、`min_y`、`height`、`logical_height`、`infiniburn`、`ambient_light`、

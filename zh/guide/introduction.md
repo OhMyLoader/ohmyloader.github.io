@@ -1,7 +1,7 @@
 # 项目介绍
 
 **OhMyLoader（OML）** 是一个面向 Minecraft Java Edition 的模组加载器。它提供自研字节码注入引擎、两层
-mod API 与声明式内容注册，支持客户端与专用服务端。当前稳定主线为 26.3，全线运行在 Java 27 上。
+mod API 与声明式内容注册，支持客户端与专用服务端。当前面向 26.4 快照版本，全线运行在 Java 27 上。
 
 ## 设计
 
@@ -42,7 +42,8 @@ adapter 在语义层之下吸收，不向上泄漏。
 | [OhMyLoaderGradle](https://github.com/OhMyLoader/OhMyLoaderGradle) | 官方 Gradle 插件：运行环境装配与 `runClient` / `runServer` |
 | [OhMyLoaderTestMod](https://github.com/OhMyLoader/OhMyLoaderTestMod) | 端到端验证模组，以外部 mod 工程的身份走完整消费路径 |
 
-三个仓库互相只按 Maven 坐标消费。
+三个仓库互相只按 Maven 坐标消费。组织里的其余仓库——共享 CI（Foundation）、独立工具与示例 mod——见
+[github.com/OhMyLoader](https://github.com/OhMyLoader)。
 
 ## API 稳定性
 
@@ -52,7 +53,7 @@ adapter 在语义层之下吸收，不向上泄漏。
 - **契约层**：`@Mod` 入口、`OMLModInitializer` / `ModContext`、`Events`、内容声明 DSL 与注入 DSL。
   0.x 阶段破坏性变更以 `!` 提交直接落地，不留弃用窗口；迁移方式写入提交正文。1.0 起冻结：破坏性变更
   升为大版本事件，旧签名经弃用保留一个大版本。
-- **已提供、仍在沉淀**：命令、配置、网络、按键、HUD 与创造标签。1.0 前允许调整；变更记录进发布说明。
+- **已提供、仍在沉淀**：命令、配置、网络、按键/HUD/创造标签与主线程调度器。1.0 前允许调整；变更记录进发布说明。
 - **版本面向，随游戏版本变动**：`oml-api` 工件。事件载荷与扩展函数直接命名游戏自己的类
   （`ServerPlayer`、`BlockPos`、`DamageSource`）。中间没有包装层；游戏类型就是游戏类型。这一层只对
   单一游戏版本负责；换游戏版本就针对新版本重建同一份 `oml-api`。个别句柄（`OMLCommandSource`、

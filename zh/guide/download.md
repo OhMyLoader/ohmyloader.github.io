@@ -2,10 +2,15 @@
 
 ## 玩家：安装器
 
-1. 从 [GitHub Releases](https://github.com/OhMyLoader/OhMyLoader/releases) 下载最新安装器
-   `oml-installer-<版本>.jar`。
-2. 双击运行，或 `java -jar oml-installer-<版本>.jar`。
-3. 选择目标：
+安装器尚未发布——项目处于预发布阶段。从 loader 源码构建并运行：
+
+```bash
+git clone https://github.com/OhMyLoader/OhMyLoader.git
+cd OhMyLoader && ./gradlew :oml-installer:shadowJar
+java -jar dist/oml-installer-*.jar
+```
+
+选择目标：
 
 | 目标         | 说明                                                                                                     |
 |--------------|----------------------------------------------------------------------------------------------------------|
@@ -13,8 +18,8 @@
 | Prism 启动器 | 注册为 Prism 的实例组件                                                                                  |
 | 专用服务端   | 落地一个带启动脚本的服务端目录                                                                           |
 
-4. 安装完成后，在启动器里选择 OML 版本（如 `26.3-OML`）即可进游戏。 **游戏本体（客户端 jar / 运行库 /
-   natives / 资产）由启动器自行下载**，安装器只安装 OML 层。
+安装完成后，在启动器里选择 OML 版本（`<game-version>-OML`）即可进游戏。**游戏本体（客户端 jar / 运行库 /
+natives / 资产）由启动器自行下载**，安装器只安装 OML 层。
 
 ## 内容包：浏览器编辑器
 
@@ -33,5 +38,5 @@
 | `oml-adapter`          | 游戏适配层（运行时层）                                          |
 | `oml-native`           | Zstd 编解码原生库（可选，缺失时降级 vanilla 实现）              |
 
-当前发布渠道是 GitHub Packages（正式 Maven 仓库上线前的过渡；读取需要 GitHub token），本地开发直接用
-`mavenLocal`——先 clone loader 仓库执行 `./gradlew publishToMavenLocal`，详见[第一个 mod](/zh/guide/first-mod)。
+目前还没有构件仓库。预发布阶段，工程从本地 Maven 仓库解析 `org.ohmyloader:*`：clone loader 与插件仓库，
+各自执行 `./gradlew publishToMavenLocal`——完整步骤见[第一个 mod](/zh/guide/first-mod)。

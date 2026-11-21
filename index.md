@@ -31,7 +31,4 @@ features:
     details: Declare blocks, items, and recipes in Kotlin or a TOML content pack (an `.oml` archive). They are materialized into native content at the registry freeze point and use the game's own validation and data pack paths.
   - icon: 🖥️
     title: Both sides
-    details: The client and dedicated server have separate hooks and init paths, selected with `oml.side`. One mod source base runs on both unchanged.
-  - icon: 🚀
-    title: Java 27
-    details: The full stack runs on Java 27.
+    details: One mod source base runs on the client and the dedicated server unchanged; the loader provides separate hooks and init paths for each side.

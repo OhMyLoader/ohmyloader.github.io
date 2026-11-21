@@ -31,7 +31,4 @@ features:
     details: 用 Kotlin 或 TOML 内容包（`.oml` 归档）声明方块、物品与配方；在注册表冻结点材料化为原生内容，并走游戏自己的校验与数据包路径。
   - icon: 🖥️
     title: 双端支持
-    details: 客户端与专用服务端有独立的钩子与初始化路径，用 `oml.side` 选边。同一份 mod 源码无需改动即可双端运行。
-  - icon: 🚀
-    title: Java 27
-    details: 全线运行在 Java 27 上。
+    details: 一份 mod 源码不改一行即可同时跑在客户端与专用服务端；loader 为两侧分别提供钩子与初始化路径。

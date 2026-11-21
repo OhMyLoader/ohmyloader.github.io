@@ -60,7 +60,7 @@ Events.CLIENT_TICK.register { /* every logical tick */ }
 | `LIVING_HURT`           | damage is about to be applied to a living entity        | ✅          | `entity: LivingEntity`, writable `amount: Float`, `source: DamageSource` |
 | `LIVING_DIED`           | a living entity's death routine is starting             | ✅          | `entity: LivingEntity`, `source: DamageSource`                           |
 
-What else lives on those objects is on the [Game Objects and 26.3 Extensions](/api/native) page — the
+What else lives on those objects is on the [Game Objects & Extensions](/api/native) page — the
 payload fields are the objects the game was about to act on, not copies, so a handler can call the game's
 own methods on them directly.
 

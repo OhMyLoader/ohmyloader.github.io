@@ -1,8 +1,8 @@
-# 游戏对象与 26.3 扩展层
+# 游戏对象与扩展
 
 游戏对象以游戏自己的类交给 mod：handler 读到的是 `ServerPlayer`、`BlockPos`、`DamageSource`；OML 提供的
-能力是挂在这些类型上的扩展函数与属性，位于工件 `org.ohmyloader:oml-api-26_3` 的
-`org.ohmyloader.api26_3` 包。
+能力是挂在这些类型上的扩展函数与属性，位于工件 `org.ohmyloader:oml-api` 的
+`org.ohmyloader.api` 包。
 
 ```kotlin
 import org.ohmyloader.api26_3.*          // 扩展函数，以及 OMLGame / OMLRegistries
@@ -273,7 +273,7 @@ server.setGameRule("minecraft:keep_inventory", "3")        // false：该规则�
 
 ## 时钟
 
-26.3 的时间住在 **时钟**里：每个时钟是一个带速率的 tick 计数器，按注册表 id 寻址，并由维度类型
+游戏的时间住在 **时钟**里：每个时钟是一个带速率的 tick 计数器，按注册表 id 寻址，并由维度类型
 绑定到维度——下界不指定时钟，所以那里 `level.clock` 为 null，既没有时间可读也没有时间可写。
 `/time set` 提到的那些具名时刻（`minecraft:day`、`minecraft:noon` 等）是 **标记（marker）**，而声明它们的单位
 叫 **时间线（timeline）**。
@@ -394,7 +394,7 @@ mod 声明的维度一旦被游戏建好，就与其他世界无异：[`clock`](
 
 ## 出生点与重生锚点
 
-26.3 存了两类锚点，两者都是游戏自己的 `LevelData.RespawnData`：一个全局坐标，加上到达时给玩家设好的 yaw 与
+游戏存了两类锚点，两者都是它自己的 `LevelData.RespawnData`：一个全局坐标，加上到达时给玩家设好的 yaw 与
 pitch。
 
 | 调用                                                                   | 含义                                                                                             |
@@ -424,7 +424,7 @@ pitch。
 
 ## 权限节点
 
-26.3 的权限判定落在 **节点**上，而不只是 0..4 的 OP 等级：游戏自己的检查项是 `Permission.Atom` 形式的 id
+游戏的权限判定落在 **节点**上，而不只是 0..4 的 OP 等级：游戏自己的检查项是 `Permission.Atom` 形式的 id
 （`minecraft:chat/send_messages`、`minecraft:commands/entity_selectors`），再加上
 `Permission.HasCommandLevel(level)`，而 `PermissionSet` 说到底就是一个 `hasPermission(node)`。OML 用同样的
 id 寻址这些对象，并补上游戏本身没有的一样东西：按玩家的覆盖表。

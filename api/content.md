@@ -275,7 +275,7 @@ its own default rather than OML guessing one.
 
 This is the same datapack route as recipes: OML writes
 `data/my_mod/damage_type/melt.json` into its injected pack and the game's reload registers it, so the type
-is in `server.registry(Registries.DAMAGE_TYPE)` and the 26.3 [`hurt`](/api/native) extension accepts `"my_mod:melt"`
+is in `server.registry(Registries.DAMAGE_TYPE)` and the [`hurt`](/api/native) extension accepts `"my_mod:melt"`
 like
 any vanilla id — and a handler sees the declared `messageId` in `LIVING_HURT`. An unknown enum name is
 refused at declaration with a warning, because a file the datapack codec rejects would otherwise disappear
@@ -283,7 +283,7 @@ during reload with no owner to blame.
 
 ### Clocks and the moments on them
 
-26.3 counts time in clocks addressed by registry id, and the named moments `/time set` moves a clock onto
+The game counts time in clocks addressed by registry id, and the named moments `/time set` moves a clock onto
 are **markers** declared by a timeline. Both are datapack entries, so a mod can add its own time domain:
 
 ```kotlin
@@ -316,7 +316,7 @@ per-attribute and version-facing, so write that JSON yourself.
 
 ### Dimensions
 
-A dimension type and a dimension are datapack entries too, and 26.3 builds a level for **every** entry in its
+A dimension type and a dimension are datapack entries too, and the game builds a level for **every** entry in its
 `dimension` table when the server starts — so this is a whole dimension, not a registration a mod has to drive
 itself:
 
@@ -572,7 +572,7 @@ recipe (`input` required, `furnace` selecting smelting / blasting / smoking, opt
 `cooking_time`); a loot file declares that breaking the block named by the file id drops `drop` instead of
 itself. A damage-type file declares a damage type (`message_id` required; `scaling`, `effects`, `exhaustion`
 and `death_message_type` optional, with the same accepted names as the code API). A clock file declares a
-world clock and takes no fields (a 26.3 clock is nothing but its id); a timeline file declares a timeline
+world clock and takes no fields (a clock is nothing but its id); a timeline file declares a timeline
 (`clock` required, `period_ticks` optional, and `markers` an inline table whose value is either a tick number
 or `{ ticks = …, in_commands = … }` — the two forms the game's own codec takes). A dimension-type file takes
 the game's own field names in snake_case (`sky_light`, `ceiling`, `dragon_fight`, `coordinate_scale`, `min_y`,

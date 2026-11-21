@@ -39,7 +39,7 @@ Events.HUD_RENDER.register { event ->
 |--------------|---------------------------------|-------------|----------------------------------|
 | `HUD_RENDER` | every frame with a world loaded | –           | `graphics: GuiGraphicsExtractor` |
 
-On 26.3 `graphics` is the game's own `GuiGraphicsExtractor`, so every draw call the game has is available
+`graphics` is the game's own `GuiGraphicsExtractor`, so every draw call the game has is available
 to a mod. `drawText(text, x, y)` is the one convenience OML adds: it draws in the game's default font with
 vanilla's color codes honored.
 

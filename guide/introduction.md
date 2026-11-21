@@ -2,7 +2,7 @@
 
 **OhMyLoader (OML)** is a mod loader for Minecraft Java Edition. It provides a custom bytecode injection
 engine, a two-layer mod API, and declarative content registration on the client and the dedicated server.
-The current stable line is 26.3; the full stack runs on Java 27.
+The loader currently targets 26.4 snapshots; the full stack runs on Java 27.
 
 ## Design
 
@@ -25,7 +25,7 @@ layers:
 
 Every rule is self-checked at startup for handler existence, staticness, signature consistency, and
 anchor/access-rule sanity. Target existence and match counts are enforced when the target class loads, and
-the bundled adapters' anchors are checked against the real game jar at build time. A wrong rule fails fast
+the bundled adapter's anchors are checked against the real game jar at build time. A wrong rule fails fast
 instead of silently doing less in game.
 
 ### Thin adapter
@@ -50,7 +50,9 @@ rewrite.
 | [OhMyLoaderGradle](https://github.com/OhMyLoader/OhMyLoaderGradle) | Official Gradle plugin: runtime assembly and `runClient` / `runServer` |
 | [OhMyLoaderTestMod](https://github.com/OhMyLoader/OhMyLoaderTestMod) | End-to-end verification mod, consumed exactly like an external mod project |
 
-The three repositories consume each other only by Maven coordinate.
+The three repositories consume each other only by Maven coordinate. The rest of the organization — shared
+CI (Foundation), the standalone diagnostics toolbox, and the example mod ports — lives at
+[github.com/OhMyLoader](https://github.com/OhMyLoader).
 
 ## API stability
 
@@ -61,7 +63,8 @@ The mod-facing surface has three tiers, defined in the loader's
   and the injection DSL. During 0.x, breaking changes land directly as `!` commits with no deprecation window;
   each commit body gives the migration. From 1.0, the tier freezes: breaking changes become major-version
   events, and old signatures remain deprecated for one major release.
-- **Provided, settling**: commands, config, network, keybindings, HUD, and creative tabs. These may change
+- **Provided, settling**: commands, config, network, keybindings/HUD/creative tabs, and the main-thread
+  scheduler. These may change
   until 1.0; changes are recorded in the release notes.
 - **Version-facing, tracks the game**: the `oml-api` artifact. Event payloads and extensions name the
   game's own classes (`ServerPlayer`, `BlockPos`, `DamageSource`). There is no wrapper layer; a game type is

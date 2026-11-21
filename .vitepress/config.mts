@@ -46,7 +46,7 @@ export default defineConfig({
               text: 'API Reference',
               items: [
                 { text: 'Mod Entry & Events', link: '/api/events' },
-                { text: 'Game Objects & 26.3 Extensions', link: '/api/native' },
+                { text: 'Game Objects & Extensions', link: '/api/native' },
                 { text: 'Tick Scheduler', link: '/api/scheduler' },
                 { text: 'Content Registration', link: '/api/content' },
                 { text: 'Slash Commands', link: '/api/command' },
@@ -93,7 +93,7 @@ export default defineConfig({
               text: 'API 参考',
               items: [
                 { text: 'mod 入口与事件系统', link: '/zh/api/events' },
-                { text: '游戏对象与 26.3 扩展层', link: '/zh/api/native' },
+                { text: '游戏对象与扩展', link: '/zh/api/native' },
                 { text: '主线程调度器', link: '/zh/api/scheduler' },
                 { text: '内容注册', link: '/zh/api/content' },
                 { text: '斜杠命令', link: '/zh/api/command' },

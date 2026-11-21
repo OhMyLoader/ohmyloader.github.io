@@ -56,7 +56,7 @@ Events.CLIENT_TICK.register { /* 每逻辑 tick */ }
 | `LIVING_HURT`           | 伤害即将作用到某个生物实体                         | ✅     | `entity: LivingEntity`、**可写**的 `amount: Float`、`source: DamageSource`                 |
 | `LIVING_DIED`           | 生物实体的死亡流程启动                             | ✅     | `entity: LivingEntity`、`source: DamageSource`                                             |
 
-这些对象上还有什么可用，见[游戏对象与 26.3 扩展层](/zh/api/native)。递来的是游戏准备拿去行动的对象，不是副本，所以 handler
+这些对象上还有什么可用，见[游戏对象与扩展](/zh/api/native)。递来的是游戏准备拿去行动的对象，不是副本，所以 handler
 可以直接在其上调用游戏自己的方法。
 
 `PLAYER_RESPAWNED` 是唯一交出 **新对象**的生命周期事件：游戏为开始这一命新建一个玩家、丢弃它替代的那一个，
