@@ -8,7 +8,7 @@ translations live under `zh/` and must stay paired. API reference content follow
 - Open an issue before a navigation, URL, or content-structure change.
 - Keep this repository independent. Do not add a Maven dependency, a Gradle build, or a source mount to
   another repository.
-- Read the loader's `oml-api/README.md` for the stability contract when documenting API.
+- Read the loader's `oml-api-core/README.md` for the stability contract when documenting API.
 
 ## Prerequisites
 
@@ -27,8 +27,8 @@ bun dev
 ```
 
 `check:sync` compares every English page with its `zh/` counterpart for headings, fences, containers,
-tables, and inline code tokens. `check:api` indexes declarations in the loader's `oml-api` and
-`oml-api-26_3` and verifies the inline API references on the API pages. `bun run build` also fails on dead
+tables, and inline code tokens. `check:api` indexes declarations in the loader's `oml-api-core` and
+`oml-api` and verifies the inline API references on the API pages. `bun run build` also fails on dead
 links. CI runs all three before deploying.
 
 ## Content rules
@@ -43,8 +43,8 @@ links. CI runs all three before deploying.
   explicit.
 - A `<!-- sync-ignore -->` or an `EXEMPT` entry needs a concrete reason; do not add exemptions to silence
   a real mismatch.
-- Do not add unsupported claims about platforms, versions, or compatibility. The loader README is the
-  source for platform status.
+- Do not add unsupported claims about platforms, versions, or compatibility; verify every claim against
+  the loader source.
 
 ## Commit and pull request
 
@@ -64,12 +64,9 @@ pass. The deploy job rechecks the English/Chinese pairing; do not bypass it with
 
 ## Security
 
-Do not report a vulnerability in a public issue. Use GitHub's private vulnerability reporting for this
-repository; include the affected version or commit, reproduction steps, and impact. If private reporting
-is unavailable, contact the maintainer through GitHub before public disclosure.
+Report vulnerabilities privately; the organization-wide policy lives in the
+[`.github` repository](https://github.com/OhMyLoader/.github/blob/main/SECURITY.md) and applies here.
 
 ## License
 
-The site content is licensed under AGPL-3.0. By submitting a contribution, you confirm that you have the
-right to license it under AGPL-3.0. No CLA or `Signed-off-by` is required. Do not submit content with an
-incompatible license.
+The site content is licensed under AGPL-3.0.

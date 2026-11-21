@@ -31,8 +31,7 @@ All artifacts live under the `org.ohmyloader` group, current version `0.1.0-SNAP
 | `oml-api`              | The only compile-time dependency a mod needs: events, lifecycle, content declaration, injection DSL |
 | `oml-core`             | The loader core (runtime layer)                                                                     |
 | `oml-launcher`         | The bootstrap header (runtime layer)                                                                |
-| `oml-adapter-26_3`     | The 26.3 stable-line adapter (runtime layer)                                                        |
-| `oml-adapter-snapshot` | The latest-snapshot adapter (for snapshot tracking)                                                 |
+| `oml-adapter`          | The game adapter (runtime layer)                                                                    |
 | `oml-native`           | The Zstd codec native library (optional; falls back to vanilla implementations)                     |
 
 The current publishing channel is GitHub Packages (an interim server until a dedicated Maven

@@ -1,22 +1,19 @@
 # OhMyLoader Website
 
-The official OhMyLoader website, built with [VitePress](https://vitepress.dev).
-
-## Development
+The OhMyLoader documentation site and the browser-based content pack editor, built with
+[VitePress](https://vitepress.dev). The editor lives in `editor/` and deploys with the site at
+`/editor/`.
 
 ```bash
 bun install --frozen-lockfile
 bun dev          # site preview
-bun run dev:editor  # editor preview (http://localhost:3000)
-bun run build    # production build (site + editor into one Pages artifact)
+bun run build    # production build (site and editor page in one dist)
 bun run test     # editor tests
 ```
 
-The browser-based content pack editor lives in `editor/` (SolidJS + Vite, built with the same
-bun toolchain) and deploys with the site at /editor/.
+English at the site root is the source of truth; the Chinese translation lives under `zh/`. Update
+both sides together.
 
-## Content maintenance
+## License
 
-- English is the source of truth at the site root; the Chinese translation lives under `zh/`. Update both
-  sides together.
-- API signatures in the documentation follow the [OhMyLoader](https://github.com/OhMyLoader/OhMyLoader) source.
+Licensed under AGPL-3.0.

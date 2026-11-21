@@ -28,11 +28,12 @@ anchor/access-rule sanity. Target existence and match counts are enforced when t
 the bundled adapters' anchors are checked against the real game jar at build time. A wrong rule fails fast
 instead of silently doing less in game.
 
-### Thin adapters
+### Thin adapter
 
-Each game version has a thin adapter module (`oml-adapter-*`) that maps hook anchors and native types. The
-stable line is 26.3. `oml-adapter-snapshot` tracks the latest snapshot and shares its implementation with the
-26.3 adapter; a 26.4 release needs a shape check and mapping, not a rewrite.
+The adapter module (`oml-adapter`) maps hook anchors and native types for the newest game line and is
+shape-checked against the real game jar at build time. Snapshot tracking resolves the latest snapshot at
+runtime (`minecraftVersion.set("snapshot")`); a new game version needs a shape check and mapping, not a
+rewrite.
 
 ### Two content tracks
 
@@ -45,17 +46,16 @@ stable line is 26.3. `oml-adapter-snapshot` tracks the latest snapshot and share
 
 | Repository | Contents |
 |---|---|
-| [OhMyLoader](https://github.com/OhMyLoader/OhMyLoader) | Loader: core, API, version adapters, installer, native library |
+| [OhMyLoader](https://github.com/OhMyLoader/OhMyLoader) | Loader: core, API, adapter, installer, native library |
 | [OhMyLoaderGradle](https://github.com/OhMyLoader/OhMyLoaderGradle) | Official Gradle plugin: runtime assembly and `runClient` / `runServer` |
 | [OhMyLoaderTestMod](https://github.com/OhMyLoader/OhMyLoaderTestMod) | End-to-end verification mod, consumed exactly like an external mod project |
 
-The three repositories consume each other only by Maven coordinate. The loader README documents the module
-layout.
+The three repositories consume each other only by Maven coordinate.
 
 ## API stability
 
 The mod-facing surface has three tiers, defined in the loader's
-[`oml-api/README.md`](https://github.com/OhMyLoader/OhMyLoader/blob/main/oml-api/README.md):
+[`oml-api-core/README.md`](https://github.com/OhMyLoader/OhMyLoader/blob/main/oml-api-core/README.md):
 
 - **Contracted**: the `@Mod` entry, `OMLModInitializer` / `ModContext`, `Events`, the content declaration DSL,
   and the injection DSL. During 0.x, breaking changes land directly as `!` commits with no deprecation window;
@@ -63,8 +63,8 @@ The mod-facing surface has three tiers, defined in the loader's
   events, and old signatures remain deprecated for one major release.
 - **Provided, settling**: commands, config, network, keybindings, HUD, and creative tabs. These may change
   until 1.0; changes are recorded in the release notes.
-- **Version-facing, tracks the game**: the `oml-api-26_3` artifact. Event payloads and extensions name the
+- **Version-facing, tracks the game**: the `oml-api` artifact. Event payloads and extensions name the
   game's own classes (`ServerPlayer`, `BlockPos`, `DamageSource`). There is no wrapper layer; a game type is
-  the game type. This tier is contracted to one game version. A new game version uses the matching
-  `oml-api-<version>` artifact. A few handles (`OMLCommandSource`, `OMLNetworkContext`, `OMLBlock`) keep a
+  the game type. This tier is contracted to one game version; a new game version rebuilds the same
+  `oml-api` against it. A few handles (`OMLCommandSource`, `OMLNetworkContext`, `OMLBlock`) keep a
   `platform` property for reaching the raw game object.

@@ -25,8 +25,9 @@ adapter 在语义层之下吸收，不向上泄漏。
 
 ### 薄 Adapter
 
-每个游戏版本有一个薄适配层（`oml-adapter-*`），只负责钩子锚点与原生类型映射。稳定主线是 26.3。
-`oml-adapter-snapshot` 跟随最新快照，并与 26.3 适配层共享实现；26.4 正式版需要形状核对与映射，不是重写。
+适配层模块（`oml-adapter`）只为最新游戏线负责钩子锚点与原生类型映射，并在构建期对真实游戏 jar 做形状核对。
+追快照时由运行期把版本解析为最新快照（`minecraftVersion.set("snapshot")`）；换一个游戏版本需要形状核对与
+映射，不是重写。
 
 ### 双轨内容
 
@@ -37,22 +38,22 @@ adapter 在语义层之下吸收，不向上泄漏。
 
 | 仓库 | 内容 |
 |---|---|
-| [OhMyLoader](https://github.com/OhMyLoader/OhMyLoader) | 加载器本体：内核、API、版本 adapter、安装器、原生库 |
+| [OhMyLoader](https://github.com/OhMyLoader/OhMyLoader) | 加载器本体：内核、API、适配层、安装器、原生库 |
 | [OhMyLoaderGradle](https://github.com/OhMyLoader/OhMyLoaderGradle) | 官方 Gradle 插件：运行环境装配与 `runClient` / `runServer` |
 | [OhMyLoaderTestMod](https://github.com/OhMyLoader/OhMyLoaderTestMod) | 端到端验证模组，以外部 mod 工程的身份走完整消费路径 |
 
-三个仓库互相只按 Maven 坐标消费。详细模块划分见 loader 仓库 README。
+三个仓库互相只按 Maven 坐标消费。
 
 ## API 稳定性
 
 面向 mod 的接口分三层，契约见 loader 仓库的
-[`oml-api/README.md`](https://github.com/OhMyLoader/OhMyLoader/blob/main/oml-api/README.md)：
+[`oml-api-core/README.md`](https://github.com/OhMyLoader/OhMyLoader/blob/main/oml-api-core/README.md)：
 
 - **契约层**：`@Mod` 入口、`OMLModInitializer` / `ModContext`、`Events`、内容声明 DSL 与注入 DSL。
   0.x 阶段破坏性变更以 `!` 提交直接落地，不留弃用窗口；迁移方式写入提交正文。1.0 起冻结：破坏性变更
   升为大版本事件，旧签名经弃用保留一个大版本。
 - **已提供、仍在沉淀**：命令、配置、网络、按键、HUD 与创造标签。1.0 前允许调整；变更记录进发布说明。
-- **版本面向，随游戏版本变动**：`oml-api-26_3` 工件。事件载荷与扩展函数直接命名游戏自己的类
+- **版本面向，随游戏版本变动**：`oml-api` 工件。事件载荷与扩展函数直接命名游戏自己的类
   （`ServerPlayer`、`BlockPos`、`DamageSource`）。中间没有包装层；游戏类型就是游戏类型。这一层只对
-  单一游戏版本负责；换游戏版本就是换 `oml-api-<version>` 工件。个别句柄（`OMLCommandSource`、
+  单一游戏版本负责；换游戏版本就针对新版本重建同一份 `oml-api`。个别句柄（`OMLCommandSource`、
   `OMLNetworkContext`、`OMLBlock`）保留 `platform` 属性，用于拿到原生游戏对象。

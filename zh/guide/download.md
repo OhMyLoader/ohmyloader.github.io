@@ -30,8 +30,7 @@
 | `oml-api`              | mod 编译时唯一需要的依赖：事件 / 生命周期 / 内容声明 / 注入 DSL |
 | `oml-core`             | 加载器内核（运行时层）                                          |
 | `oml-launcher`         | 启动自举头（运行时层）                                          |
-| `oml-adapter-26_3`     | 26.3 稳定主线驱动（运行时层）                                   |
-| `oml-adapter-snapshot` | 最新快照驱动（追快照用）                                        |
+| `oml-adapter`          | 游戏适配层（运行时层）                                          |
 | `oml-native`           | Zstd 编解码原生库（可选，缺失时降级 vanilla 实现）              |
 
 当前发布渠道是 GitHub Packages（正式 Maven 仓库上线前的过渡；读取需要 GitHub token），本地开发直接用
