@@ -28,6 +28,7 @@ export default defineConfig({
           { text: 'Guide', link: '/guide/introduction' },
           { text: 'API', link: '/api/events' },
           { text: 'Download', link: '/guide/download' },
+          { text: 'Editor', link: '/editor/' },
         ],
         sidebar: {
           '/guide/': [
@@ -74,6 +75,7 @@ export default defineConfig({
           { text: '指南', link: '/zh/guide/introduction' },
           { text: 'API', link: '/zh/api/events' },
           { text: '下载', link: '/zh/guide/download' },
+          { text: '编辑器', link: '/zh/editor/' },
         ],
         sidebar: {
           '/zh/guide/': [
