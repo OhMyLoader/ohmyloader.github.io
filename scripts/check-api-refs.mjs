@@ -40,8 +40,8 @@ function resolveLoaderRoot() {
 const LOADER_ROOT = resolveLoaderRoot();
 
 const SOURCE_DIRS = [
+    join(LOADER_ROOT, 'oml-api-core/src/main/kotlin'),
     join(LOADER_ROOT, 'oml-api/src/main/kotlin'),
-    join(LOADER_ROOT, 'oml-api-26_3/src/main/kotlin'),
 ];
 
 // Kotlin words that legitimately appear before a paren in docs and are not OML API.
