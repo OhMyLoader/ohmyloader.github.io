@@ -4,6 +4,9 @@ export default defineConfig({
   title: 'OhMyLoader',
   description: 'A Minecraft mod loader for Java Edition 26.x',
   cleanUrls: true,
+  // /editor/ is a static sibling app (built separately into the Pages artifact), not a
+  // VitePress page — its links resolve after deployment, so exempt them from the dead-link scan.
+  ignoreDeadLinks: [/^\/editor\//],
   // Repository/developer docs are not site pages.
   srcExclude: ['AGENTS.md', 'CONTRIBUTING.md', 'OhMyLoader/**', 'editor/**'],
   lastUpdated: true,

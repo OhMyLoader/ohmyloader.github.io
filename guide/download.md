@@ -17,6 +17,11 @@
    client jar, libraries, natives, assets) is downloaded by the launcher** — the
    installer only installs the OML layer.
 
+## Content packs: the browser editor
+
+Pack authors can build and validate a TOML content pack in the browser — no install, no build step.
+The editor exports an `.oml` archive that loads like any content pack: [OhMyLoader Editor](/editor/).
+
 ## Developers: Maven coordinates
 
 All artifacts live under the `org.ohmyloader` group, current version `0.1.0-SNAPSHOT`:

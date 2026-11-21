@@ -15,6 +15,9 @@ hero:
     - theme: alt
       text: Introduction
       link: /guide/introduction
+    - theme: alt
+      text: Content Pack Editor
+      link: /editor/
 
 features:
   - icon: ⚙️

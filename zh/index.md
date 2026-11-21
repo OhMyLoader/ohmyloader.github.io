@@ -15,6 +15,9 @@ hero:
     - theme: alt
       text: 项目介绍
       link: /zh/guide/introduction
+    - theme: alt
+      text: 内容包编辑器
+      link: /editor/
 
 features:
   - icon: ⚙️
