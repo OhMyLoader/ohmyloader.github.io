@@ -17,6 +17,7 @@ const en = {
     namespace: 'namespace',
     unsaved: 'unsaved',
     language: 'language',
+    appearance: 'toggle dark mode',
     import: 'import .oml',
     importTitle: 'import an .oml archive',
     export: 'export .oml',
@@ -191,6 +192,7 @@ const zh: Dict = {
     namespace: '命名空间',
     unsaved: '未保存',
     language: '语言',
+    appearance: '切换深色模式',
     import: '导入 .oml',
     importTitle: '导入 .oml 归档',
     export: '导出 .oml',
@@ -351,6 +353,8 @@ export type Locale = (typeof LOCALES)[number];
 const KEY_LOCALE = 'oml-editor:locale';
 
 function initialLocale(): Locale {
+  // The site's server render has no storage; the browser module re-evaluates on mount.
+  if (typeof window === 'undefined') return 'en';
   try {
     const stored = localStorage.getItem(KEY_LOCALE);
     if (stored === 'en' || stored === 'zh') return stored;

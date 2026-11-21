@@ -1,14 +1,22 @@
 import { defineConfig } from 'vitepress'
+import UnoCSS from '@unocss/vite'
+import solid from 'vite-plugin-solid'
 
 export default defineConfig({
   title: 'OhMyLoader',
   description: 'A Minecraft mod loader for Java Edition 26.x',
   cleanUrls: true,
-  // /editor/ is a static sibling app (built separately into the Pages artifact), not a
-  // VitePress page — its links resolve after deployment, so exempt them from the dead-link scan.
-  ignoreDeadLinks: [/^\/editor\//],
-  // Repository/developer docs are not site pages.
-  srcExclude: ['AGENTS.md', 'CONTRIBUTING.md', 'OhMyLoader/**', 'editor/**'],
+  // Repository/developer docs are not site pages. editor/index.md must stay includable: it is
+  // the editor application page (layout: false), compiled by the same Vite build.
+  srcExclude: ['AGENTS.md', 'CONTRIBUTING.md', 'OhMyLoader/**'],
+  vite: {
+    plugins: [
+      // The editor page imports a Solid app; its utility classes come from the editor's own
+      // UnoCSS theme (mapped onto the editor's appearance-aware CSS variables).
+      UnoCSS({ configFile: 'editor/unocss.config.ts' }),
+      solid({ include: /editor\/src\/.*\.[jt]sx$/ }),
+    ],
+  },
   lastUpdated: true,
   locales: {
     root: {

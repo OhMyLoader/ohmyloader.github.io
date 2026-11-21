@@ -3,28 +3,16 @@
   "version": "0.0.0",
   "description": "Browser-based editor for OhMyLoader content packs",
   "type": "module",
-  "scripts": {
-    "start": "vite",
-    "dev": "vite",
-    "build": "vite build",
-    "test": "bun test",
-    "serve": "vite preview"
-  },
   "license": "AGPL-3.0",
-  "devDependencies": {
-    "@types/bun": "^1.4.4",
-    "@types/node": "^26.6.6",
-    "@unocss/preset-mini": "^66.13.0",
-    "@unocss/vite": "^66.13.0",
-    "solid-devtools": "^0.34.5",
-    "typescript": "^7.0.2",
-    "vite": "^8.3.8",
-    "vite-plugin-solid": "^2.11.16"
-  },
   "dependencies": {
     "@solid-primitives/i18n": "^2.2.1",
     "fflate": "^0.8.3",
     "smol-toml": "^1.9.1",
     "solid-js": "^1.9.19"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.5",
+    "@unocss/preset-mini": "^66.13.0",
+    "typescript": "^7.0.2"
   }
 }

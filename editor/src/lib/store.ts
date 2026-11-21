@@ -9,7 +9,9 @@ import { codecs, packFromToml } from './toml';
  * loader would load); entity identity within a type is the id — renaming is remove + add.
  */
 
-const saved = loadDraft();
+// Module init runs in the browser; during the site's server render there is no storage,
+// so the draft load is skipped (the client re-evaluates this module on mount).
+const saved = typeof window === 'undefined' ? null : loadDraft();
 let restored: Pack | null = null;
 if (saved) {
   try {

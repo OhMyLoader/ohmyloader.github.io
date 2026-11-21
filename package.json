@@ -9,10 +9,7 @@
   ],
   "scripts": {
     "dev": "vitepress dev",
-    "dev:editor": "cd editor && bun run dev",
-    "build": "vitepress build && bun run build:editor && bun scripts/combine-dist.mjs",
-    "build:site": "vitepress build",
-    "build:editor": "cd editor && bun run build",
+    "build": "vitepress build",
     "preview": "vitepress preview",
     "test": "bun test",
     "typecheck": "cd editor && bunx tsc --noEmit",
@@ -20,6 +17,8 @@
     "check:api": "bun scripts/check-api-refs.mjs"
   },
   "devDependencies": {
-    "vitepress": "2.0.0-alpha.21"
+    "@unocss/vite": "^66.13.0",
+    "vitepress": "2.0.0-alpha.21",
+    "vite-plugin-solid": "^2.11.17"
   }
 }

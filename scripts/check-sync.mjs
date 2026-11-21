@@ -34,6 +34,8 @@ const UNPAIRED = new Set(['README.md', 'AGENTS.md', 'CONTRIBUTING.md']);
 // directories never scanned
 const SKIP_DIRS = new Set([
     'node_modules', '.vitepress', '.git', 'dist', 'run',
+    // The editor's index.md is a layout:false application page, not paired documentation.
+    'editor',
     // CI checkouts of the sibling repositories (deploy.yml checks the loader out for check:api):
     // their documentation is not site content and has no zh counterpart.
     'OhMyLoader', 'OhMyLoaderGradle', 'OhMyLoaderTestMod',

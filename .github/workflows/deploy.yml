@@ -36,7 +36,7 @@ jobs:
       - run: bun run check:sync
       # documented API references must resolve against the loader source (AC-8)
       - run: bun run check:api
-      # both applications build and the editor artifact combines into the site dist at /editor/
+      # one build compiles the site and the editor page (editor/index.md) into a single dist
       - run: bun run typecheck
       - run: bun run build
       # the artifact is only consumed by deploy on main; on PRs it is just a build check

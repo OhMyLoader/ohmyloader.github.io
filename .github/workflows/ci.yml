@@ -1,6 +1,6 @@
 # The PR gate stub: machinery lives in the Foundation reusable workflow, pinned to @v1.
 # The composed scripts run every gate: the site's en/zh pairing, the editor's typecheck and
-# tests, and both builds (the combined artifact shape the deploy ships).
+# tests, and the one build that ships both the site and the editor page.
 name: CI
 
 on:
