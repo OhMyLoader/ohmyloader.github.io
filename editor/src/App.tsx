@@ -10,6 +10,8 @@ import {
   DownloadIcon,
   FileIcon,
   FolderIcon,
+  MoonIcon,
+  SunIcon,
   PlusIcon,
   TrashIcon,
   UploadIcon,
@@ -36,6 +38,7 @@ import {
 import { collectFiles, findFile, packTree } from './lib/files';
 import { downloadPack, importPack, namespaceError, packToToml } from './lib/pack';
 import { locale, setLocale, t, typeLabel } from './lib/i18n';
+import { isDark, toggleDark } from './lib/appearance';
 import { loadCollapsed, saveCollapsed } from './lib/persist';
 import { validatePack } from './lib/validate';
 
@@ -173,7 +176,7 @@ function EditorPane() {
         when={sel() && entity()}
         fallback={
           <div class="empty-state">
-            <div class="grid h-11 w-11 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-400 shadow-sm">
+            <div class="grid h-11 w-11 place-items-center rounded-2xl border border-slate-200 bg-panel text-slate-400 shadow-sm">
               <CubeIcon class="h-5 w-5" />
             </div>
             <p class="mt-1 text-sm font-medium text-slate-600">{t('empty.title')}</p>
@@ -243,12 +246,12 @@ function PreviewPane() {
       .catch(() => undefined);
   };
   return (
-    <div class="flex h-full flex-col bg-slate-900">
-      <div class="preview-head flex h-10 shrink-0 items-center gap-2 border-b border-slate-800 px-3">
+    <div class="preview-surface flex h-full flex-col">
+      <div class="preview-head flex h-10 shrink-0 items-center gap-2 preview-line border-b px-3">
         <span class="shrink-0 whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
           {t('preview.title')}
         </span>
-        <span class="shrink-0 rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[9px] text-slate-400">
+        <span class="preview-chip shrink-0 rounded px-1.5 py-0.5 font-mono text-[9px] text-slate-400">
           {pack().namespace}.oml
         </span>
         <span class="shrink-0 text-[10px] text-slate-500">
@@ -282,12 +285,12 @@ function PreviewPane() {
           onSelect={(file) => setSelectedPath(file.path)}
         />
         <div class="flex min-h-0 flex-1 flex-col">
-          <div class="flex h-8 shrink-0 items-center gap-2 border-b border-slate-800 px-3">
+          <div class="flex h-8 shrink-0 items-center gap-2 preview-line border-b px-3">
             <span class="viewer-path truncate font-mono text-[10px] text-slate-500">
               {selected()?.path ?? t('preview.select')}
             </span>
             <Show when={selected()?.binary}>
-              <span class="shrink-0 rounded bg-slate-800 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-slate-400">
+              <span class="preview-chip shrink-0 rounded px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-slate-400">
                 bin
               </span>
             </Show>
@@ -306,7 +309,7 @@ function PreviewPane() {
           </Show>
         </div>
       </Show>
-      <div class="shrink-0 border-t border-slate-800 px-3 py-1.5 text-[10px] text-slate-500">
+      <div class="preview-line shrink-0 border-t px-3 py-1.5 text-[10px] text-slate-500">
         {t('preview.hint')}
       </div>
     </div>
@@ -315,6 +318,7 @@ function PreviewPane() {
 
 function Header() {
   const err = () => namespaceError(pack().namespace);
+  const [dark, setDark] = createSignal(isDark());
   const onImport = async (file: File) => {
     try {
       const { pack: next } = await importPack(file);
@@ -325,9 +329,9 @@ function Header() {
     }
   };
   return (
-    <header class="topbar flex items-center gap-3 border-b border-slate-200 bg-white px-4">
+    <header class="topbar flex items-center gap-3 border-b border-slate-200 bg-panel px-4">
       <div class="flex items-center gap-2.5">
-        <div class="grid h-7 w-7 place-items-center rounded-lg bg-slate-900 text-white shadow-sm">
+        <div class="brand-tile grid h-7 w-7 place-items-center rounded-lg text-white shadow-sm">
           <CubeIcon class="h-4 w-4" />
         </div>
         <div class="leading-tight">
@@ -367,6 +371,16 @@ function Header() {
           中文
         </button>
       </div>
+      <button
+        class="appearance-btn"
+        title={t('header.appearance')}
+        aria-label={t('header.appearance')}
+        onClick={() => setDark(toggleDark())}
+      >
+        <Show when={dark()} fallback={<MoonIcon class="h-3.5 w-3.5" />}>
+          <SunIcon class="h-3.5 w-3.5" />
+        </Show>
+      </button>
       <div class="flex-1" />
       <Show when={dirty()}>
         <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] text-amber-700">
@@ -447,7 +461,7 @@ export default function App() {
           <PreviewPane />
         </section>
       </main>
-      <footer class="statusbar flex items-center gap-3 border-t border-slate-200 bg-white px-4 text-[11px] text-slate-500">
+      <footer class="statusbar flex items-center gap-3 border-t border-slate-200 bg-panel px-4 text-[11px] text-slate-500">
         <span class="font-mono text-slate-600">{pack().namespace}.oml</span>
         <span class="h-3 w-px bg-slate-200" />
         <span>{t('footer.entities', total())}</span>

@@ -4,17 +4,57 @@
   --panel: #ffffff;
   --panel-soft: #f8fafc;
   --line: #e2e8f0;
+  --line-faint: #f1f5f9;
   --line-strong: #cbd5e1;
   --text: #1e293b;
   --muted: #64748b;
+  --muted-strong: #475569;
   --faint: #94a3b8;
   --accent: #4f46e5;
   --accent-strong: #4338ca;
   --accent-weak: #eef2ff;
+  --accent-weak-hover: #e0e7ff;
   --ok: #059669;
   --danger: #dc2626;
+  --danger-weak: #fef2f2;
+  --danger-line: #fecaca;
+  --danger-line-hover: #fca5a5;
+  --danger-text: #b91c1c;
+  --warn: #f59e0b;
+  --warn-weak: #fffbeb;
+  --warn-text: #b45309;
   --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* Dark values for the same palette. The class is set on <html> by VitePress's appearance
+   script (before first paint) and by the editor's own toggle; both write the same storage
+   key, so the editor and the surrounding site always agree. */
+.dark {
+  color-scheme: dark;
+  --bg: #141417;
+  --panel: #1b1b20;
+  --panel-soft: #202026;
+  --line: #2f2f36;
+  --line-faint: #26262c;
+  --line-strong: #3d3d45;
+  --text: rgb(255 255 245 / 0.86);
+  --muted: rgb(235 235 245 / 0.6);
+  --muted-strong: rgb(235 235 245 / 0.68);
+  --faint: rgb(235 235 245 / 0.38);
+  --accent: #818cf8;
+  --accent-strong: #a5b4fc;
+  --accent-weak: rgb(99 102 241 / 0.16);
+  --accent-weak-hover: rgb(99 102 241 / 0.26);
+  --ok: #34d399;
+  --danger: #f87171;
+  --danger-weak: rgb(248 113 113 / 0.1);
+  --danger-line: rgb(248 113 113 / 0.32);
+  --danger-line-hover: rgb(248 113 113 / 0.5);
+  --danger-text: #fca5a5;
+  --warn: #f59e0b;
+  --warn-weak: rgb(245 158 11 / 0.12);
+  --warn-text: #fbbf24;
 }
 
 * {
@@ -91,14 +131,14 @@ button {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--line-strong);
   border: 2px solid transparent;
   border-radius: 999px;
   background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--faint);
   border: 2px solid transparent;
   background-clip: content-box;
 }
@@ -152,21 +192,21 @@ button {
 }
 
 .btn-primary:disabled {
-  background: #e2e8f0;
-  color: #94a3b8;
+  background: var(--line);
+  color: var(--faint);
   box-shadow: none;
 }
 
 .btn-secondary {
   border-color: var(--line-strong);
   background: var(--panel);
-  color: #475569;
+  color: var(--muted-strong);
 }
 
 .btn-secondary:hover {
-  border-color: #94a3b8;
+  border-color: var(--faint);
   background: var(--panel-soft);
-  color: #0f172a;
+  color: var(--text);
 }
 
 .btn-ghost {
@@ -174,8 +214,8 @@ button {
 }
 
 .btn-ghost:hover {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: var(--line-faint);
+  color: var(--text);
 }
 
 .btn-soft {
@@ -184,18 +224,36 @@ button {
 }
 
 .btn-soft:hover {
-  background: #e0e7ff;
+  background: var(--accent-weak-hover);
 }
 
 .btn-danger {
-  border-color: #fecaca;
+  border-color: var(--danger-line);
   background: var(--panel);
   color: var(--danger);
 }
 
 .btn-danger:hover {
-  border-color: #fca5a5;
-  background: #fef2f2;
+  border-color: var(--danger-line-hover);
+  background: var(--danger-weak);
+}
+
+/* ---------- appearance toggle ---------- */
+
+.appearance-btn {
+  display: grid;
+  width: 1.875rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 0.5rem;
+  color: var(--muted);
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.appearance-btn:hover {
+  background: var(--line-faint);
+  color: var(--text);
 }
 
 /* ---------- language switch ---------- */
@@ -220,11 +278,11 @@ button {
 }
 
 .lang-btn:hover {
-  color: #0f172a;
+  color: var(--text);
 }
 
 .lang-btn--active {
-  background: #fff;
+  background: var(--panel);
   color: var(--accent-strong);
   box-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
 }
@@ -237,8 +295,8 @@ button {
   width: 100%;
   border: 1px solid var(--line-strong);
   border-radius: 0.5rem;
-  background: #fff;
-  color: #334155;
+  background: var(--panel);
+  color: var(--text);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
@@ -261,7 +319,7 @@ button {
 .select:focus,
 .textarea:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: var(--accent);
   box-shadow: 0 0 0 3px rgb(99 102 241 / 0.15);
 }
 
@@ -346,7 +404,7 @@ button {
   min-width: 1.125rem;
   padding: 0 0.3125rem;
   border-radius: 999px;
-  background: #f1f5f9;
+  background: var(--line-faint);
   color: var(--faint);
   font-size: 0.625rem;
   line-height: 1.125rem;
@@ -369,9 +427,9 @@ button {
   flex-shrink: 0;
   max-height: 7rem;
   overflow-y: auto;
-  border-bottom: 1px solid #fecaca;
-  background: #fef2f2;
-  color: #b91c1c;
+  border-bottom: 1px solid var(--danger-line);
+  background: var(--danger-weak);
+  color: var(--danger-text);
   font-size: 0.6875rem;
 }
 
@@ -397,7 +455,7 @@ button {
   align-items: center;
   gap: 0.25rem;
   padding: 0.3125rem 0.5rem 0.3125rem 0.375rem;
-  background: rgb(255 255 255 / 0.94);
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
   backdrop-filter: blur(4px);
 }
 
@@ -409,14 +467,14 @@ button {
   gap: 0.375rem;
   padding: 0.1875rem 0.125rem;
   border-radius: 0.375rem;
-  color: #334155;
+  color: var(--muted-strong);
   font-size: 0.75rem;
   font-weight: 600;
   text-align: left;
 }
 
 .tree-label:hover {
-  color: #0f172a;
+  color: var(--text);
 }
 
 .tree-add {
@@ -457,7 +515,7 @@ button {
 
 .tree-row:hover {
   background: var(--panel-soft);
-  color: #0f172a;
+  color: var(--text);
 }
 
 .tree-row--active,
@@ -509,6 +567,28 @@ button {
   gap: 0.5rem;
   padding: 2rem;
   text-align: center;
+}
+
+/* The preview pane and the header logo tile keep a fixed dark code surface in both
+   appearance modes; unlike the chrome they do not follow the palette variables. */
+.preview-surface {
+  background: #0f172a;
+}
+
+.preview-line {
+  border-color: #1e293b;
+}
+
+.preview-chip {
+  background: #1e293b;
+}
+
+.brand-tile {
+  background: #0f172a;
+}
+
+.dark .brand-tile {
+  background: #4338ca;
 }
 
 .code-view {
@@ -604,7 +684,7 @@ button {
   height: 2.5rem;
   border: 1px solid var(--line-strong);
   border-radius: 0.5rem;
-  background: #fff;
+  background: var(--panel);
   font-family: var(--font-mono);
   font-size: 0.8125rem;
   text-align: center;
@@ -625,7 +705,7 @@ button {
   place-items: center;
   border: 1px solid var(--line);
   border-radius: 0.375rem;
-  background: #fff;
+  background: var(--panel);
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: 0.6875rem;
