@@ -60,7 +60,7 @@ export default defineConfig({
         },
         outline: [2, 3],
         footer: {
-          message: 'Released under the AGPL-3.0 license.',
+          message: 'Released under the AGPL-3.0-or-later license.',
           copyright: 'Copyright © 2026 OhMyLoader',
         },
       },
@@ -107,7 +107,7 @@ export default defineConfig({
         },
         outline: [2, 3],
         footer: {
-          message: '基于 AGPL-3.0 许可证发布',
+          message: '基于 AGPL-3.0-or-later 许可证发布',
           copyright: 'Copyright © 2026 OhMyLoader',
         },
       },

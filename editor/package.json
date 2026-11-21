@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "Browser-based editor for OhMyLoader content packs",
   "type": "module",
-  "license": "AGPL-3.0",
+  "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@solid-primitives/i18n": "^2.2.1",
     "fflate": "^0.8.3",
