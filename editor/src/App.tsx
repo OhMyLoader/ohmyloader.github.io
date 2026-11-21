@@ -35,7 +35,7 @@ import {
 } from './lib/store';
 import { collectFiles, findFile, packTree } from './lib/files';
 import { downloadPack, importPack, namespaceError, packToToml } from './lib/pack';
-import { locale, setLocale, t, typeLabel } from './lib/i18n';
+import { t, typeLabel } from './lib/i18n';
 import { loadCollapsed, saveCollapsed } from './lib/persist';
 import { validatePack } from './lib/validate';
 
@@ -326,20 +326,6 @@ function Header() {
   };
   return (
     <header class="topbar flex items-center gap-3 border-b border-slate-200 bg-panel px-4">
-      <div class="flex items-center gap-2.5">
-        <div class="brand-tile grid h-7 w-7 place-items-center rounded-lg text-white shadow-sm">
-          <CubeIcon class="h-4 w-4" />
-        </div>
-        <div class="leading-tight">
-          <div class="text-[13px] font-semibold tracking-[-0.01em] text-slate-800">
-            OhMyLoader
-          </div>
-          <div class="text-[9px] font-medium uppercase tracking-[0.16em] text-slate-400">
-            {t('app.subtitle')}
-          </div>
-        </div>
-      </div>
-      <div class="mx-1 h-6 w-px bg-slate-200" />
       <label class="flex items-center gap-2">
         <span class="text-[11px] font-medium text-slate-400">{t('header.namespace')}</span>
         <input
@@ -353,20 +339,6 @@ function Header() {
           {err()}
         </span>
       </Show>
-      <div class="lang-group" role="group" aria-label={t('header.language')}>
-        <button
-          class={`lang-btn ${locale() === 'en' ? 'lang-btn--active' : ''}`}
-          onClick={() => setLocale('en')}
-        >
-          EN
-        </button>
-        <button
-          class={`lang-btn ${locale() === 'zh' ? 'lang-btn--active' : ''}`}
-          onClick={() => setLocale('zh')}
-        >
-          中文
-        </button>
-      </div>
       <div class="flex-1" />
       <Show when={dirty()}>
         <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] text-amber-700">

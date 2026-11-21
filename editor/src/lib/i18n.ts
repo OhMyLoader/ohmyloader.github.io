@@ -9,14 +9,9 @@ import type { ContentType } from './model';
  */
 
 const en = {
-  app: {
-    title: 'OhMyLoader Editor',
-    subtitle: 'Pack editor',
-  },
   header: {
     namespace: 'namespace',
     unsaved: 'unsaved',
-    language: 'language',
     import: 'import .oml',
     importTitle: 'import an .oml archive',
     export: 'export .oml',
@@ -183,14 +178,9 @@ const en = {
 type Dict = typeof en;
 
 const zh: Dict = {
-  app: {
-    title: 'OhMyLoader 编辑器',
-    subtitle: '内容包编辑器',
-  },
   header: {
     namespace: '命名空间',
     unsaved: '未保存',
-    language: '语言',
     import: '导入 .oml',
     importTitle: '导入 .oml 归档',
     export: '导出 .oml',
@@ -348,22 +338,16 @@ const zh: Dict = {
 export const LOCALES = ['en', 'zh'] as const;
 export type Locale = (typeof LOCALES)[number];
 
-const KEY_LOCALE = 'oml-editor:locale';
-
+/** The page locale decides the app language: /editor/ is English, /zh/editor/ is Chinese.
+ *  The site navbar's language switcher navigates between the two wrappers, so the app needs
+ *  no language control of its own. */
 function initialLocale(): Locale {
-  // The site's server render has no storage; the browser module re-evaluates on mount.
-  if (typeof window === 'undefined') return 'en';
-  try {
-    const stored = localStorage.getItem(KEY_LOCALE);
-    if (stored === 'en' || stored === 'zh') return stored;
-  } catch {
-    // no storage: fall through to the browser language
-  }
-  const language =
-    typeof navigator !== 'undefined' && typeof navigator.language === 'string'
-      ? navigator.language
-      : 'en';
-  return language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+  if (typeof document === 'undefined') return 'en'; // server render of the wrapper page
+  const language = document.documentElement.lang;
+  if (language) return language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+  return typeof navigator !== 'undefined' && navigator.language?.toLowerCase().startsWith('zh')
+    ? 'zh'
+    : 'en';
 }
 
 const flattened = { en: flatten(en), zh: flatten(zh) };
@@ -391,22 +375,11 @@ export function t(key: MessageKey, ...args: unknown[]): string {
 
 export { locale };
 
+/** Switches the app language. With no in-app language control this remains for the tests;
+ *  the wrapper page's locale decides the initial value, and VitePress owns html lang and
+ *  the document title. */
 export function setLocale(next: Locale): void {
   setLocaleSignal(next);
-  try {
-    localStorage.setItem(KEY_LOCALE, next);
-  } catch {
-    // best-effort, like the draft
-  }
-  if (typeof document !== 'undefined') {
-    document.documentElement.lang = next === 'zh' ? 'zh-CN' : 'en';
-    document.title = t('app.title');
-  }
-}
-
-if (typeof document !== 'undefined') {
-  document.documentElement.lang = locale() === 'zh' ? 'zh-CN' : 'en';
-  document.title = t('app.title');
 }
 
 export function typeLabel(type: ContentType): string {

@@ -239,37 +239,6 @@
   background: var(--danger-weak);
 }
 
-/* ---------- language switch ---------- */
-
-.lang-group {
-  display: inline-flex;
-  gap: 2px;
-  padding: 2px;
-  border: 1px solid var(--line);
-  border-radius: 0.5rem;
-  background: var(--panel-soft);
-}
-
-.lang-btn {
-  height: 1.5rem;
-  padding: 0 0.5rem;
-  border-radius: 0.375rem;
-  color: var(--muted);
-  font-size: 0.6875rem;
-  font-weight: 500;
-  transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
-}
-
-.lang-btn:hover {
-  color: var(--text);
-}
-
-.lang-btn--active {
-  background: var(--panel);
-  color: var(--accent-strong);
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
-}
-
 /* ---------- fields ---------- */
 
 .input,
@@ -564,14 +533,6 @@
 
 .preview-chip {
   background: #1e293b;
-}
-
-.brand-tile {
-  background: #0f172a;
-}
-
-.dark .brand-tile {
-  background: #4338ca;
 }
 
 .code-view {

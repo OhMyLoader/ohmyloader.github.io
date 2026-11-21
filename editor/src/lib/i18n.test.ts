@@ -1,15 +1,5 @@
 import { describe, expect, test } from 'bun:test';
 
-const backing = new Map<string, string>();
-Object.defineProperty(globalThis, 'localStorage', {
-  configurable: true,
-  value: {
-    getItem: (key: string) => backing.get(key) ?? null,
-    setItem: (key: string, value: string) => void backing.set(key, value),
-    removeItem: (key: string) => void backing.delete(key),
-  },
-});
-
 const i18n = await import('./i18n');
 
 describe('i18n', () => {
@@ -33,12 +23,5 @@ describe('i18n', () => {
     expect(i18n.t('validation.required', 'input')).toBe('input 为必填项');
     expect(i18n.t('preview.title')).not.toBe(englishTitle);
     i18n.setLocale('en');
-  });
-
-  test('persists the chosen locale', () => {
-    i18n.setLocale('zh');
-    expect(backing.get('oml-editor:locale')).toBe('zh');
-    i18n.setLocale('en');
-    expect(backing.get('oml-editor:locale')).toBe('en');
   });
 });

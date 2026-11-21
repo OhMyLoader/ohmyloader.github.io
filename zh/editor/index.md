@@ -1,5 +1,6 @@
 ---
 layout: page
+title: 内容包编辑器
 ---
 
 <script setup lang="ts">

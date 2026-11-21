@@ -1,5 +1,6 @@
 ---
 layout: page
+title: Content Pack Editor
 ---
 
 <script setup lang="ts">
